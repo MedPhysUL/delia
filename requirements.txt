@@ -1,0 +1,5 @@
+h5py==3.4.0
+numpy==1.21.2
+pydicom==2.2.2
+pynrrd==0.4.2
+SimpleITK==2.1.1
