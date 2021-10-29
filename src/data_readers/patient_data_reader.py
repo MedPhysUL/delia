@@ -12,7 +12,6 @@
 import enum
 import logging
 from typing import Callable, Dict, List, NamedTuple
-import warnings
 
 from src.data_model import ImageAndSegmentationDataModel, PatientDataModel
 from .dicom_reader import DicomReader
@@ -27,7 +26,7 @@ class PatientDataReader(DicomReader):
 
     class QueryTypeName(enum.Enum):
         """
-        Enumeration of the names of different types of queries.
+        Enumeration of the names of the different types of queries.
         """
         DEFAULT = "Default"
         SEGMENTATION = "Segmentation"
@@ -36,7 +35,7 @@ class PatientDataReader(DicomReader):
 
     class QueryTypeFunction(NamedTuple):
         """
-        Namedtuple of the functions associated to different types of queries.
+        Namedtuple of the functions associated to the different types of queries.
         """
         DEFAULT: Callable = None
         SEGMENTATION: Callable = None
@@ -74,6 +73,20 @@ class PatientDataReader(DicomReader):
 
         self.check_availability_of_given_series_uids()
         self.check_availability_of_given_series_description()
+
+    @property
+    def patient_name(self) -> str:
+        """
+        Patient name.
+
+        Returns
+        -------
+        patient_name : str
+            Patient name.
+        """
+        patient_name = self._images_data[0].dicom_header.PatientName
+
+        return patient_name
 
     @property
     def series_descriptions(self) -> Dict[str, List[str]]:
@@ -135,6 +148,7 @@ class PatientDataReader(DicomReader):
 
         return available_series_descriptions
 
+    @property
     def available_series_uids(self) -> List[str]:
         """
         Available series' uids.
@@ -150,20 +164,34 @@ class PatientDataReader(DicomReader):
 
         return available_series_uid
 
-    def update_series_descriptions(self, series_key):
+    def update_series_descriptions(self, series_key: str) -> None:
+        """
+        Add a series description to the series description list of the given series key.
+
+        Parameters
+        ----------
+        series_key : str
+            Series key.
+        """
         logging.info(f"No available series for {series_key}. Available series are "
-                     f"{self.available_series_descriptions}. Choose one :")
+                     f"{self.available_series_descriptions}.")
+
         while True:
-            new_series_description = input()
+            new_series_description = input("Name of the series description to add: ")
 
             if new_series_description in self.available_series_descriptions:
                 break
             else:
-                logging.info("Try again.")
+                logging.info(f"The given series description name is {new_series_description}. However, this is NOT one "
+                             f"of the available series description found in the patient's dicom files. Available "
+                             f"series are {self.available_series_descriptions}. Please try again.")
 
         self.series_descriptions[series_key] += [new_series_description]
 
-    def check_availability_of_given_series_description(self):
+    def check_availability_of_given_series_description(self) -> None:
+        """
+        Check availability of given series description in the patient's dicom files.
+        """
         for series_key, series_description_list in self.series_descriptions.items():
             if any(series in self.available_series_descriptions for series in series_description_list):
                 pass
@@ -171,17 +199,40 @@ class PatientDataReader(DicomReader):
                 self.update_series_descriptions(series_key)
                 self.check_availability_of_given_series_description()
 
-    def check_availability_of_given_series_uids(self):
+    def check_availability_of_given_series_uids(self) -> None:
+        """
+        Check availability of given series uids in the patient's dicom files.
+        """
         for path_to_segmentation in self.paths_to_segmentation:
-            if any(uid in path_to_segmentation for uid in self.available_series_uids()):
+            if any(uid in path_to_segmentation for uid in self.available_series_uids):
                 pass
             else:
-                warnings.warn("no uid for given segmentation")
+                logging.warning(f"The given segmentation file name is {path_to_segmentation}. However, this file name "
+                                f"does NOT contain any of the available series uids found in the patient's dicom "
+                                f"files. Available series uids are {self.available_series_uids}.")
 
-    def default_query(self):
+    def default_query(self) -> List[ImageAndSegmentationDataModel]:
+        """
+        The default query consists in obtaining all the images without any segmentation.
+
+        Returns
+        -------
+        image_data : List[ImageAndSegmentationDataModel]
+            image_data
+        """
         return [ImageAndSegmentationDataModel(image=image) for image in self._images_data]
 
-    def segmentation_specific_query(self):
+    def segmentation_specific_query(self) -> List[ImageAndSegmentationDataModel]:
+        """
+        The segmentation specific query consists in obtaining the images that have the same serial uids as those
+        contained in the file names of the given segmentations. The final dataset therefore contains both the
+        segmentations and their corresponding images.
+
+        Returns
+        -------
+        image_and_segmentation_data : List[ImageAndSegmentationDataModel]
+            image_and_segmentation_data
+        """
         data = []
         for image in self._images_data:
             for path_to_segmentation in self.paths_to_segmentation:
@@ -197,7 +248,16 @@ class PatientDataReader(DicomReader):
 
         return data
 
-    def series_description_specific_query(self):
+    def series_description_specific_query(self) -> List[ImageAndSegmentationDataModel]:
+        """
+        The series description specific query consists in obtaining only the images that have the given series
+        descriptions. The final dataset therefore contains both the segmentations and their corresponding images.
+
+        Returns
+        -------
+        image_data : List[ImageAndSegmentationDataModel]
+            image_data
+        """
         data = []
         for image_idx, image in enumerate(self._images_data):
             if image.dicom_header.SeriesDescription in self.flatten_series_descriptions:
@@ -206,7 +266,17 @@ class PatientDataReader(DicomReader):
 
         return data
 
-    def segmentation_and_series_description_specific_query(self):
+    def segmentation_and_series_description_specific_query(self) -> List[ImageAndSegmentationDataModel]:
+        """
+        The segmentation and series description specific query consists of obtaining the images that have the same
+        serial uids as those contained in the file names of the given segmentations and the images that have the given
+        series descriptions.
+
+        Returns
+        -------
+        image_and_segmentation_data : List[ImageAndSegmentationDataModel]
+            image_and_segmentation_data
+        """
         data = []
         for image_idx, image in enumerate(self._images_data):
             image_added = False
@@ -228,7 +298,16 @@ class PatientDataReader(DicomReader):
 
         return data
 
-    def query_functions(self):
+    def query_functions(self) -> QueryTypeFunction:
+        """
+        Name of the type of queries associated with their respective function that is used to retrieve the corresponding
+        data from the patient's dicom files and from the given segmentations.
+
+        Returns
+        -------
+        query_functions : QueryTypeFunction
+            query_functions
+        """
         query_functions = self.QueryTypeFunction(
             DEFAULT=self.default_query,
             SEGMENTATION=self.segmentation_specific_query,
@@ -239,13 +318,16 @@ class PatientDataReader(DicomReader):
         return query_functions
 
     @property
-    def patient_name(self):
-        patient_name = self._images_data[0].dicom_header.PatientName
-
-        return patient_name
-
-    @property
     def query_type(self) -> QueryTypeName:
+        """
+        Get the name of the query type to use based on the value of the variables "path_to_segmentation" and
+        "series_descriptions" given to the PatientDataReader class instance.
+
+        Returns
+        -------
+        query_type_name : QueryTypeName
+            query_type_name
+        """
         if self.paths_to_segmentation and self.series_descriptions:
             return self.QueryTypeName.SEGMENTATION_AND_SERIES_DESCRIPTION
         elif self.paths_to_segmentation is None and self.series_descriptions:
@@ -257,45 +339,25 @@ class PatientDataReader(DicomReader):
 
     @property
     def query_function(self) -> Callable:
-        return getattr(self.query_functions(), self.query_type.name)
-
-    def _get_patient_data(self) -> Dict[str, ImageAndSegmentationDataModel]:
         """
-        Get patient data.
+        Get the query function to use based on the name of the query type.
 
         Returns
         -------
-        data : Dict[str, ImageAndSegmentationDataModel]
-            Dictionary containing the patient's data extracted from its dicom files and the patient's medical image
-            segmentation data extracted from the segmentation files, for each available modality. This dictionary is
-            formatted as follows :
-
-                data: {
-                    modality (example: "CT"): (
-                        "image" : ImageDataModel,
-                        "segmentation" : SegmentationDataModel,
-                    ),
-                    modality (example: "PT"): (
-                        "image" : ImageDataModel,
-                        "segmentation" : SegmentationDataModel,
-                    ),
-                    ...
-                }
+        query_function : Callable
+            query_function
         """
-        pass
+        return getattr(self.query_functions(), self.query_type.name)
 
-    @property
-    def patient_dataset(
-            self,
-    ) -> PatientDataModel:
+    def get_patient_dataset(self) -> PatientDataModel:
         """
-        Patient dataset.
+        Get the patient dataset.
 
         Returns
         -------
         patient_dataset : PatientDataModel
             A named tuple grouping the patient's data extracted from its dicom files and the patient's medical image
-            segmentation data extracted from the segmentation files, for each available modality.
+            segmentation data extracted from the segmentation files.
         """
         patient_dataset = PatientDataModel(
             patient_name=self.patient_name,

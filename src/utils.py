@@ -1,6 +1,7 @@
 import os
 import enum
-from typing import Union
+from typing import Callable, Union
+import warnings
 
 
 class ExtendedEnum(enum.Enum):
@@ -49,3 +50,30 @@ def check_validity_of_given_name(name: str, enum_class: Union[enum.Enum, enum.In
     else:
         raise ValueError(f"Given member {name} is not allowed. Allowed members of {enum_class} are "
                          f"{list(enum_class.__members__)}.")
+
+
+class Decorators:
+
+    @classmethod
+    def deprecated(cls, explanation: str) -> Callable:
+        """
+        Decorator to use on deprecated functions.
+
+        Parameters
+        ----------
+        explanation : str
+            Explanation of depreciation and recommended alternative function.
+
+        Returns
+        -------
+        deprecated_func: Callable
+            Deprecated function.
+        """
+        def deprecated_func(func):
+            def wrapper(*args, **kwargs):
+                warnings.warn(explanation, DeprecationWarning)
+                return func(*args, **kwargs)
+
+            return wrapper
+
+        return deprecated_func

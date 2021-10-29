@@ -1,12 +1,20 @@
+"""
+    @file:              patient_data_generator.py
+    @Author:            Maxence Larose
+
+    @Creation Date:     10/2021
+    @Last modification: 10/2021
+
+    @Description:       This file contains the PatientDataGenerator class which is used to iterate on multiple
+                        patients' dicom files and segmentation files using the PatientDataReader class.
+"""
+
+from collections.abc import Generator
 from copy import deepcopy
 import json
-from collections.abc import Generator
 from typing import Dict, List, Tuple, Union
 
 from src.data_readers.patient_data_reader import PatientDataReader
-
-
-# TODO : Decorator to increment.
 
 
 class PatientDataGenerator(Generator):
@@ -25,7 +33,7 @@ class PatientDataGenerator(Generator):
         else:
             self.series_descriptions = series_descriptions
 
-        self.idx = 0
+        self.current_index = 0
 
     def __len__(self):
         return len(self.paths_to_patients_folder_and_segmentations)
@@ -54,11 +62,11 @@ class PatientDataGenerator(Generator):
             json.dump(self.series_descriptions, json_file, ensure_ascii=False, indent=4)
 
     def send(self, _):
-        if self.idx == self.__len__():
+        if self.current_index == self.__len__():
             self.throw()
 
-        path_to_dicom_folder = self.paths_to_patients_folder_and_segmentations[self.idx][0]
-        paths_to_segmentation = self.paths_to_patients_folder_and_segmentations[self.idx][1]
+        path_to_dicom_folder = self.paths_to_patients_folder_and_segmentations[self.current_index][0]
+        paths_to_segmentation = self.paths_to_patients_folder_and_segmentations[self.current_index][1]
 
         print("PATH: ", path_to_dicom_folder)
         print("SEG: ", paths_to_segmentation)
@@ -69,10 +77,9 @@ class PatientDataGenerator(Generator):
             series_descriptions=self.series_descriptions
         )
         self.series_descriptions = patient_data_reader.series_descriptions
+        self.current_index += 1
 
-        self.idx += 1
-
-        return patient_data_reader.patient_dataset
+        return patient_data_reader.get_patient_dataset()
 
     def throw(self, typ=None, value=None, traceback=None):
         raise StopIteration

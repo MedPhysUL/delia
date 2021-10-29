@@ -185,3 +185,4 @@ class PatientDataset(object):
                     )
 
         patient_data_generator.save_series_descriptions_to_json()
+        patient_data_generator.close()

@@ -1,5 +1,6 @@
 import logging
 from logging_tools import logs_file_setup
+import warnings
 
 from root import *
 
@@ -11,6 +12,7 @@ if __name__ == "__main__":
     #                                          Logs Setup                                                         #
     # ----------------------------------------------------------------------------------------------------------- #
     logs_file_setup(__file__, logging.INFO)
+    warnings.filterwarnings("default", category=DeprecationWarning)
 
     # ----------------------------------------------------------------------------------------------------------- #
     #                                            Patient Dataset                                                  #
