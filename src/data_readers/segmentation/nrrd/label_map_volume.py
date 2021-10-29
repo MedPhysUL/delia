@@ -5,7 +5,7 @@
     @Creation Date:     10/2021
     @Last modification: 10/2021
 
-    @Description:       This file contain the class LabelMapVolume that inherit from the BaseNrrdSegmentation class. The
+    @Description:       This file contains the class LabelMapVolume that inherit from the BaseNrrdSegmentation class. The
                         goal of this class is to defined the methods that are used to get the total number of segments
                         and get the segment data corresponding to a given segment index.
 """
@@ -17,6 +17,10 @@ from src.data_readers.segmentation.base.base_nrrd_segmentation import BaseNrrdSe
 
 
 class LabelMapVolume(BaseNrrdSegmentation):
+    """
+    Class that defined the methods that are used to get the total number of segments and get the segment data
+    corresponding to a given segment index for the label map volume type of segmentation.
+    """
 
     def __init__(
             self,

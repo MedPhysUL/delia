@@ -1,26 +1,52 @@
+"""
+    @file:              dicom_reader.py
+    @Author:            Maxence Larose
+
+    @Creation Date:     10/2021
+    @Last modification: 10/2021
+
+    @Description:       This file contains the DicomReader class which is used to read dicom files contained in a given
+                        folder and transform its contents into the format of the ImageDataModel class.
+"""
+
 import logging
-from typing import Dict, List, Union, NamedTuple
+from typing import Dict, List, NamedTuple
 
 import pydicom
 import SimpleITK as sitk
 
-from src.data_model import ImageDataModel, ImageAndSegmentationDataModel, PatientDataModel
+from src.data_model import ImageDataModel
 from src.utils import check_validity_of_given_path
 
 
 class DicomReader:
+    """
+    A class used to read dicom files contained in a given folder and transform its contents into the standard format of
+    the PatientDataModel class.
+    """
 
     class SeriesData(NamedTuple):
+        """
+        Series description namedtuple to simplify management of values.
+        """
         series_description: str
         paths_to_dicoms_from_series: List[str]
         dicom_header: pydicom.dataset.FileDataset
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+            self,
+            path_to_dicom_folder: str
+    ):
         """
-        Used to load one or multiple dicom files and apply different queries on the loaded files like obtain a patient
-        image dataset from those dicom files.
+        Constructor of the class DicomReader.
+
+        Parameters
+        ----------
+        path_to_dicom_folder : str
+            Path to the folder containing the patient dicom files.
         """
-        super(DicomReader, self).__init__(*args, **kwargs)
+        super(DicomReader, self).__init__()
+        self._path_to_dicom_folder = path_to_dicom_folder
 
     @staticmethod
     def _get_dicom_header(
@@ -49,17 +75,10 @@ class DicomReader:
 
         return loaded_dicom
 
-    @staticmethod
-    def __get_series_ids_from_path_to_dicom_folder(
-            path_to_dicom_folder: str
-    ) -> List[str]:
+    @property
+    def __series_ids(self) -> List[str]:
         """
         Get all series IDs from a patient's dicom folder.
-
-        Parameters
-        ----------
-        path_to_dicom_folder : str
-            Path to the folder containing the patient's dicom files.
 
         Returns
         -------
@@ -67,53 +86,40 @@ class DicomReader:
             All series IDs contained in a patient folder.
         """
         series_reader = sitk.ImageSeriesReader()
-        series_ids = series_reader.GetGDCMSeriesIDs(path_to_dicom_folder)
+        series_ids = series_reader.GetGDCMSeriesIDs(self._path_to_dicom_folder)
 
         if not series_ids:
-            raise FileNotFoundError(f"Given directory {path_to_dicom_folder} does not contain a DICOM series.")
+            raise FileNotFoundError(f"Given directory {self._path_to_dicom_folder} does not contain a DICOM series.")
 
         return series_ids
 
-    def __get_selected_series_data_from_series_ids_and_path_to_dicom_folder(
-            self,
-            series_ids: List[str],
-            path_to_dicom_folder: str
-    ) -> Dict[str, SeriesData]:
+    @property
+    def __series_data_dict(self) -> Dict[str, SeriesData]:
         """
-        Get the selected series data from series IDs and the path to the patient's dicom folder. The series are
-        selected if the series description corresponds to one of the description available in the Modality class.
-
-        Parameters
-        ----------
-        series_ids : List[str]
-            All series IDs contained in a patient folder.
-        path_to_dicom_folder : str
-            Path to the folder containing the patient's dicom files.
+        Get the series data from series IDs and the path to the patient's dicom folder.
 
         Returns
         -------
-        selected_series_data : Dict[str, SeriesData]
+        series_data_dict : Dict[str, SeriesData]
             Dictionary of the data from the selected series.
         """
-        all_series_description: List[str] = []
-        selected_series_data: Dict[str, DicomReader.SeriesData] = {}
-        for idx, series_id in enumerate(series_ids):
+        series_data_dict: Dict[str, DicomReader.SeriesData] = {}
+        for idx, series_id in enumerate(self.__series_ids):
             series_reader = sitk.ImageSeriesReader()
-            paths_to_dicoms_from_series = series_reader.GetGDCMSeriesFileNames(path_to_dicom_folder, series_id)
+            paths_to_dicoms_from_series = series_reader.GetGDCMSeriesFileNames(self._path_to_dicom_folder, series_id)
 
             path_to_first_dicom_of_series = paths_to_dicoms_from_series[0]
             loaded_dicom_header = self._get_dicom_header(path_to_dicom=path_to_first_dicom_of_series)
-            modality, series_description = loaded_dicom_header.Modality, loaded_dicom_header.SeriesDescription
-            all_series_description.append(series_description)
+            series_description = loaded_dicom_header.SeriesDescription
 
             series_data = self.SeriesData(
                 series_description=series_description,
                 paths_to_dicoms_from_series=paths_to_dicoms_from_series,
                 dicom_header=loaded_dicom_header
             )
-            selected_series_data[series_id] = series_data
+            series_data_dict[series_id] = series_data
 
-        return selected_series_data
+        return series_data_dict
 
     @staticmethod
     def __get_3d_sitk_image_from_dicom_series(
@@ -139,45 +145,20 @@ class DicomReader:
 
         return image
 
-    def __generate_3d_images_dataset_from_patient_series(
-            self,
-            path_to_dicom_folder: str,
-    ) -> Dict[str, Union[str, Dict[str, ImageAndSegmentationDataModel]]]:
+    def get_images_data(self) -> List[ImageDataModel]:
         """
-        Generate multiple 3D images array each corresponding to a specific modality. Images are generated from the dicom
-        files contained in the given folder. The output patient data are formatted in a dictionary containing the
-        patient's name and his images with their associated modality.
-
-        Parameters
-        ----------
-        path_to_dicom_folder : str
-            Path to the folder containing the patient dicom files.
+        List of tuples containing 3D images array and their corresponding dicom header. Each element in the list
+        corresponds to an image series.
 
         Returns
         -------
-        image_dataset : dict
-            A dictionary regrouping the patient's name, and his images with their associated modality and dicom header.
-            This dictionary is formatted as follows :
-
-                image_dataset = {
-                    "patient_name": patient_name,
-                    "data": {
-                        modality (example: "CT"): ImageAndSegmentationDataModel,
-                        modality (example: "PT"): ImageAndSegmentationDataModel,
-                        ...
-                    }
-                }
+        image_data_list : List[ImageDataModel]
+            A list of the patient's images data.
         """
-        check_validity_of_given_path(path=path_to_dicom_folder)
-        series_ids = self.__get_series_ids_from_path_to_dicom_folder(path_to_dicom_folder=path_to_dicom_folder)
+        check_validity_of_given_path(path=self._path_to_dicom_folder)
 
-        selected_series_data = self.__get_selected_series_data_from_series_ids_and_path_to_dicom_folder(
-            series_ids=series_ids,
-            path_to_dicom_folder=path_to_dicom_folder
-        )
-
-        image_dataset = {}
-        for series_data in selected_series_data.values():
+        images_data = []
+        for series_data in self.__series_data_dict.values():
             image = self.__get_3d_sitk_image_from_dicom_series(
                 paths_to_dicoms_from_series=series_data.paths_to_dicoms_from_series
             )
@@ -187,41 +168,6 @@ class DicomReader:
                 simple_itk_image=image
             )
 
-            image_and_segmentation_data = ImageAndSegmentationDataModel(
-                image=image_data
-            )
+            images_data.append(image_data)
 
-            if image_dataset == {}:
-                image_dataset = dict(
-                    patient_name=str(series_data.dicom_header.PatientName),
-                    data=[image_and_segmentation_data]
-                )
-            else:
-                image_dataset["data"].append(image_and_segmentation_data)
-
-        return image_dataset
-
-    def _get_patient_image_data(self, path_to_dicom_folder: str, ) -> PatientDataModel:
-        """
-        Get the patient medical data from the path of the folder containing its dicom files.
-
-        Parameters
-        ----------
-        path_to_dicom_folder : str
-            Path to the folder containing the patient dicom files.
-
-        Returns
-        -------
-        patient_image_data : PatientDataModel
-            A named tuple grouping the patient's data extracted from its dicom files for each available modality. The
-            segmentation data of the patient's medical image is set to "None" since it is not read by the dicom reader
-            but rather by the segmentation reader.
-        """
-        image_dataset = self.__generate_3d_images_dataset_from_patient_series(path_to_dicom_folder=path_to_dicom_folder)
-
-        patient_image_data = PatientDataModel(
-            patient_name=image_dataset["patient_name"],
-            data=image_dataset["data"]
-        )
-
-        return patient_image_data
+        return images_data

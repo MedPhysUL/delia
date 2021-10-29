@@ -5,8 +5,8 @@
     @Creation Date:     10/2021
     @Last modification: 10/2021
 
-    @Description:       This file contain the abstract class BaseNrrdSegmentation that inherit from the BaseSegmentation
-                        class.
+    @Description:       This file contains the abstract class BaseNrrdSegmentation that inherit from the
+                        BaseSegmentation class.
 """
 
 from abc import abstractmethod

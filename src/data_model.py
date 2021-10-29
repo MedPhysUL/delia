@@ -42,7 +42,7 @@ class SegmentationDataModel(NamedTuple):
             }
 
     simple_itk_label_map : Image
-        The segmentation has a SimpleITK image.
+        The segmentation as a SimpleITK image.
     metadata : Dict[str, SegmentDataModel]
         A dictionary that contains organs and their corresponding segmentation metadata. Keys are organ names and
         values are tuples containing important information about the segments in the original segmentation image

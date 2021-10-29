@@ -79,8 +79,7 @@ class PatientDataset(object):
 
         for path_to_patient_dicom_folder in paths_to_patient_dicom_folder:
             first_dicom = os.path.join(path_to_patient_dicom_folder, os.listdir(path_to_patient_dicom_folder)[0])
-            dicom_reader = DicomReader()
-            dicom_header = dicom_reader._get_dicom_header(path_to_dicom=first_dicom)
+            dicom_header = pydicom.dcmread(first_dicom, stop_before_pixels=True)
             patient_name = str(dicom_header.PatientName)
 
             segmentation_filename_patterns_matcher = SegmentationFilenamePatternsMatcher(

@@ -5,9 +5,8 @@
     @Creation Date:     10/2021
     @Last modification: 10/2021
 
-    @Description:       This file contain the class Segmentation that is used to . The
-                        goal of this class is to defined the methods that are used to get the total number of segments
-                        and get the segment data corresponding to a given segment index.
+    @Description:       This file contains the class Segmentation that is used as a context class where states are types
+                        of ways to load the segmentation data, or more precisely, types of loading segmentation classes.
 """
 
 from typing import Dict, List
@@ -19,13 +18,18 @@ from src.data_model import SegmentDataModel
 
 
 class Segmentation:
+    """
+    A class used as a context class where states are types of ways to load the segmentation data, or more precisely,
+    types of loading segmentation classes. States are entirely defined by the extension of the given file and so, by the
+    path of the segmentation.
+    """
 
     def __init__(
             self,
             path_to_segmentation: str,
     ):
         """
-        Used for the composition of the different Segmentation classes based on the given segmentation category.
+        Constructor of the Segmentation class.
 
         Parameters
         ----------
@@ -36,6 +40,14 @@ class Segmentation:
 
     @property
     def segmentation_category(self) -> SegmentationCategory:
+        """
+        Segmentation category corresponding to the given segmentation file extension.
+
+        Returns
+        -------
+        segmentation_category : SegmentationCategory
+            Segmentation category.
+        """
         possible_segmentation_categories: List[SegmentationCategory] = []
         for segmentation_category in list(SegmentationCategories):
             if self.path_to_segmentation.endswith(segmentation_category.file_extension):
@@ -44,7 +56,15 @@ class Segmentation:
         return max(possible_segmentation_categories, key=len)
 
     @property
-    def _loading_class_instance(self):
+    def _loading_class_instance(self) -> SegmentationCategory.loading_class:
+        """
+        The loading class instance corresponding to the class of the given segmentation category.
+
+        Returns
+        -------
+        _loading_class_instance : SegmentationCategory.loading_class
+            Loading class instance used to get the label maps and the segmentation metadata from a segmentation file.
+        """
         return self.segmentation_category.loading_class(path_to_segmentation=self.path_to_segmentation)
 
     @property

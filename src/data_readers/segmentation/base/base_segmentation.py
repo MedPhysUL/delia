@@ -5,7 +5,7 @@
     @Creation Date:     10/2021
     @Last modification: 10/2021
 
-    @Description:       This file contain the abstract class BaseSegmentation.
+    @Description:       This file contains the abstract class BaseSegmentation.
 """
 
 from abc import ABC, abstractmethod
