@@ -1,14 +1,7 @@
 import os
 import enum
-from typing import Callable, Union
+from typing import Callable, List, NamedTuple, Optional, Union
 import warnings
-
-
-class ExtendedEnum(enum.Enum):
-
-    @classmethod
-    def list(cls):
-        return list(map(lambda c: c.value, cls))
 
 
 def check_validity_of_given_path(
@@ -48,7 +41,7 @@ def check_validity_of_given_name(name: str, enum_class: Union[enum.Enum, enum.In
     if name in enum_class.__members__:
         pass
     else:
-        raise ValueError(f"Given member {name} is not allowed. Allowed members of {enum_class} are "
+        raise ValueError(f"Given member {name} doesn't exist. Allowed members of {enum_class} are "
                          f"{list(enum_class.__members__)}.")
 
 
@@ -77,3 +70,11 @@ class Decorators:
             return wrapper
 
         return deprecated_func
+
+
+class PathsToPatientFolderAndSegmentations(NamedTuple):
+    """
+    Namedtuple of paths to patient folder and segmentations.
+    """
+    path_to_patient_folder: Optional[str] = None
+    path_to_segmentations: Optional[List[str]] = None

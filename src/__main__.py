@@ -18,7 +18,7 @@ if __name__ == "__main__":
     #                                            Patient Dataset                                                  #
     # ----------------------------------------------------------------------------------------------------------- #
     hdf5_dataset = PatientDataset(
-        base_path_to_dataset=PathName.PATH_TO_PATIENT_DATASET,
+        path_to_dataset=PathName.PATH_TO_PATIENT_DATASET,
     )
 
     hdf5_dataset.create_dataset_from_dicom_and_segmentation_files(

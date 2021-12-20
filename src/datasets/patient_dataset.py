@@ -1,7 +1,19 @@
-import os
-import logging
+"""
+    @file:              patient_dataset.py
+    @Author:            Maxence Larose
 
-import glob
+    @Creation Date:     10/2021
+    @Last modification: 10/2021
+
+    @Description:       This file contains the PatientDataset class that is used to interact with an hdf5 file dataset.
+                        The main purpose of this class is to create an hdf5 file dataset from multiple patients dicom
+                        files and their segmentation. This class also allows the user to interact with an existing hdf5
+                        file dataset through queries.
+"""
+
+import logging
+import os
+
 import h5py
 import json
 import pydicom
@@ -9,30 +21,30 @@ import SimpleITK as sitk
 from typing import List, Tuple, Union
 
 from src.data_readers.patient_data_generator import PatientDataGenerator
+from src.utils import PathsToPatientFolderAndSegmentations
 from .segmentation_filename_patterns_matcher import SegmentationFilenamePatternsMatcher
-from src.data_readers.dicom_reader import DicomReader
-from src.constants.segmentation_category import SegmentationCategory
-
-# TODO : Add ways to navigate through the dataset
 
 
-class PatientDataset(object):
+class PatientDataset:
+    """
+    This file contains the PatientDataset class that is used to interact with an hdf5 file dataset. The main purpose of
+    this class is to create an hdf5 file dataset from multiple patients dicom files and their segmentation. This class
+    also allows the user to interact with an existing hdf5 file dataset through queries.
+    """
 
     def __init__(
             self,
-            base_path_to_dataset: str,
+            path_to_dataset: str,
     ):
         """
-        This class allows the user to query an hdf5 dataset saved in an hdf5 file.
+        Used to initialize the path to the dataset.
 
         Parameters
         ----------
-        base_path_to_dataset : str
+        path_to_dataset : str
             Path to dataset.
-        segmentation_category : SegmentationCategory
-            Segmentation category.
         """
-        self.base_path_to_dataset = base_path_to_dataset
+        self.path_to_dataset = path_to_dataset
 
     @property
     def path_to_dataset(self) -> str:
@@ -44,9 +56,22 @@ class PatientDataset(object):
         path_to_dataset : str
             Path to dataset containing modality and organ names.
         """
-        path = f"{self.base_path_to_dataset}" + ".h5"
+        return self._path_to_dataset
 
-        return path
+    @path_to_dataset.setter
+    def path_to_dataset(self, path_to_dataset: str) -> None:
+        """
+        Path to dataset.
+
+        Parameters
+        ----------
+        path_to_dataset : str
+            Path to dataset.
+        """
+        if path_to_dataset.endswith(".h5"):
+            self._path_to_dataset = path_to_dataset
+        else:
+            self._path_to_dataset = f"{path_to_dataset}" + ".h5"
 
     def _check_authorization_of_dataset_creation(
             self,
@@ -73,8 +98,15 @@ class PatientDataset(object):
             self,
             paths_to_patient_dicom_folder: List[str],
             path_to_segmentations_folder: str
-    ) -> List[Tuple[str, Union[List[str], None]]]:
+    ) -> List[PathsToPatientFolderAndSegmentations]:
+        """
+        Check if dataset's creation is allowed.
 
+        Parameters
+        ----------
+        overwrite_dataset : bool
+            Overwrite existing dataset.
+        """
         paths_to_patients_folder_and_segmentations = []
 
         for path_to_patient_dicom_folder in paths_to_patient_dicom_folder:
@@ -84,10 +116,11 @@ class PatientDataset(object):
 
             segmentation_filename_patterns_matcher = SegmentationFilenamePatternsMatcher(
                 path_to_segmentations_folder=path_to_segmentations_folder,
-                patient_name=patient_name
+                patient_name=patient_name,
+                patient_number_prefix="Ano"
             )
 
-            paths_to_segmentations = segmentation_filename_patterns_matcher.get_absolute_path_to_segmentation_file()
+            paths_to_segmentations = segmentation_filename_patterns_matcher.get_absolute_paths_to_segmentation_files()
 
             paths_to_patients_folder_and_segmentations.append((path_to_patient_dicom_folder, paths_to_segmentations))
 
@@ -184,5 +217,5 @@ class PatientDataset(object):
                         data=json.dumps(segmentation_metadata_dict)
                     )
 
-        patient_data_generator.save_series_descriptions_to_json()
+        patient_data_generator.save_series_descriptions_to_json(path=path_to_series_description_json)
         patient_data_generator.close()

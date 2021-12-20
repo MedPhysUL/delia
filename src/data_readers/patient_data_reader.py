@@ -11,7 +11,7 @@
 
 import enum
 import logging
-from typing import Callable, Dict, List, NamedTuple
+from typing import Callable, Dict, List, NamedTuple, Optional
 
 from src.data_model import ImageAndSegmentationDataModel, PatientDataModel
 from .dicom_reader import DicomReader
@@ -45,8 +45,8 @@ class PatientDataReader(DicomReader):
     def __init__(
             self,
             path_to_dicom_folder: str,
-            paths_to_segmentation: List[str] = None,
-            series_descriptions: Dict[str, List[str]] = None
+            paths_to_segmentation: Optional[List[str]] = None,
+            series_descriptions: Optional[Dict[str, List[str]]] = None
     ):
         """
         Used to check availability of given series' uid and series descriptions in the patient's dicom files.
@@ -55,15 +55,15 @@ class PatientDataReader(DicomReader):
         ----------
         path_to_dicom_folder : str
             Path to the folder containing the patient dicom files.
-        paths_to_segmentation : List[str]
+        paths_to_segmentation : Optional[List[str]]
             A list of paths to the segmentation files. The name of the segmentation files must include the series uid
             of their corresponding image, i.e. the image on which the segmentation was made.
-        series_descriptions : Dict[str, List[str]]
+        series_descriptions : Optional[Dict[str, List[str]]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without segmentation. the patient dataset.
+            must be added to the dataset is to be able to add images without segmentation.
         """
         super(PatientDataReader, self).__init__(path_to_dicom_folder=path_to_dicom_folder)
         self._images_data = self.get_images_data()
@@ -71,8 +71,8 @@ class PatientDataReader(DicomReader):
         self.paths_to_segmentation = paths_to_segmentation
         self._series_descriptions = series_descriptions
 
-        self.check_availability_of_given_series_uids()
-        self.check_availability_of_given_series_description()
+        # self.check_availability_of_given_series_uids()
+        # self.check_availability_of_given_series_description()
 
     @property
     def patient_name(self) -> str:
