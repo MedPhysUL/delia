@@ -13,11 +13,10 @@
 from collections.abc import Generator
 from copy import deepcopy
 import json
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, NamedTuple, Optional, Union
 
 from src.data_readers.patient_data_reader import PatientDataReader
 from src.data_model import PatientDataModel
-from src.utils import PathsToPatientFolderAndSegmentations
 
 
 class PatientDataGenerator(Generator):
@@ -25,6 +24,13 @@ class PatientDataGenerator(Generator):
     A class used to iterate on multiple patients' dicom files and segmentation files using the PatientDataReader to
     obtain all patients' data. The PatientDataGenerator inherits from the Generator abstract class.
     """
+
+    class PathsToPatientFolderAndSegmentations(NamedTuple):
+        """
+        Namedtuple of paths to patient folder and segmentations.
+        """
+        path_to_patient_folder: Optional[str] = None
+        path_to_segmentations: Optional[List[str]] = None
 
     def __init__(
             self,

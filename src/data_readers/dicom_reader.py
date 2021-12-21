@@ -49,7 +49,7 @@ class DicomReader:
         self._path_to_dicom_folder = path_to_dicom_folder
 
     @staticmethod
-    def _get_dicom_header(
+    def get_dicom_header(
             path_to_dicom: str,
             show: bool = False
     ) -> pydicom.dataset.FileDataset:
@@ -109,7 +109,7 @@ class DicomReader:
             paths_to_dicoms_from_series = series_reader.GetGDCMSeriesFileNames(self._path_to_dicom_folder, series_id)
 
             path_to_first_dicom_of_series = paths_to_dicoms_from_series[0]
-            loaded_dicom_header = self._get_dicom_header(path_to_dicom=path_to_first_dicom_of_series)
+            loaded_dicom_header = self.get_dicom_header(path_to_dicom=path_to_first_dicom_of_series)
             series_description = loaded_dicom_header.SeriesDescription
 
             series_data = self.SeriesData(

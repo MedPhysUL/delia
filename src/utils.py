@@ -71,10 +71,3 @@ class Decorators:
 
         return deprecated_func
 
-
-class PathsToPatientFolderAndSegmentations(NamedTuple):
-    """
-    Namedtuple of paths to patient folder and segmentations.
-    """
-    path_to_patient_folder: Optional[str] = None
-    path_to_segmentations: Optional[List[str]] = None

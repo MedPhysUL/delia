@@ -16,12 +16,11 @@ import os
 
 import h5py
 import json
-import pydicom
 import SimpleITK as sitk
-from typing import List, Tuple, Union
+from typing import List
 
+from src.data_readers.patient_data_reader import PatientDataReader
 from src.data_readers.patient_data_generator import PatientDataGenerator
-from src.utils import PathsToPatientFolderAndSegmentations
 from .segmentation_filename_patterns_matcher import SegmentationFilenamePatternsMatcher
 
 
@@ -94,35 +93,40 @@ class PatientDataset:
         else:
             logging.info(f"Writing dataset with path : {self.path_to_dataset}.")
 
+    @staticmethod
     def get_paths_to_patient(
-            self,
-            paths_to_patient_dicom_folder: List[str],
+            paths_to_patients_dicom_folder: List[str],
             path_to_segmentations_folder: str
-    ) -> List[PathsToPatientFolderAndSegmentations]:
+    ) -> List[PatientDataGenerator.PathsToPatientFolderAndSegmentations]:
         """
-        Check if dataset's creation is allowed.
+        Paths to patients dicom folder.
 
         Parameters
         ----------
-        overwrite_dataset : bool
-            Overwrite existing dataset.
+        paths_to_patients_dicom_folder : List[str]
+            List of the paths to all the patients dicom folder.
+        path_to_segmentations_folder : str
+            Path to the folder containing the segmentations.
         """
         paths_to_patients_folder_and_segmentations = []
 
-        for path_to_patient_dicom_folder in paths_to_patient_dicom_folder:
-            first_dicom = os.path.join(path_to_patient_dicom_folder, os.listdir(path_to_patient_dicom_folder)[0])
-            dicom_header = pydicom.dcmread(first_dicom, stop_before_pixels=True)
-            patient_name = str(dicom_header.PatientName)
+        for path_to_patient_dicom_folder in paths_to_patients_dicom_folder:
+            patient_data_reader = PatientDataReader(path_to_dicom_folder=path_to_patient_dicom_folder)
 
             segmentation_filename_patterns_matcher = SegmentationFilenamePatternsMatcher(
                 path_to_segmentations_folder=path_to_segmentations_folder,
-                patient_name=patient_name,
+                patient_name=patient_data_reader.patient_name,
                 patient_number_prefix="Ano"
             )
 
             paths_to_segmentations = segmentation_filename_patterns_matcher.get_absolute_paths_to_segmentation_files()
 
-            paths_to_patients_folder_and_segmentations.append((path_to_patient_dicom_folder, paths_to_segmentations))
+            paths_to_patient_folder_and_segmentations = PatientDataGenerator.PathsToPatientFolderAndSegmentations(
+                path_to_patient_folder=path_to_patient_dicom_folder,
+                path_to_segmentations=paths_to_segmentations
+            )
+
+            paths_to_patients_folder_and_segmentations.append(paths_to_patient_folder_and_segmentations)
 
         return paths_to_patients_folder_and_segmentations
 
@@ -145,6 +149,8 @@ class PatientDataset:
             Patients folder path.
         path_to_segmentations_folder : str
             Images folder name.
+        path_to_series_description_json : str
+            Path to the json dictionary that contains the series descriptions.
         images_folder_name : str
             Images folder name.
         overwrite_dataset : bool, default = False.
@@ -154,17 +160,17 @@ class PatientDataset:
 
         hf = h5py.File(self.path_to_dataset, "w")
 
-        paths_to_patient_dicom_folder = []
+        paths_to_patients_dicom_folder = []
         for path_to_patient_folder in os.listdir(path_to_patients_folder):
             path_to_dicom_folder = os.path.join(
                 path_to_patients_folder,
                 path_to_patient_folder,
                 images_folder_name
             )
-            paths_to_patient_dicom_folder.append(path_to_dicom_folder)
+            paths_to_patients_dicom_folder.append(path_to_dicom_folder)
 
         paths_to_patients_folder_and_segmentations = self.get_paths_to_patient(
-            paths_to_patient_dicom_folder=paths_to_patient_dicom_folder,
+            paths_to_patients_dicom_folder=paths_to_patients_dicom_folder,
             path_to_segmentations_folder=path_to_segmentations_folder
         )
 

@@ -86,7 +86,7 @@ class PatientDataReader(DicomReader):
         """
         patient_name = self._images_data[0].dicom_header.PatientName
 
-        return patient_name
+        return str(patient_name)
 
     @property
     def series_descriptions(self) -> Dict[str, List[str]]:
