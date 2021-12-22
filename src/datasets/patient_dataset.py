@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 10/2021
+    @Last modification: 12/2021
 
     @Description:       This file contains the PatientDataset class that is used to interact with an hdf5 file dataset.
                         The main purpose of this class is to create an hdf5 file dataset from multiple patients dicom
@@ -216,12 +216,6 @@ class PatientDataset:
                             name=f"{organ}_label_map",
                             data=label_map
                         )
-                    segmentation_metadata = patient_image_data.segmentation.metadata
-                    segmentation_metadata_dict = dict((k, val._asdict()) for k, val in segmentation_metadata.items())
-                    series_group.create_dataset(
-                        name=f"segmentation_metadata",
-                        data=json.dumps(segmentation_metadata_dict)
-                    )
 
         patient_data_generator.save_series_descriptions_to_json(path=path_to_series_description_json)
         patient_data_generator.close()

@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 10/2021
+    @Last modification: 12/2021
 
     @Description:       This file contains the SegmentationReader class which is used to read a given segmentation file
                         and transform its contents into the format of the SegmentationDataModel class.
@@ -11,7 +11,8 @@
 
 import SimpleITK as sitk
 
-from src.data_readers.segmentation.segmentation import Segmentation
+from src.data_readers.segmentation.segmentation_context_manager import SegmentationCategoryManager
+from src.data_readers.segmentation.base.segmentation import Segmentation
 from src.data_model import SegmentationDataModel
 
 
@@ -54,16 +55,16 @@ class SegmentationReader:
     @property
     def __segmentation(self) -> Segmentation:
         """
-        Segmentation loading class instance.
+        Creates a Segmentation object.
 
         Returns
         -------
         segmentation : Segmentation
-            A class used as a context class where states are types of ways to load the segmentation data, or more
-            precisely types of loading segmentation classes. States are entirely defined by the extension of the given à
-            file and so, by the path of the segmentation.
+            Segmentation.
         """
-        return Segmentation(path_to_segmentation=self._path_to_segmentation)
+        segmentation_context_manager = SegmentationCategoryManager(path_to_segmentation=self._path_to_segmentation)
+
+        return segmentation_context_manager.segmentation
 
     def get_segmentation_data(self) -> SegmentationDataModel:
         """
@@ -78,8 +79,7 @@ class SegmentationReader:
         """
         segmentation_data = SegmentationDataModel(
             binary_label_maps=self.__segmentation.label_maps,
-            simple_itk_label_map=self.__simple_itk_label_image,
-            metadata=self.__segmentation.segmentation_metadata
+            simple_itk_label_map=self.__simple_itk_label_image
         )
 
         return segmentation_data

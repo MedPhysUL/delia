@@ -1,22 +1,22 @@
 """
-    @file:              label_map_volume.py
+    @file:              label_map_volume_builder.py
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 10/2021
+    @Last modification: 12/2021
 
-    @Description:       This file contains the class LabelMapVolume that inherit from the BaseNrrdSegmentation class. The
-                        goal of this class is to defined the methods that are used to get the total number of segments
-                        and get the segment data corresponding to a given segment index.
+    @Description:       This file contains the class LabelMapVolumeBuilder that inherit from the
+                        BaseNrrdSegmentationBuilder class. The goal of this class is to defined the methods that are
+                        used to get the total number of segments and get the segment data corresponding to a given
+                        segment index.
 """
 
 import numpy as np
 
-from src.data_model import SegmentDataModel
-from src.data_readers.segmentation.base.base_nrrd_segmentation import BaseNrrdSegmentation
+from src.data_readers.segmentation.nrrd.base_nrrd_segmentation_builder import BaseNrrdSegmentationBuilder, SegmentData
 
 
-class LabelMapVolume(BaseNrrdSegmentation):
+class LabelMapVolumeBuilder(BaseNrrdSegmentationBuilder):
     """
     Class that defined the methods that are used to get the total number of segments and get the segment data
     corresponding to a given segment index for the label map volume type of segmentation.
@@ -39,7 +39,7 @@ class LabelMapVolume(BaseNrrdSegmentation):
         self._segmentation_data : Tuple[np.ndarray, OrderedDict]
             Tuple containing the segmentation array and header.
         """
-        super(LabelMapVolume, self).__init__(
+        super(LabelMapVolumeBuilder, self).__init__(
             path_to_segmentation=path_to_segmentation
         )
 
@@ -55,7 +55,7 @@ class LabelMapVolume(BaseNrrdSegmentation):
         """
         return int(len(np.unique(self.segmentation_array)) - 1)
 
-    def _get_segment_from_segment_idx(self, segment_idx: int) -> SegmentDataModel:
+    def _get_segment_from_segment_idx(self, segment_idx: int) -> SegmentData:
         """
         Get the segment data by using its index in the segment list found in the segmentation metadata.
 
@@ -69,7 +69,7 @@ class LabelMapVolume(BaseNrrdSegmentation):
         segment_data : SegmentDataModel
             The segment data.
         """
-        segment = SegmentDataModel(
+        segment = SegmentData(
             name=f"Segment_{segment_idx + 1}",
             layer=0,
             label_value=segment_idx + 1

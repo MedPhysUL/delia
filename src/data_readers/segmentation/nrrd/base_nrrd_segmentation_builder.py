@@ -1,31 +1,50 @@
 """
-    @file:              base_nrrd_segmentation.py
+    @file:              base_nrrd_segmentation_builder.py
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 10/2021
+    @Last modification: 12/2021
 
-    @Description:       This file contains the abstract class BaseNrrdSegmentation that inherit from the
-                        BaseSegmentation class.
+    @Description:       This file contains the abstract class BaseNrrdSegmentationBuilder that inherit from the
+                        SegmentationBuilder class.
 """
 
 from abc import abstractmethod
 from collections import OrderedDict
-from typing import Dict, List, Tuple
+from typing import Dict, List, NamedTuple, Tuple
 
 import nrrd
 import numpy as np
 
 from src.constants.organ import Organs
-from src.data_model import SegmentDataModel
-from src.data_readers.segmentation.base.base_segmentation import BaseSegmentation
+from src.data_readers.segmentation.base.segment import Segment
+from src.data_readers.segmentation.base.segmentation_builder import SegmentationBuilder
 
 
-class BaseNrrdSegmentation(BaseSegmentation):
+class SegmentData(NamedTuple):
+    """
+    A named tuple grouping all the important information of a specific segment in the nrrd segmentation.
+
+    Elements
+    --------
+    name : str
+        The segment name.
+    layer : int
+        The layer of the segment in the 4D mask array.
+    label_value : int
+        The label value of the segment in the 3D mask array.
+    """
+    name: str = None
+    layer: int = None
+    label_value: int = None
+
+
+class BaseNrrdSegmentationBuilder(SegmentationBuilder):
     """
     An abstract class used as a reference for all other segmentation classes that read data from files with a ".nrrd"
     extension. These classes differ by the type of segmentation they are able to read. Indeed, the format of the
-    segmentations may be different even if the file extension is the same.
+    segmentations may be different even if the file extension is the same, because there is multiple ways of
+    representing a segment.
     """
 
     def __init__(
@@ -45,7 +64,7 @@ class BaseNrrdSegmentation(BaseSegmentation):
         self._segmentation_data : Tuple[np.ndarray, OrderedDict]
             Tuple containing the segmentation array and header.
         """
-        super(BaseSegmentation, self).__init__()
+        super(SegmentationBuilder, self).__init__()
 
         self._segmentation_data: Tuple[np.ndarray, OrderedDict] = nrrd.read(filename=path_to_segmentation)
 
@@ -63,9 +82,9 @@ class BaseNrrdSegmentation(BaseSegmentation):
         pass
 
     @abstractmethod
-    def _get_segment_from_segment_idx(self, segment_idx: int) -> SegmentDataModel:
+    def _get_segment_from_segment_idx(self, segment_idx: int) -> SegmentData:
         """
-        Get the segment data by using its index in the segment list found in the segmentation metadata.
+        Get the segment data by using its index in the segment list found in the segmentation file.
 
         Parameters
         ----------
@@ -74,7 +93,7 @@ class BaseNrrdSegmentation(BaseSegmentation):
 
         Returns
         -------
-        segment_data : SegmentDataModel
+        segment_data : SegmentData
             The segment data.
         """
         pass
@@ -104,25 +123,13 @@ class BaseNrrdSegmentation(BaseSegmentation):
         return self._segmentation_data[1]
 
     @property
-    def _segmentation_array_dimension(self) -> int:
-        """
-        Segmentation array dimension.
-
-        Returns
-        -------
-        dimension: int
-            Segmentation array dimension.
-        """
-        return self.segmentation_array.ndim
-
-    @property
-    def _segments(self) -> List[SegmentDataModel]:
+    def _segments_data(self) -> List[SegmentData]:
         """
         List of all the segments data in the segmentation.
 
         Returns
         -------
-        _segments : List[SegmentDataModel]
+        _segments : List[SegmentData]
             List of all the segments data in the segmentation.
         """
         segments = []
@@ -142,7 +149,7 @@ class BaseNrrdSegmentation(BaseSegmentation):
         _segments_names : List[str]
             List of all the segment names.
         """
-        segments_names = [segment.name for segment in self._segments]
+        segments_names = [segment_data.name for segment_data in self._segments_data]
 
         return segments_names
 
@@ -168,47 +175,13 @@ class BaseNrrdSegmentation(BaseSegmentation):
 
         return segment_names_associated_to_their_respective_organ
 
-    @property
-    def segmentation_metadata(self) -> Dict[str, SegmentDataModel]:
+    def _get_the_label_map_of_a_specific_segment(self, segment: SegmentData) -> np.ndarray:
         """
-        Get the segment data of all the organs/segments that are found in the segmentation file.
-
-        Returns
-        -------
-        segmentation_metadata : Dict[str, SegmentDataModel]
-            A dictionary grouping organs to their corresponding segment metadata. The keys are organ names and the values
-            are tuples containing important information about the organ/segment like its name, layer and label value.
-            The metadata dictionary is formatted as follows :
-
-                metadata = {
-                    organ_name (example: "PROSTATE"): (
-                        name: str
-                        layer: int
-                        label_value: int
-                    ),
-                    organ_name (example: "RECTUM"): (
-                        name: str
-                        layer: int
-                        label_value: int
-                    ),
-                    ...
-                }
-
-        """
-        segmentation_metadata = {}
-        for segment in self._segments:
-            organ_name = self._segments_names_associated_to_their_respective_organ[segment.name]
-            segmentation_metadata[organ_name] = segment
-
-        return segmentation_metadata
-
-    def _get_the_label_map_of_a_specific_segment(self, segment: SegmentDataModel) -> np.ndarray:
-        """
-        Dictionary of all the segment names associated to their respective organ.
+        Get the binary label map associated to a given segment.
 
         Parameters
         ----------
-        segment : SegmentDataModel
+        segment : SegmentData
             Segment data.
 
         Returns
@@ -216,13 +189,13 @@ class BaseNrrdSegmentation(BaseSegmentation):
         label_map : np.ndarray
             Binary label map of a specific segment.
         """
-        if self._segmentation_array_dimension == 3:
+        if self.segmentation_array.ndim == 3:
             array = self.segmentation_array
-        elif self._segmentation_array_dimension == 4:
+        elif self.segmentation_array.ndim == 4:
             array = self.segmentation_array[segment.layer]
         else:
             raise ValueError(f"Segmentation array must be of dimension 3 or 4. Given array is of dimension "
-                             f"{self._segmentation_array_dimension}.")
+                             f"{self.segmentation_array.ndim}.")
 
         label_map = np.zeros_like(array)
         segment_values_idx = np.where(array == segment.label_value)
@@ -231,25 +204,20 @@ class BaseNrrdSegmentation(BaseSegmentation):
         return label_map
 
     @property
-    def label_maps(self) -> Dict[str, np.ndarray]:
+    def segments(self) -> List[Segment]:
         """
-        Label maps of all the organs/segments that are found in the segmentation file.
+        Segments property.
 
         Returns
         -------
-        label_maps : Dict[str, np.ndarray]
-            A dictionary that contains the name of the organs and their corresponding binary label map. Keys are organ
-            names and values are binary label maps. Thus, the label maps dictionary is formatted as follows :
-
-                label_maps = {
-                    organ_name (example: "PROSTATE"): np.ndarray,
-                    organ_name (example: "RECTUM"): np.ndarray,
-                    ...
-                }
+        segments : List[Segment]
+            List of all the segments.
         """
-        label_maps = {}
-        for segment in self._segments:
+        segments = []
+        for segment in self._segments_data:
             organ_name = self._segments_names_associated_to_their_respective_organ[segment.name]
-            label_maps[organ_name] = self._get_the_label_map_of_a_specific_segment(segment=segment)
+            label_map = self._get_the_label_map_of_a_specific_segment(segment=segment)
 
-        return label_maps
+            segments.append(Segment(name=organ_name, label_map=label_map))
+
+        return segments
