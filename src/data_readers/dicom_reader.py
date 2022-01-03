@@ -3,10 +3,10 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 10/2021
+    @Last modification: 01/2022
 
     @Description:       This file contains the DicomReader class which is used to read dicom files contained in a given
-                        folder and transform its contents into the format of the ImageDataModel class.
+                        folder.
 """
 
 import logging
@@ -21,8 +21,7 @@ from src.utils import check_validity_of_given_path
 
 class DicomReader:
     """
-    A class used to read dicom files contained in a given folder and transform its contents into the standard format of
-    the PatientDataModel class.
+    A class used to read dicom files contained in a given folder.
     """
 
     class SeriesData(NamedTuple):

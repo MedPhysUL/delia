@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 12/2021
+    @Last modification: 01/2022
 
     @Description:       This file contains the PatientDataset class that is used to interact with an hdf5 file dataset.
                         The main purpose of this class is to create an hdf5 file dataset from multiple patients dicom
@@ -96,7 +96,8 @@ class PatientDataset:
     @staticmethod
     def get_paths_to_patient(
             paths_to_patients_dicom_folder: List[str],
-            path_to_segmentations_folder: str
+            path_to_segmentations_folder: str,
+            patient_number_prefix: str = "Ano"
     ) -> List[PatientDataGenerator.PathsToPatientFolderAndSegmentations]:
         """
         Paths to patients dicom folder.
@@ -107,6 +108,8 @@ class PatientDataset:
             List of the paths to all the patients dicom folder.
         path_to_segmentations_folder : str
             Path to the folder containing the segmentations.
+        patient_number_prefix : str
+            Prefix of the patient number common to all segmentations (default is 'Ano').
         """
         paths_to_patients_folder_and_segmentations = []
 
@@ -116,7 +119,7 @@ class PatientDataset:
             segmentation_filename_patterns_matcher = SegmentationFilenamePatternsMatcher(
                 path_to_segmentations_folder=path_to_segmentations_folder,
                 patient_name=patient_data_reader.patient_name,
-                patient_number_prefix="Ano"
+                patient_number_prefix=patient_number_prefix
             )
 
             paths_to_segmentations = segmentation_filename_patterns_matcher.get_absolute_paths_to_segmentation_files()

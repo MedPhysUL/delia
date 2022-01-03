@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 10/2021
+    @Last modification: 01/2022
 
     @Description:       This file contains the PatientDataGenerator class which is used to iterate on multiple
                         patients' dicom files and segmentation files using the PatientDataReader to obtain all patients'
@@ -51,7 +51,7 @@ class PatientDataGenerator(Generator):
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without segmentation.
+            must be added to the dataset is to be able to add images without their segmentation.
         path_to_series_description_json : Optional[str]
             Path to the json dictionary that contains the series descriptions.
         """
@@ -166,11 +166,11 @@ class PatientDataGenerator(Generator):
             self.throw()
 
         path_to_dicom_folder = self.paths_to_patients_folder_and_segmentations[self.current_index][0]
-        paths_to_segmentation = self.paths_to_patients_folder_and_segmentations[self.current_index][1]
+        paths_to_segmentations = self.paths_to_patients_folder_and_segmentations[self.current_index][1]
 
         patient_data_reader = PatientDataReader(
             path_to_dicom_folder=path_to_dicom_folder,
-            paths_to_segmentation=paths_to_segmentation,
+            paths_to_segmentations=paths_to_segmentations,
             series_descriptions=self.series_descriptions
         )
         self.series_descriptions = patient_data_reader.series_descriptions

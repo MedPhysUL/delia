@@ -15,7 +15,7 @@ import re
 
 import numpy as np
 
-from src.data_readers.segmentation.nrrd.base_nrrd_segmentation_factory import BaseNrrdSegmentationFactory, SegmentData
+from src.data_readers.segmentation.base.nrrd_segmentation_factory import BaseNrrdSegmentationFactory, SegmentData
 
 
 class SegmentationLabelMapRepresentationFactory(BaseNrrdSegmentationFactory):
