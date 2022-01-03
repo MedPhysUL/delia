@@ -1,25 +1,27 @@
 """
-    @file:              label_map_volume_builder.py
+    @file:              segmentation_label_map_representation_factory.py
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 12/2021
+    @Last modification: 01/2022
 
-    @Description:       This file contains the class LabelMapVolumeBuilder that inherit from the
-                        BaseNrrdSegmentationBuilder class. The goal of this class is to defined the methods that are
+    @Description:       This file contains the class SegmentationLabelMapRepresentationFactory that inherit from the
+                        BaseNrrdSegmentationFactory class. The goal of this class is to defined the methods that are
                         used to get the total number of segments and get the segment data corresponding to a given
                         segment index.
 """
 
+import re
+
 import numpy as np
 
-from src.data_readers.segmentation.nrrd.base_nrrd_segmentation_builder import BaseNrrdSegmentationBuilder, SegmentData
+from src.data_readers.segmentation.nrrd.base_nrrd_segmentation_factory import BaseNrrdSegmentationFactory, SegmentData
 
 
-class LabelMapVolumeBuilder(BaseNrrdSegmentationBuilder):
+class SegmentationLabelMapRepresentationFactory(BaseNrrdSegmentationFactory):
     """
     Class that defined the methods that are used to get the total number of segments and get the segment data
-    corresponding to a given segment index for the label map volume type of segmentation.
+    corresponding to a given segment index for the segmentation label map representation type of segmentation.
     """
 
     def __init__(
@@ -39,7 +41,7 @@ class LabelMapVolumeBuilder(BaseNrrdSegmentationBuilder):
         self._segmentation_data : Tuple[np.ndarray, OrderedDict]
             Tuple containing the segmentation array and header.
         """
-        super(LabelMapVolumeBuilder, self).__init__(
+        super(SegmentationLabelMapRepresentationFactory, self).__init__(
             path_to_segmentation=path_to_segmentation
         )
 
@@ -50,10 +52,11 @@ class LabelMapVolumeBuilder(BaseNrrdSegmentationBuilder):
 
         Returns
         -------
-        number_of_segments : int
+        _number_of_segments : int
             Number of segments
         """
-        return int(len(np.unique(self.segmentation_array)) - 1)
+        r = re.compile(r"Segment\d+_ID")
+        return int(np.sum([1 if r.match(key) else 0 for key in list(self._segmentation_header.keys())]))
 
     def _get_segment_from_segment_idx(self, segment_idx: int) -> SegmentData:
         """
@@ -70,9 +73,9 @@ class LabelMapVolumeBuilder(BaseNrrdSegmentationBuilder):
             The segment data.
         """
         segment = SegmentData(
-            name=f"Segment_{segment_idx + 1}",
-            layer=0,
-            label_value=segment_idx + 1
+            name=self._segmentation_header[f"Segment{segment_idx}_Name"],
+            layer=int(self._segmentation_header[f"Segment{segment_idx}_Layer"]),
+            label_value=int(self._segmentation_header[f"Segment{segment_idx}_LabelValue"])
         )
 
         return segment

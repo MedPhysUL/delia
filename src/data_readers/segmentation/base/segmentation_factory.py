@@ -1,11 +1,11 @@
 """
-    @file:              segmentation_builder.py
+    @file:              segmentation_factory.py
     @Author:            Maxence Larose
 
     @Creation Date:     12/2021
-    @Last modification: 12/2021
+    @Last modification: 01/2022
 
-    @Description:       This file contains the class SegmentationBuilder that is used as an abstract class used as a
+    @Description:       This file contains the class SegmentationFactory that is used as an abstract class used as a
                         reference for all other segmentation classes that read data and build a Segmentation object
                         from it.
 """
@@ -17,7 +17,7 @@ from .segment import Segment
 from .segmentation import Segmentation
 
 
-class SegmentationBuilder(ABC):
+class SegmentationFactory(ABC):
     """
     An abstract class that is used as a reference for all other segmentation classes that read data and build a
     Segmentation object from it.
@@ -36,7 +36,7 @@ class SegmentationBuilder(ABC):
         """
         pass
 
-    def make_segmentation(self) -> Segmentation:
+    def create_segmentation(self) -> Segmentation:
         """
         Creates a Segmentation using the list of Segments.
 

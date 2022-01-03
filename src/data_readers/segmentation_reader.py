@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 12/2021
+    @Last modification: 01/2022
 
     @Description:       This file contains the SegmentationReader class which is used to read a given segmentation file
                         and transform its contents into the format of the SegmentationDataModel class.
@@ -11,7 +11,7 @@
 
 import SimpleITK as sitk
 
-from src.data_readers.segmentation.segmentation_context_manager import SegmentationCategoryManager
+from src.data_readers.segmentation.segmentation_context import SegmentationContext
 from src.data_readers.segmentation.base.segmentation import Segmentation
 from src.data_model import SegmentationDataModel
 
@@ -62,9 +62,9 @@ class SegmentationReader:
         segmentation : Segmentation
             Segmentation.
         """
-        segmentation_context_manager = SegmentationCategoryManager(path_to_segmentation=self._path_to_segmentation)
+        segmentation_context_manager = SegmentationContext(path_to_segmentation=self._path_to_segmentation)
 
-        return segmentation_context_manager.segmentation
+        return segmentation_context_manager.create_segmentation()
 
     def get_segmentation_data(self) -> SegmentationDataModel:
         """

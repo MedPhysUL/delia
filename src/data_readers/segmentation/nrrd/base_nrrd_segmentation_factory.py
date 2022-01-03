@@ -1,12 +1,12 @@
 """
-    @file:              base_nrrd_segmentation_builder.py
+    @file:              base_nrrd_segmentation_factory.py
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 12/2021
+    @Last modification: 01/2022
 
-    @Description:       This file contains the abstract class BaseNrrdSegmentationBuilder that inherit from the
-                        SegmentationBuilder class.
+    @Description:       This file contains the abstract class BaseNrrdSegmentationFactory that inherit from the
+                        SegmentationFactory class.
 """
 
 from abc import abstractmethod
@@ -18,7 +18,7 @@ import numpy as np
 
 from src.constants.organ import Organs
 from src.data_readers.segmentation.base.segment import Segment
-from src.data_readers.segmentation.base.segmentation_builder import SegmentationBuilder
+from src.data_readers.segmentation.base.segmentation_factory import SegmentationFactory
 
 
 class SegmentData(NamedTuple):
@@ -39,7 +39,7 @@ class SegmentData(NamedTuple):
     label_value: int = None
 
 
-class BaseNrrdSegmentationBuilder(SegmentationBuilder):
+class BaseNrrdSegmentationFactory(SegmentationFactory):
     """
     An abstract class used as a reference for all other segmentation classes that read data from files with a ".nrrd"
     extension. These classes differ by the type of segmentation they are able to read. Indeed, the format of the
@@ -64,7 +64,7 @@ class BaseNrrdSegmentationBuilder(SegmentationBuilder):
         self._segmentation_data : Tuple[np.ndarray, OrderedDict]
             Tuple containing the segmentation array and header.
         """
-        super(SegmentationBuilder, self).__init__()
+        super(SegmentationFactory, self).__init__()
 
         self._segmentation_data: Tuple[np.ndarray, OrderedDict] = nrrd.read(filename=path_to_segmentation)
 
