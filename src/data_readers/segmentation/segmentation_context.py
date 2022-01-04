@@ -79,13 +79,13 @@ class SegmentationContext:
         return max(possible_segmentation_strategies, key=len)
 
     @property
-    def _factory_instance(self) -> SegmentationStrategy.factory:
+    def _segmentation_factory_instance(self) -> SegmentationStrategy.factory:
         """
-        The factory class instance corresponding to the class of the given segmentation category.
+        The segmentation factory instance corresponding to the class of the given segmentation category.
 
         Returns
         -------
-        _factory_class_instance : SegmentationCategory.factory
+        _segmentation_factory_instance : SegmentationStrategy.factory
             Factory class instance used to get the label maps and the segmentation metadata from a segmentation file.
         """
         return self.segmentation_strategy.factory(path_to_segmentation=self.path_to_segmentation)
@@ -99,4 +99,4 @@ class SegmentationContext:
         segmentation : Segmentation
             Segmentation.
         """
-        return self._factory_instance.create_segmentation()
+        return self._segmentation_factory_instance.create_segmentation()

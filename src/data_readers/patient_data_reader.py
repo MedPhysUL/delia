@@ -15,7 +15,7 @@ from typing import Callable, Dict, List, NamedTuple, Optional
 
 from src.data_model import ImageAndSegmentationDataModel, PatientDataModel
 from .dicom_reader import DicomReader
-from src.data_readers.patient_data.patient_data_context import PatientDataContext
+from src.data_readers.patient_data.patient_data_query_context import PatientDataQueryContext
 from .segmentation_reader import SegmentationReader
 
 
@@ -201,7 +201,7 @@ class PatientDataReader(DicomReader):
             A named tuple grouping the patient's data extracted from its dicom files and the patient's medical image
             segmentation data extracted from the segmentation files.
         """
-        patient_data_context = PatientDataContext(
+        patient_data_context = PatientDataQueryContext(
             images_data=self._images_data,
             paths_to_segmentations=self._paths_to_segmentations,
             series_descriptions=self._series_descriptions

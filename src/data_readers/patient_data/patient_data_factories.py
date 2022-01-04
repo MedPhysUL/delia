@@ -166,6 +166,18 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
             paths_to_segmentations=paths_to_segmentations,
             series_descriptions=series_descriptions
         )
+        
+    @property
+    def flatten_series_descriptions(self) -> List[str]:
+        """
+        Flatten series descriptions.
+
+        Returns
+        -------
+        flatten_series_description : List[str]
+            Series descriptions as a list instead of a dictionary.
+        """
+        return [val for lst in self._series_descriptions.values() for val in lst]
 
     def create_patient_data(self) -> PatientDataModel:
         """
@@ -225,6 +237,18 @@ class SegmentationAndSeriesDescriptionPatientDataFactory(BasePatientDataFactory)
             series_descriptions=series_descriptions
         )
 
+    @property
+    def flatten_series_descriptions(self) -> List[str]:
+        """
+        Flatten series descriptions.
+
+        Returns
+        -------
+        flatten_series_description : List[str]
+            Series descriptions as a list instead of a dictionary.
+        """
+        return [val for lst in self._series_descriptions.values() for val in lst]
+        
     def create_patient_data(self) -> PatientDataModel:
         """
         Creates a tuple containing all the patient's data.

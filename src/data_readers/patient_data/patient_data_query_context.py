@@ -1,21 +1,21 @@
 """
-    @file:              request_context.py
+    @file:              patient_data_query_context.py
     @Author:            Maxence Larose
 
     @Creation Date:     01/2022
     @Last modification: 01/2022
 
-    @Description:       This file contains the class RequestContext that is used as a context class where strategies are
+    @Description:       This file contains the class PatientDataQueryContext that is used as a context class where strategies are
                         types of requests the client could ask the PatientDataReader class.
 """
 
 from typing import Dict, List
 
 from src.data_model import ImageDataModel, PatientDataModel
-from src.constants.patient_data_strategy import PatientDataStrategy, PatientDataStrategies
+from src.constants.patient_data_query_strategy import PatientDataQueryStrategy, PatientDataQueryStrategies
 
 
-class PatientDataContext:
+class PatientDataQueryContext:
     """
     A class used as a context class where strategies are types of requests the client could make to the
     PatientDataReader class to get the patient's data.
@@ -28,7 +28,7 @@ class PatientDataContext:
             series_descriptions: Dict[str, List[str]]
     ):
         """
-        Constructor of the RequestContext class.
+        Constructor of the PatientDataQueryContext class.
 
         Parameters
         ----------
@@ -49,42 +49,42 @@ class PatientDataContext:
         self._series_descriptions = series_descriptions
 
     @property
-    def patient_data_strategy(self) -> PatientDataStrategy:
+    def patient_data_query_strategy(self) -> PatientDataQueryStrategy:
         """
-        Patient data request strategy corresponding to the given paths to segmentations and series descriptions
+        Patient data query strategy corresponding to the given paths to segmentations and series descriptions
         configuration.
 
         Returns
         -------
-        patient_data_strategy : PatientDataStrategy
-            Patient data strategy.
+        patient_data_query_strategy : PatientDataQueryStrategy
+            Patient data query strategy.
         """
         if self._paths_to_segmentations and self._series_descriptions:
-            return PatientDataStrategies.SEGMENTATION_AND_SERIES_DESCRIPTION
+            return PatientDataQueryStrategies.SEGMENTATION_AND_SERIES_DESCRIPTION
         elif self._paths_to_segmentations is None and self._series_descriptions:
-            return PatientDataStrategies.SERIES_DESCRIPTION
+            return PatientDataQueryStrategies.SERIES_DESCRIPTION
         elif self._paths_to_segmentations and self._series_descriptions is None:
-            return PatientDataStrategies.SEGMENTATION
+            return PatientDataQueryStrategies.SEGMENTATION
         else:
-            return PatientDataStrategies.DEFAULT
+            return PatientDataQueryStrategies.DEFAULT
 
     @property
-    def _factory_instance(self) -> PatientDataStrategy.factory:
+    def _patient_data_factory_instance(self) -> PatientDataQueryStrategy.factory:
         """
         The factory class instance corresponding to the class of the given patient data strategy.
 
         Returns
         -------
-        _factory_instance : PatientDataStrategy.factory
+        _patient_data_factory_instance : PatientDataQueryStrategy.factory
             Factory class instance used to get a patient's data.
         """
-        _factory_instance = self.patient_data_strategy.factory(
+        _patient_data_factory_instance = self.patient_data_query_strategy.factory(
             images_data=self._images_data,
             paths_to_segmentations=self._paths_to_segmentations,
             series_descriptions=self._series_descriptions
         )
 
-        return _factory_instance
+        return _patient_data_factory_instance
 
     def create_patient_data(self) -> PatientDataModel:
         """
@@ -95,4 +95,4 @@ class PatientDataContext:
         patient_data: PatientDataModel
             Patient data.
         """
-        return self._factory_instance.create_patient_data()
+        return self._patient_data_factory_instance.create_patient_data()

@@ -6,29 +6,29 @@ from src.data_readers.patient_data.patient_data_factories import DefaultPatientD
     SegmentationAndSeriesDescriptionPatientDataFactory
 
 
-class PatientDataStrategy(NamedTuple):
+class PatientDataQueryStrategy(NamedTuple):
     name: str
     factory: Callable
 
 
-class PatientDataStrategies(PatientDataStrategy, enum.Enum):
+class PatientDataQueryStrategies(PatientDataQueryStrategy, enum.Enum):
 
-    DEFAULT: PatientDataStrategy = PatientDataStrategy(
+    DEFAULT: PatientDataQueryStrategy = PatientDataQueryStrategy(
         name="Default",
         factory=DefaultPatientDataFactory
     )
 
-    SEGMENTATION: PatientDataStrategy = PatientDataStrategy(
+    SEGMENTATION: PatientDataQueryStrategy = PatientDataQueryStrategy(
         name="Segmentation",
         factory=SegmentationPatientDataFactory
     )
 
-    SERIES_DESCRIPTION: PatientDataStrategy = PatientDataStrategy(
+    SERIES_DESCRIPTION: PatientDataQueryStrategy = PatientDataQueryStrategy(
         name="Series description",
         factory=SeriesDescriptionPatientDataFactory
     )
 
-    SEGMENTATION_AND_SERIES_DESCRIPTION: PatientDataStrategy = PatientDataStrategy(
+    SEGMENTATION_AND_SERIES_DESCRIPTION: PatientDataQueryStrategy = PatientDataQueryStrategy(
         name="Segmentation and series description",
         factory=SegmentationAndSeriesDescriptionPatientDataFactory
     )

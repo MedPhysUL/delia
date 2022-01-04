@@ -17,7 +17,7 @@ from src.data_model import ImageDataModel, PatientDataModel
 
 class BasePatientDataFactory(ABC):
     """
-    An abstract class that is used as an abstract class used as a reference for all other patient data factories.
+    An abstract class that is used as a reference for all other patient data factories.
     """
 
     def __init__(
@@ -60,18 +60,6 @@ class BasePatientDataFactory(ABC):
         patient_name = self._images_data[0].dicom_header.PatientName
 
         return str(patient_name)
-
-    @property
-    def flatten_series_descriptions(self) -> List[str]:
-        """
-        Flatten series descriptions.
-
-        Returns
-        -------
-        flatten_series_description : List[str]
-            Series descriptions as a list instead of a dictionary.
-        """
-        return [val for lst in self._series_descriptions.values() for val in lst]
 
     @abstractmethod
     def create_patient_data(self) -> PatientDataModel:
