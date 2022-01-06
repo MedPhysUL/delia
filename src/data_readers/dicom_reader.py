@@ -157,7 +157,12 @@ class DicomReader:
         check_validity_of_given_path(path=self._path_to_dicom_folder)
 
         images_data = []
-        for series_data in self.__series_data_dict.values():
+        for idx, series_data in enumerate(self.__series_data_dict.values()):
+
+            if idx == 0:
+                logging.info(f"\nDownloading the data of the patient named {series_data.dicom_header.PatientName}")
+            logging.info(f"-----> Series description: {series_data.series_description}")
+
             image = self.__get_3d_sitk_image_from_dicom_series(
                 paths_to_dicoms_from_series=series_data.paths_to_dicoms_from_series
             )
