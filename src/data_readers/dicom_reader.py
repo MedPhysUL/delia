@@ -170,10 +170,10 @@ class DicomReader:
         for idx, series_data in enumerate(self.__series_data_dict.values()):
             if verbose:
                 if idx == 0:
-                    logging.debug(
-                        f"\nDownloading the dicom headers of the patient named {series_data.dicom_header.PatientName} "
-                        f"The following series description are found in the patient's folder."
-                    )
+                    logging.info(f"Patient name : {series_data.dicom_header.PatientName}.")
+                    logging.debug(f"\nPath to dicom folder : {self._path_to_dicom_folder}. \nThe following series "
+                                  f"description are found in the patient's folder :")
+
                 logging.debug(f"---> Series description: {series_data.series_description}")
 
             dicom_headers.append(series_data.dicom_header)
@@ -200,10 +200,7 @@ class DicomReader:
 
             if verbose:
                 if idx == 0:
-                    logging.info(
-                        f"\nPatient name : {series_data.dicom_header.PatientName}."
-                        f"\nThe following series description are found in the patient's folder :"
-                    )
+                    logging.info(f"\nThe following series description are found in the patient's folder :")
                 logging.info(f"---> Series description: {series_data.series_description}")
 
             image = self.__get_3d_sitk_image_from_dicom_series(

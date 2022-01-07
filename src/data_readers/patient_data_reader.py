@@ -58,7 +58,7 @@ class PatientDataReader(DicomReader):
 
         if paths_to_segmentations is not None:
             if verbose:
-                logging.info("Checking availability of given series uids...")
+                logging.info("\nChecking availability of given series uids...")
             self.check_availability_of_given_series_uids()
             if verbose:
                 logging.info("Done.\n")
@@ -133,7 +133,7 @@ class PatientDataReader(DicomReader):
                                      f"for the {current_items[0]} image. \nClearly, the images series values are "
                                      f"overlapping because of the series named {set_intersection}.")
 
-        self._series_descriptions = series_descriptions
+        self.series_descriptions = series_descriptions
 
     @property
     def available_series_descriptions(self) -> List[str]:
@@ -149,7 +149,7 @@ class PatientDataReader(DicomReader):
             dicom_header.SeriesDescription for dicom_header in self._dicom_headers
         ]
 
-        return available_series_descriptions
+        return available_series_descriptions + ["None"]
 
     @property
     def available_series_uids(self) -> List[str]:
@@ -178,7 +178,7 @@ class PatientDataReader(DicomReader):
         """
         logging.info(f"\nNo available series for {series_key}. \nAvailable series are "
                      f"{self.available_series_descriptions}. \nPlease write in the following location the name of the "
-                     f"series to add.")
+                     f"series to add. If the image does not require any description, write None.")
 
         while True:
             new_series_description = input(f"Name of the series description to add (modality = {series_key}): ")
@@ -187,9 +187,9 @@ class PatientDataReader(DicomReader):
                 logging.info("Series name successfully added to the series descriptions json file.\n")
                 break
             else:
-                logging.info(f"The given series description name is {new_series_description}. However, this is NOT one "
-                             f"of the available series description found in the patient's dicom files. Available "
-                             f"series are {self.available_series_descriptions}. Please try again.")
+                logging.info(f"The given series description name is {new_series_description}. \nHowever, this is NOT "
+                             f"one of the available series description found in the patient's dicom files. \nAvailable "
+                             f"series are {self.available_series_descriptions}. \nPlease try again.")
 
         self.series_descriptions[series_key] += [new_series_description]
 
@@ -212,9 +212,9 @@ class PatientDataReader(DicomReader):
             if any(uid in path_to_segmentation for uid in self.available_series_uids):
                 pass
             else:
-                logging.warning(f"The given segmentation file name is {path_to_segmentation}. However, this file name "
-                                f"does NOT contain any of the available series uids found in the patient's dicom "
-                                f"files. Available series uids are {self.available_series_uids}.")
+                logging.warning(f"The given segmentation file name is {path_to_segmentation}. \nHowever, this file name"
+                                f" does NOT contain any of the available series uids found in the patient's dicom "
+                                f"files. \nAvailable series uids are {self.available_series_uids}.")
 
     def get_patient_dataset(self) -> PatientDataModel:
         """
