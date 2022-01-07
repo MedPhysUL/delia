@@ -9,14 +9,12 @@
                         segmentation files.
 """
 
-import enum
 import logging
-from typing import Callable, Dict, List, NamedTuple, Optional
+from typing import Dict, List, Optional
 
-from src.data_model import ImageAndSegmentationDataModel, PatientDataModel
+from src.data_model import PatientDataModel
 from .dicom_reader import DicomReader
 from src.data_readers.patient_data.patient_data_query_context import PatientDataQueryContext
-from .segmentation_reader import SegmentationReader
 
 
 class PatientDataReader(DicomReader):
