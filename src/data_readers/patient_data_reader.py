@@ -27,8 +27,9 @@ class PatientDataReader(DicomReader):
     def __init__(
             self,
             path_to_dicom_folder: str,
+            verbose: bool,
             paths_to_segmentations: Optional[List[str]] = None,
-            series_descriptions: Optional[Dict[str, List[str]]] = None
+            series_descriptions: Optional[Dict[str, List[str]]] = None,
     ):
         """
         Used to check availability of given series' uid and series descriptions in the patient's dicom files.
@@ -37,6 +38,8 @@ class PatientDataReader(DicomReader):
         ----------
         path_to_dicom_folder : str
             Path to the folder containing the patient dicom files.
+        verbose : bool
+            True to log/print some information else False.
         paths_to_segmentations : Optional[List[str]]
             A list of paths to the segmentation files. The name of the segmentation files must include the series uid
             of their corresponding image, i.e. the image on which the segmentation was made.
@@ -48,12 +51,23 @@ class PatientDataReader(DicomReader):
             must be added to the dataset is to be able to add images without segmentation.
         """
         super(PatientDataReader, self).__init__(path_to_dicom_folder=path_to_dicom_folder)
-        self._images_data = self.get_images_data()
+        self._dicom_headers = self.get_dicom_headers(verbose=verbose)
         self._paths_to_segmentations = paths_to_segmentations
         self._series_descriptions = series_descriptions
+        self._verbose = verbose
 
-        # self.check_availability_of_given_series_uids()
-        # self.check_availability_of_given_series_description()
+        if paths_to_segmentations is not None:
+            if verbose:
+                logging.info("Checking availability of given series uids...")
+            self.check_availability_of_given_series_uids()
+            if verbose:
+                logging.info("Done.\n")
+        if series_descriptions is not None:
+            if verbose:
+                logging.info("Checking availability of given series description...")
+            self.check_availability_of_given_series_description()
+            if verbose:
+                logging.info("Done.")
 
     @property
     def patient_name(self) -> str:
@@ -65,9 +79,7 @@ class PatientDataReader(DicomReader):
         patient_name : str
             Patient name.
         """
-        patient_name = self._images_data[0].dicom_header.PatientName
-
-        return str(patient_name)
+        return str(self._dicom_headers[0].PatientName)
 
     @property
     def paths_to_segmentations(self) -> List[str]:
@@ -110,6 +122,17 @@ class PatientDataReader(DicomReader):
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation. the patient dataset.
         """
+        items = list(series_descriptions.items())
+        for previous_items, current_items in zip(items, items[1:]):
+            set_intersection = set(previous_items[1]) & set(current_items[1])
+
+            if bool(set_intersection):
+                raise AssertionError(f"\nThe dictionary of series descriptions should not contain the same series names"
+                                     f" for different images/modalities. \nHowever, here we find the series names "
+                                     f"{previous_items[1]} for the {previous_items[0]} image and {current_items[1]} "
+                                     f"for the {current_items[0]} image. \nClearly, the images series values are "
+                                     f"overlapping because of the series named {set_intersection}.")
+
         self._series_descriptions = series_descriptions
 
     @property
@@ -123,7 +146,7 @@ class PatientDataReader(DicomReader):
             Available series descriptions in the patient dicom files.
         """
         available_series_descriptions = [
-            image.dicom_header.SeriesDescription for image in self._images_data
+            dicom_header.SeriesDescription for dicom_header in self._dicom_headers
         ]
 
         return available_series_descriptions
@@ -139,7 +162,7 @@ class PatientDataReader(DicomReader):
             Available series uids in the patient dicom files.
         """
         available_series_uid = [
-            image.dicom_header.SeriesInstanceUID for image in self._images_data
+            dicom_header.SeriesInstanceUID for dicom_header in self._dicom_headers
         ]
 
         return available_series_uid
@@ -153,13 +176,15 @@ class PatientDataReader(DicomReader):
         series_key : str
             Series key.
         """
-        logging.info(f"No available series for {series_key}. Available series are "
-                     f"{self.available_series_descriptions}.")
+        logging.info(f"\nNo available series for {series_key}. \nAvailable series are "
+                     f"{self.available_series_descriptions}. \nPlease write in the following location the name of the "
+                     f"series to add.")
 
         while True:
-            new_series_description = input("Name of the series description to add: ")
+            new_series_description = input(f"Name of the series description to add (modality = {series_key}): ")
 
             if new_series_description in self.available_series_descriptions:
+                logging.info("Series name successfully added to the series descriptions json file.\n")
                 break
             else:
                 logging.info(f"The given series description name is {new_series_description}. However, this is NOT one "
@@ -202,9 +227,29 @@ class PatientDataReader(DicomReader):
             segmentation data extracted from the segmentation files.
         """
         patient_data_context = PatientDataQueryContext(
-            images_data=self._images_data,
+            images_data=self.get_images_data(self._verbose),
             paths_to_segmentations=self._paths_to_segmentations,
             series_descriptions=self._series_descriptions
         )
+        patient_dataset = patient_data_context.create_patient_data()
 
-        return patient_data_context.create_patient_data()
+        if self._verbose:
+            logging.debug("\nThe chosen patient data query strategy is called "
+                          "'{patient_data_context.patient_data_query_strategy.name}'.")
+            logging.info(f"\nA total of {len(patient_dataset.data)} images were added to the patient dataset, namely:")
+
+            for image_and_segmentation_data in patient_dataset.data:
+                modality = image_and_segmentation_data.image.dicom_header.Modality
+                series_description = image_and_segmentation_data.image.dicom_header.SeriesDescription
+                segmentation = image_and_segmentation_data.segmentation
+                image_segmentation_available = True if segmentation else False
+                segmented_organs = list(segmentation.binary_label_maps.keys()) if segmentation else None
+
+                logging.info(f"---> Series Description ({series_description})"
+                             f"\n     ---> Modality : {modality}"
+                             f"\n     ---> Image Segmentation available: {image_segmentation_available}")
+
+                if image_segmentation_available:
+                    logging.info(f"     ---> Segmented organs : {segmented_organs}")
+
+        return patient_dataset

@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass
 
 """
-This file essentially gives the same important folders and paths names to all files.
+This file essentially gives the same important folders and paths root names to all files.
 """
 
 

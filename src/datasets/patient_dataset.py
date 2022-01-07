@@ -17,6 +17,8 @@ import os
 import h5py
 import json
 import SimpleITK as sitk
+import time
+from tqdm import tqdm
 from typing import List
 
 from src.data_readers.patient_data_reader import PatientDataReader
@@ -89,9 +91,9 @@ class PatientDataset:
                 raise FileExistsError("The dataset already exists. You may overwrite it using "
                                       "overwrite_dataset = True.")
             else:
-                logging.info(f"Overwriting dataset with path : {self.path_to_dataset}.")
+                logging.info(f"Overwriting dataset (HDF5 dataset file path : {self.path_to_dataset}).")
         else:
-            logging.info(f"Writing dataset with path : {self.path_to_dataset}.")
+            logging.info(f"Writing dataset (HDF5 dataset file path : {self.path_to_dataset}).")
 
     @staticmethod
     def get_paths_to_patient(
@@ -114,7 +116,7 @@ class PatientDataset:
         paths_to_patients_folder_and_segmentations = []
 
         for path_to_patient_dicom_folder in paths_to_patients_dicom_folder:
-            patient_data_reader = PatientDataReader(path_to_dicom_folder=path_to_patient_dicom_folder)
+            patient_data_reader = PatientDataReader(path_to_dicom_folder=path_to_patient_dicom_folder, verbose=True)
 
             segmentation_filename_patterns_matcher = SegmentationFilenamePatternsMatcher(
                 path_to_segmentations_folder=path_to_segmentations_folder,
@@ -139,12 +141,13 @@ class PatientDataset:
             path_to_segmentations_folder: str,
             path_to_series_description_json: str,
             images_folder_name: str,
+            verbose: bool,
             overwrite_dataset: bool = True,
     ) -> None:
         """
         Create an hdf5 file dataset from multiple patients dicom files and their segmentation and get patient's images
         from this dataset. The goal is to create an object from which it is easier to obtain patient images and their
-        segmentation than separated dicom files and segmentation nrrd files.
+        segmentation than separated dicom files and segmentation files.
 
         Parameters
         ----------
@@ -156,6 +159,8 @@ class PatientDataset:
             Path to the json dictionary that contains the series descriptions.
         images_folder_name : str
             Images folder name.
+        verbose : bool
+            True to log/print some information else False.
         overwrite_dataset : bool, default = False.
             Overwrite existing dataset.
         """
@@ -172,20 +177,28 @@ class PatientDataset:
             )
             paths_to_patients_dicom_folder.append(path_to_dicom_folder)
 
+        if verbose:
+            logging.info("\nAssociating patient records with their corresponding image segmentation files...")
         paths_to_patients_folder_and_segmentations = self.get_paths_to_patient(
             paths_to_patients_dicom_folder=paths_to_patients_dicom_folder,
             path_to_segmentations_folder=path_to_segmentations_folder
         )
+        if verbose:
+            logging.info("Done.")
 
         patient_data_generator = PatientDataGenerator(
             paths_to_patients_folder_and_segmentations=paths_to_patients_folder_and_segmentations,
+            verbose=verbose,
             path_to_series_description_json=path_to_series_description_json
         )
 
+        if verbose:
+            print("\nProgress:")
+            time.sleep(0.001)
+            progress_bar = tqdm(range(len(patient_data_generator)), unit='itr', postfix="patients")
+            time.sleep(0.001)
         for patient_dataset in patient_data_generator:
-
             patient_name = patient_dataset.patient_name
-
             patient_group = hf.create_group(name=patient_name)
 
             for idx, patient_image_data in enumerate(patient_dataset.data):
@@ -220,5 +233,13 @@ class PatientDataset:
                             data=label_map
                         )
 
-        patient_data_generator.save_series_descriptions_to_json(path=path_to_series_description_json)
+            if verbose:
+                print("\nProgress:")
+                time.sleep(0.001)
+                progress_bar.update()
+                time.sleep(0.001)
+
+        if verbose:
+            progress_bar.close()
+
         patient_data_generator.close()
