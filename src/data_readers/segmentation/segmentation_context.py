@@ -10,7 +10,7 @@
                         segmentation object factory.
 """
 
-from typing import List
+from typing import Dict, List
 
 from src.constants.segmentation_strategy import SegmentationStrategy, SegmentationStrategies
 from src.data_readers.segmentation.base.segmentation import Segmentation
@@ -26,6 +26,7 @@ class SegmentationContext:
     def __init__(
             self,
             path_to_segmentation: str,
+            organs: Dict[str, List[str]]
     ):
         """
         Constructor of the SegmentationContext class.
@@ -34,8 +35,12 @@ class SegmentationContext:
         ----------
         path_to_segmentation : str
             The path to the segmentation file.
+        organs : Dict[str, List[str]]
+            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
+            and values are lists of possible segment names.
         """
         self._path_to_segmentation = path_to_segmentation
+        self._organs = organs
 
     @property
     def path_to_segmentation(self) -> str:
@@ -88,7 +93,10 @@ class SegmentationContext:
         _segmentation_factory_instance : SegmentationStrategy.factory
             Factory class instance used to get the label maps and the segmentation metadata from a segmentation file.
         """
-        return self.segmentation_strategy.factory(path_to_segmentation=self.path_to_segmentation)
+        return self.segmentation_strategy.factory(
+            path_to_segmentation=self.path_to_segmentation,
+            organs=self._organs
+        )
 
     def create_segmentation(self) -> Segmentation:
         """

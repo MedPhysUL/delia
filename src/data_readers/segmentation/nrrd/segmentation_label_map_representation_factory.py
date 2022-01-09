@@ -12,6 +12,7 @@
 """
 
 import re
+from typing import Dict, List
 
 import numpy as np
 
@@ -26,7 +27,8 @@ class SegmentationLabelMapRepresentationFactory(BaseNrrdSegmentationFactory):
 
     def __init__(
             self,
-            path_to_segmentation: str
+            path_to_segmentation: str,
+            organs: Dict[str, List[str]]
     ):
         """
         Used to load the segmentation data from the path to segmentation.
@@ -35,6 +37,9 @@ class SegmentationLabelMapRepresentationFactory(BaseNrrdSegmentationFactory):
         ----------
         path_to_segmentation : str
             The path to the segmentation file.
+        organs : Dict[str, List[str]]
+            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
+            and values are lists of possible segment names.
 
         Attributes
         ----------
@@ -42,7 +47,8 @@ class SegmentationLabelMapRepresentationFactory(BaseNrrdSegmentationFactory):
             Tuple containing the segmentation array and header.
         """
         super(SegmentationLabelMapRepresentationFactory, self).__init__(
-            path_to_segmentation=path_to_segmentation
+            path_to_segmentation=path_to_segmentation,
+            organs=organs
         )
 
     @property

@@ -19,7 +19,7 @@ import json
 import SimpleITK as sitk
 import time
 from tqdm import tqdm
-from typing import List
+from typing import Dict, List, Optional, Union
 
 from src.data_readers.patient_data_reader import PatientDataReader
 from src.data_readers.patient_data_generator import PatientDataGenerator
@@ -116,7 +116,10 @@ class PatientDataset:
         paths_to_patients_folder_and_segmentations = []
 
         for path_to_patient_dicom_folder in paths_to_patients_dicom_folder:
-            patient_data_reader = PatientDataReader(path_to_dicom_folder=path_to_patient_dicom_folder, verbose=True)
+            patient_data_reader = PatientDataReader(
+                path_to_dicom_folder=path_to_patient_dicom_folder,
+                verbose=True,
+            )
 
             segmentation_filename_patterns_matcher = SegmentationFilenamePatternsMatcher(
                 path_to_segmentations_folder=path_to_segmentations_folder,
@@ -139,9 +142,10 @@ class PatientDataset:
             self,
             path_to_patients_folder: str,
             path_to_segmentations_folder: str,
-            path_to_series_description_json: str,
             images_folder_name: str,
             verbose: bool,
+            series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
+            organs: Optional[Union[str, Dict[str, List[str]]]] = None,
             overwrite_dataset: bool = True,
     ) -> None:
         """
@@ -155,8 +159,17 @@ class PatientDataset:
             Patients folder path.
         path_to_segmentations_folder : str
             Images folder name.
-        path_to_series_description_json : str
-            Path to the json dictionary that contains the series descriptions.
+        series_descriptions : Union[str, Dict[str, List[str]]]
+            A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
+            the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+            series descriptions. The images associated with these series descriptions do not need to have a
+            corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
+            must be added to the dataset is to be able to add images without their segmentation. Can be specified as a
+            path to a json dictionary that contains the series descriptions.
+        organs : Union[str, Dict[str, List[str]]]
+            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
+            and values are lists of possible segment names. It can also be specified as a path to a json file that
+            contains the organs dictionary.
         images_folder_name : str
             Images folder name.
         verbose : bool
@@ -181,7 +194,7 @@ class PatientDataset:
             logging.info("\nAssociating patient records with their corresponding image segmentation files...")
         paths_to_patients_folder_and_segmentations = self.get_paths_to_patient(
             paths_to_patients_dicom_folder=paths_to_patients_dicom_folder,
-            path_to_segmentations_folder=path_to_segmentations_folder
+            path_to_segmentations_folder=path_to_segmentations_folder,
         )
         if verbose:
             logging.info("Done.")
@@ -189,7 +202,8 @@ class PatientDataset:
         patient_data_generator = PatientDataGenerator(
             paths_to_patients_folder_and_segmentations=paths_to_patients_folder_and_segmentations,
             verbose=verbose,
-            path_to_series_description_json=path_to_series_description_json
+            series_descriptions=series_descriptions,
+            organs=organs
         )
 
         if verbose:

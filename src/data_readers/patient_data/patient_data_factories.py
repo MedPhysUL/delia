@@ -24,6 +24,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
     def __init__(
             self,
             images_data: List[ImageDataModel],
+            organs: Dict[str, List[str]],
             paths_to_segmentations: Optional[List[str]] = None,
             series_descriptions: Optional[Dict[str, List[str]]] = None
     ):
@@ -34,6 +35,9 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
         ----------
         images_data : List[ImageDataModel]
             A list of the patient's images data.
+        organs : Dict[str, List[str]]
+            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
+            and values are lists of possible segment names.
         paths_to_segmentations : Optional[List[str]]
             A list of paths to the segmentation files. The name of the segmentation files must include the series uid
             of their corresponding image, i.e. the image on which the segmentation was made.
@@ -46,6 +50,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
         """
         super(DefaultPatientDataFactory, self).__init__(
             images_data=images_data,
+            organs=organs,
             paths_to_segmentations=paths_to_segmentations,
             series_descriptions=series_descriptions
         )
@@ -76,6 +81,7 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
     def __init__(
             self,
             images_data: List[ImageDataModel],
+            organs: Dict[str, List[str]],
             paths_to_segmentations: Optional[List[str]] = None,
             series_descriptions: Optional[Dict[str, List[str]]] = None
     ):
@@ -86,6 +92,9 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
         ----------
         images_data : List[ImageDataModel]
             A list of the patient's images data.
+        organs : Dict[str, List[str]]
+            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
+            and values are the list of possible segment names for each organ.
         paths_to_segmentations : Optional[List[str]]
             A list of paths to the segmentation files. The name of the segmentation files must include the series uid
             of their corresponding image, i.e. the image on which the segmentation was made.
@@ -98,6 +107,7 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
         """
         super(SegmentationPatientDataFactory, self).__init__(
             images_data=images_data,
+            organs=organs,
             paths_to_segmentations=paths_to_segmentations,
             series_descriptions=series_descriptions
         )
@@ -141,6 +151,7 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
     def __init__(
             self,
             images_data: List[ImageDataModel],
+            organs: Dict[str, List[str]],
             paths_to_segmentations: Optional[List[str]] = None,
             series_descriptions: Optional[Dict[str, List[str]]] = None
     ):
@@ -151,6 +162,9 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
         ----------
         images_data : List[ImageDataModel]
             A list of the patient's images data.
+        organs : Dict[str, List[str]]
+            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
+            and values are the list of possible segment names for each organ.
         paths_to_segmentations : Optional[List[str]]
             A list of paths to the segmentation files. The name of the segmentation files must include the series uid
             of their corresponding image, i.e. the image on which the segmentation was made.
@@ -163,6 +177,7 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
         """
         super(SeriesDescriptionPatientDataFactory, self).__init__(
             images_data=images_data,
+            organs=organs,
             paths_to_segmentations=paths_to_segmentations,
             series_descriptions=series_descriptions
         )
@@ -211,6 +226,7 @@ class SegmentationAndSeriesDescriptionPatientDataFactory(BasePatientDataFactory)
     def __init__(
             self,
             images_data: List[ImageDataModel],
+            organs: Dict[str, List[str]],
             paths_to_segmentations: Optional[List[str]] = None,
             series_descriptions: Optional[Dict[str, List[str]]] = None
     ):
@@ -221,6 +237,9 @@ class SegmentationAndSeriesDescriptionPatientDataFactory(BasePatientDataFactory)
         ----------
         images_data : List[ImageDataModel]
             A list of the patient's images data.
+        organs : Dict[str, List[str]]
+            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
+            and values are the list of possible segment names for each organ.
         paths_to_segmentations : Optional[List[str]]
             A list of paths to the segmentation files. The name of the segmentation files must include the series uid
             of their corresponding image, i.e. the image on which the segmentation was made.
@@ -233,6 +252,7 @@ class SegmentationAndSeriesDescriptionPatientDataFactory(BasePatientDataFactory)
         """
         super(SegmentationAndSeriesDescriptionPatientDataFactory, self).__init__(
             images_data=images_data,
+            organs=organs,
             paths_to_segmentations=paths_to_segmentations,
             series_descriptions=series_descriptions
         )
@@ -263,7 +283,10 @@ class SegmentationAndSeriesDescriptionPatientDataFactory(BasePatientDataFactory)
             image_added = False
             for path_to_segmentation in self._paths_to_segmentations:
                 if image.dicom_header.SeriesInstanceUID in path_to_segmentation:
-                    segmentation_reader = SegmentationReader(path_to_segmentation=path_to_segmentation)
+                    segmentation_reader = SegmentationReader(
+                        path_to_segmentation=path_to_segmentation,
+                        organs=self._organs
+                    )
 
                     image_and_segmentation_data = ImageAndSegmentationDataModel(
                         image=image,
@@ -273,6 +296,9 @@ class SegmentationAndSeriesDescriptionPatientDataFactory(BasePatientDataFactory)
                     image_added = True
 
             series_description = image.dicom_header.SeriesDescription
+            print("SERIES DESCRIPTION", series_description)
+            print("FLATTEN SERIES DESCRIPTIONS", self.flatten_series_descriptions)
+            print("IMAGE ADDED", image_added)
             if series_description in self.flatten_series_descriptions and image_added is False:
                 image_data = ImageAndSegmentationDataModel(image=image)
                 data.append(image_data)

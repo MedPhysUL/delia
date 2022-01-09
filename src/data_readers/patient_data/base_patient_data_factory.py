@@ -23,6 +23,7 @@ class BasePatientDataFactory(ABC):
     def __init__(
             self,
             images_data: List[ImageDataModel],
+            organs: Dict[str, List[str]],
             paths_to_segmentations: Optional[List[str]] = None,
             series_descriptions: Optional[Dict[str, List[str]]] = None
     ):
@@ -33,6 +34,9 @@ class BasePatientDataFactory(ABC):
         ----------
         images_data : List[ImageDataModel]
             A list of the patient's images data.
+        organs : Dict[str, List[str]]
+            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
+            and values are lists of possible segment names.
         paths_to_segmentations : Optional[List[str]]
             A list of paths to the segmentation files. The name of the segmentation files must include the series uid
             of their corresponding image, i.e. the image on which the segmentation was made.
@@ -44,6 +48,7 @@ class BasePatientDataFactory(ABC):
             must be added to the dataset is to be able to add images without segmentation.
         """
         self._images_data = images_data
+        self._organs = organs
         self._paths_to_segmentations = paths_to_segmentations
         self._series_descriptions = series_descriptions
 

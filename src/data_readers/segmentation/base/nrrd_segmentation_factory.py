@@ -16,7 +16,6 @@ from typing import Dict, List, NamedTuple, Tuple
 import nrrd
 import numpy as np
 
-from src.constants.organ import Organs
 from src.data_readers.segmentation.base.segment import Segment
 from src.data_readers.segmentation.base.segmentation_factory import SegmentationFactory
 
@@ -50,6 +49,7 @@ class BaseNrrdSegmentationFactory(SegmentationFactory):
     def __init__(
             self,
             path_to_segmentation: str,
+            organs: Dict[str, List[str]]
     ):
         """
         Used to load the segmentation data from the path to segmentation.
@@ -58,13 +58,19 @@ class BaseNrrdSegmentationFactory(SegmentationFactory):
         ----------
         path_to_segmentation : str
             The path to the segmentation file.
+        organs : Dict[str, List[str]]
+            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
+            and values are lists of possible segment names.
 
         Attributes
         ----------
         self._segmentation_data : Tuple[np.ndarray, OrderedDict]
             Tuple containing the segmentation array and header.
         """
-        super(SegmentationFactory, self).__init__()
+        super(BaseNrrdSegmentationFactory, self).__init__(
+            path_to_segmentation=path_to_segmentation,
+            organs=organs
+        )
 
         self._segmentation_data: Tuple[np.ndarray, OrderedDict] = nrrd.read(filename=path_to_segmentation)
 
@@ -166,12 +172,12 @@ class BaseNrrdSegmentationFactory(SegmentationFactory):
         """
         segment_names_associated_to_their_respective_organ = {}
         for segment_name in self._segments_names:
-            for organ in Organs:
-                if segment_name in organ.segment_names:
-                    segment_names_associated_to_their_respective_organ[segment_name] = organ.name
+            for organ, segment_names in self._organs.items():
+                if segment_name in segment_names:
+                    segment_names_associated_to_their_respective_organ[segment_name] = organ
             if segment_name not in segment_names_associated_to_their_respective_organ:
-                raise ValueError(f"Segment name {segment_name} doesn't correspond to any organ in the {Organs} class, "
-                                 f"which are {[organ.name for organ in Organs]}")
+                raise ValueError(f"Segment name {segment_name} doesn't correspond to any organ in the {self._organs}"
+                                 f" dictionary, which are {list(self._organs.keys())}")
 
         return segment_names_associated_to_their_respective_organ
 

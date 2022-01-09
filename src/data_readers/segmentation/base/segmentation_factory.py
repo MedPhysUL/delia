@@ -11,7 +11,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Dict, List
 
 from .segment import Segment
 from .segmentation import Segmentation
@@ -22,6 +22,25 @@ class SegmentationFactory(ABC):
     An abstract class that is used as a reference for all other segmentation classes that read data and build a
     Segmentation object from it.
     """
+
+    def __init__(
+            self,
+            path_to_segmentation: str,
+            organs: Dict[str, List[str]]
+    ):
+        """
+        Used to load the segmentation data from the path to segmentation.
+
+        Parameters
+        ----------
+        path_to_segmentation : str
+            The path to the segmentation file.
+        organs : Dict[str, List[str]]
+            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
+            and values are lists of possible segment names.
+        """
+        self._path_to_segmentation = path_to_segmentation
+        self._organs = organs
 
     @property
     @abstractmethod

@@ -26,6 +26,7 @@ class PatientDataReader(DicomReader):
             self,
             path_to_dicom_folder: str,
             verbose: bool,
+            organs: Optional[Dict[str, List[str]]] = None,
             paths_to_segmentations: Optional[List[str]] = None,
             series_descriptions: Optional[Dict[str, List[str]]] = None,
     ):
@@ -38,10 +39,13 @@ class PatientDataReader(DicomReader):
             Path to the folder containing the patient dicom files.
         verbose : bool
             True to log/print some information else False.
-        paths_to_segmentations : Optional[List[str]]
+        organs : Optional[Dict[str, List[str]], None], default = None.
+            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
+            and values are lists of possible segment names.
+        paths_to_segmentations : Optional[List[str]], default = None.
             A list of paths to the segmentation files. The name of the segmentation files must include the series uid
             of their corresponding image, i.e. the image on which the segmentation was made.
-        series_descriptions : Optional[Dict[str, List[str]]]
+        series_descriptions : Optional[Dict[str, List[str]]], default = None.
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions. The images associated with these series descriptions do not need to have a
@@ -49,7 +53,13 @@ class PatientDataReader(DicomReader):
             must be added to the dataset is to be able to add images without segmentation.
         """
         super(PatientDataReader, self).__init__(path_to_dicom_folder=path_to_dicom_folder)
+        if paths_to_segmentations:
+            if any(path for path in paths_to_segmentations) and organs is None:
+                raise AssertionError("The variable organs is required. It is a dictionary where keys are arbitrary"
+                                     " organ names and values are lists of possible segment names.")
+
         self._dicom_headers = self.get_dicom_headers(verbose=verbose)
+        self._organs = organs
         self._paths_to_segmentations = paths_to_segmentations
         self._series_descriptions = series_descriptions
         self._verbose = verbose
@@ -226,6 +236,7 @@ class PatientDataReader(DicomReader):
         """
         patient_data_context = PatientDataQueryContext(
             images_data=self.get_images_data(self._verbose),
+            organs=self._organs,
             paths_to_segmentations=self._paths_to_segmentations,
             series_descriptions=self._series_descriptions
         )

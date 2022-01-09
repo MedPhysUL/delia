@@ -9,6 +9,8 @@
                         and transform its contents into the format of the SegmentationDataModel class.
 """
 
+from typing import Dict, List
+
 import SimpleITK as sitk
 
 from src.data_readers.segmentation.segmentation_context import SegmentationContext
@@ -24,7 +26,8 @@ class SegmentationReader:
 
     def __init__(
             self,
-            path_to_segmentation: str
+            path_to_segmentation: str,
+            organs: Dict[str, List[str]]
     ):
         """
         Constructor of the class SegmentationReader.
@@ -33,8 +36,12 @@ class SegmentationReader:
         ----------
         path_to_segmentation : str
             The path to the segmentation file.
+        organs : Dict[str, List[str]]
+            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
+            and values are lists of possible segment names.
         """
         self._path_to_segmentation = path_to_segmentation
+        self._organs = organs
 
     @property
     def __simple_itk_label_image(self) -> sitk.Image:
@@ -62,7 +69,10 @@ class SegmentationReader:
         segmentation : Segmentation
             Segmentation.
         """
-        segmentation_context_manager = SegmentationContext(path_to_segmentation=self._path_to_segmentation)
+        segmentation_context_manager = SegmentationContext(
+            path_to_segmentation=self._path_to_segmentation,
+            organs=self._organs
+        )
 
         return segmentation_context_manager.create_segmentation()
 
