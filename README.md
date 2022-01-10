@@ -31,9 +31,9 @@ The easiest way to import the package is to use :
 from dicom2hdf import *
 ```
 
-This will import the useful classes `PatientDataset` and `PatientDataGenerator`. These two classes represent two different ways of using the package, a turnkey approach and an on-the-fly way. The following examples will present both procedures.
+This will import the useful classes `PatientDataset` and `PatientDataGenerator`. These two classes represent two different ways of using the package. The following examples will present both procedures.
 
-### Example using the patient dataset class (Turnkey method)
+### Example using the patient dataset class
 
 ```python
 from dicom2hdf import *
@@ -53,7 +53,7 @@ dataset.create_hdf5_dataset(
 )
 ```
 
-### Example using the patient data generator class (On-the-fly method)
+### Example using the patient data generator class
 
 ```python
 from dicom2hdf import *
