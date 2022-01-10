@@ -138,7 +138,7 @@ class PatientDataset:
 
         return paths_to_patients_folder_and_segmentations
 
-    def create_dataset_from_dicom_and_segmentation_files(
+    def create_hdf5_dataset(
             self,
             path_to_patients_folder: str,
             path_to_segmentations_folder: str,
@@ -228,12 +228,12 @@ class PatientDataset:
                 series_group.attrs.__setitem__(name="series_uid", value=str(series_uid))
                 series_group.attrs.__setitem__(name="modality", value=modality)
 
-                series_group.create_dataset(
+                series_group.create_hdf5_dataset(
                     name=f"image",
                     data=transposed_image_array
                 )
 
-                series_group.create_dataset(
+                series_group.create_hdf5_dataset(
                     name=f"dicom_header",
                     data=json.dumps(patient_image_data.image.dicom_header.to_json_dict())
                 )
@@ -242,7 +242,7 @@ class PatientDataset:
                     pass
                 else:
                     for organ, label_map in patient_image_data.segmentation.binary_label_maps.items():
-                        series_group.create_dataset(
+                        series_group.create_hdf5_dataset(
                             name=f"{organ}_label_map",
                             data=label_map
                         )
