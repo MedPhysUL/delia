@@ -146,6 +146,7 @@ class PatientDataset:
             verbose: bool,
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
             organs: Optional[Union[str, Dict[str, List[str]]]] = None,
+            patient_number_prefix: str = "Ano",
             overwrite_dataset: bool = True,
     ) -> None:
         """
@@ -174,6 +175,8 @@ class PatientDataset:
             Images folder name.
         verbose : bool
             True to log/print some information else False.
+        patient_number_prefix : str
+            Prefix of the patient number common to all segmentations (default is 'Ano').
         overwrite_dataset : bool, default = False.
             Overwrite existing dataset.
         """
