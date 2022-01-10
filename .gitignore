@@ -133,4 +133,6 @@ dmypy.json
 
 # Data
 */data
+
+# package
 pyproject.toml
