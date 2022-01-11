@@ -17,7 +17,7 @@ from .segment import Segment
 from .segmentation import Segmentation
 
 
-class SegmentationFactory(ABC):
+class BaseSegmentationFactory(ABC):
     """
     An abstract class that is used as a reference for all other segmentation classes that read data and build a
     Segmentation object from it.

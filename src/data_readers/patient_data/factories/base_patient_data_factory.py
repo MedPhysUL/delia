@@ -12,7 +12,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
-from src.data_model import ImageDataModel, PatientDataModel
+from ....data_model import ImageDataModel, PatientDataModel
 
 
 class BasePatientDataFactory(ABC):

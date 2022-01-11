@@ -1,10 +1,10 @@
 import logging
-from logging_tools import logs_file_setup
+from .logging_tools import logs_file_setup
 import warnings
 
-from root import *
+from .root import *
 
-from src.datasets.patient_dataset import PatientDataset
+from .datasets.hdf5_dataset import Hdf5Dataset
 
 
 if __name__ == "__main__":
@@ -17,11 +17,11 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     #                                            Patient Dataset                                                  #
     # ----------------------------------------------------------------------------------------------------------- #
-    hdf5_dataset = PatientDataset(
+    hdf5_dataset = Hdf5Dataset(
         path_to_dataset=PathName.PATH_TO_PATIENT_DATASET,
     )
 
-    hdf5_dataset.create_hdf5_dataset(
+    hdf5_dataset.create_dataset(
         path_to_patients_folder=PathName.PATH_TO_PATIENTS_FOLDER,
         path_to_segmentations_folder=PathName.PATH_TO_SEGMENTATIONS_FOLDER,
         series_descriptions=os.path.join(PathName.PATH_TO_DATA_FOLDER, "series_descriptions.json"),

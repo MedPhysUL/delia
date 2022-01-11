@@ -11,8 +11,8 @@
 
 from typing import Dict, List
 
-from src.data_model import ImageDataModel, PatientDataModel
-from src.constants.patient_data_query_strategy import PatientDataQueryStrategy, PatientDataQueryStrategies
+from ...data_model import ImageDataModel, PatientDataModel
+from .patient_data_query_strategy import PatientDataQueryStrategy, PatientDataQueryStrategies
 
 
 class PatientDataQueryContext:

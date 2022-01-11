@@ -10,9 +10,9 @@
 
 from typing import Dict, List, Optional
 
-from src.data_model import ImageDataModel, ImageAndSegmentationDataModel, PatientDataModel
-from src.data_readers.patient_data.base_patient_data_factory import BasePatientDataFactory
-from src.data_readers.segmentation_reader import SegmentationReader
+from ....data_model import ImageDataModel, ImageAndSegmentationDataModel, PatientDataModel
+from .base_patient_data_factory import BasePatientDataFactory
+from ...segmentation.segmentation_reader import SegmentationReader
 
 
 class DefaultPatientDataFactory(BasePatientDataFactory):
@@ -296,9 +296,6 @@ class SegmentationAndSeriesDescriptionPatientDataFactory(BasePatientDataFactory)
                     image_added = True
 
             series_description = image.dicom_header.SeriesDescription
-            print("SERIES DESCRIPTION", series_description)
-            print("FLATTEN SERIES DESCRIPTIONS", self.flatten_series_descriptions)
-            print("IMAGE ADDED", image_added)
             if series_description in self.flatten_series_descriptions and image_added is False:
                 image_data = ImageAndSegmentationDataModel(image=image)
                 data.append(image_data)

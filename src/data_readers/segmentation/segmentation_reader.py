@@ -13,9 +13,9 @@ from typing import Dict, List
 
 import SimpleITK as sitk
 
-from src.data_readers.segmentation.segmentation_context import SegmentationContext
-from src.data_readers.segmentation.base.segmentation import Segmentation
-from src.data_model import SegmentationDataModel
+from .segmentation_context import SegmentationContext
+from .factories.segmentation import Segmentation
+from ...data_model import SegmentationDataModel
 
 
 class SegmentationReader:

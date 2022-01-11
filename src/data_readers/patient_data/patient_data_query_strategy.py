@@ -1,9 +1,8 @@
 import enum
 from typing import NamedTuple, Callable
 
-from src.data_readers.patient_data.patient_data_factories import DefaultPatientDataFactory, \
-    SegmentationPatientDataFactory, SeriesDescriptionPatientDataFactory, \
-    SegmentationAndSeriesDescriptionPatientDataFactory
+from .factories.patient_data_factories import DefaultPatientDataFactory, SegmentationPatientDataFactory, \
+    SeriesDescriptionPatientDataFactory, SegmentationAndSeriesDescriptionPatientDataFactory
 
 
 class PatientDataQueryStrategy(NamedTuple):

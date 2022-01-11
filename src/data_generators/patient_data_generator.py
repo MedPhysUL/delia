@@ -16,8 +16,8 @@ import json
 import logging
 from typing import Dict, List, NamedTuple, Optional, Union
 
-from src.data_readers.patient_data_reader import PatientDataReader
-from src.data_model import PatientDataModel
+from ..data_readers.patient_data.patient_data_reader import PatientDataReader
+from ..data_model import PatientDataModel
 
 
 class PatientDataGenerator(Generator):

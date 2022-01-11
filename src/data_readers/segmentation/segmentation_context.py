@@ -12,8 +12,8 @@
 
 from typing import Dict, List
 
-from src.constants.segmentation_strategy import SegmentationStrategy, SegmentationStrategies
-from src.data_readers.segmentation.base.segmentation import Segmentation
+from .segmentation_strategy import SegmentationStrategy, SegmentationStrategies
+from .factories.segmentation import Segmentation
 
 
 class SegmentationContext:

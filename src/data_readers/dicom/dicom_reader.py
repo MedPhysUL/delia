@@ -15,8 +15,8 @@ from typing import Dict, List, NamedTuple, Set
 import pydicom
 import SimpleITK as sitk
 
-from src.data_model import ImageDataModel
-from src.utils import check_validity_of_given_path
+from ...data_model import ImageDataModel
+from ...utils import check_validity_of_given_path
 
 
 class DicomReader:
