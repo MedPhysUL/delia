@@ -28,6 +28,6 @@ setuptools.setup(
         "pydicom",
         "pynrrd",
         "SimpleITK",
-        "tqdm",
+        "tqdm>=4.56.0",
     ],
 )
