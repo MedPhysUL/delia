@@ -1,4 +1,4 @@
-# Medical data formatting and pre-processing 
+# Medical data formatting and pre-processing module
 This package is a medical data formatting and pre-processing module whose main objective is to build an HDF5 dataset containing all medical images of patients (DICOM format) and their associated segmentations. The HDF5 dataset is then easier to use to perform tasks on the medical data, such as machine learning tasks.
 
 Anyone who is willing to contribute is welcome to do so.
