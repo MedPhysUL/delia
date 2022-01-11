@@ -4,7 +4,7 @@ import warnings
 
 from .root import *
 
-from .datasets.hdf5_dataset import Hdf5Dataset
+from .datasets.hdf5_dataset import PatientDataset
 
 
 if __name__ == "__main__":
@@ -17,11 +17,11 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     #                                            Patient Dataset                                                  #
     # ----------------------------------------------------------------------------------------------------------- #
-    hdf5_dataset = Hdf5Dataset(
+    dataset = PatientDataset(
         path_to_dataset=PathName.PATH_TO_PATIENT_DATASET,
     )
 
-    hdf5_dataset.create_dataset(
+    dataset.create_hdf5_dataset(
         path_to_patients_folder=PathName.PATH_TO_PATIENTS_FOLDER,
         path_to_segmentations_folder=PathName.PATH_TO_SEGMENTATIONS_FOLDER,
         series_descriptions=os.path.join(PathName.PATH_TO_DATA_FOLDER, "series_descriptions.json"),

@@ -1,1 +1,1 @@
-from .hdf5_dataset import Hdf5Dataset
+from .hdf5_dataset import PatientDataset

@@ -5,7 +5,7 @@
     @Creation Date:     10/2021
     @Last modification: 01/2022
 
-    @Description:       This file contains the Hdf5Dataset class that is used to interact with an hdf5 file dataset.
+    @Description:       This file contains the PatientDataset class that is used to interact with an hdf5 file dataset.
                         The main purpose of this class is to create an hdf5 file dataset from multiple patients dicom
                         files and their segmentation. This class also allows the user to interact with an existing hdf5
                         file dataset through queries.
@@ -26,9 +26,9 @@ from ..data_generators.patient_data_generator import PatientDataGenerator
 from .tools.segmentation_filename_patterns_matcher import SegmentationFilenamePatternsMatcher
 
 
-class Hdf5Dataset:
+class PatientDataset:
     """
-    This file contains the Hdf5Dataset class that is used to interact with an hdf5 file dataset. The main purpose of
+    This file contains the PatientDataset class that is used to interact with an hdf5 file dataset. The main purpose of
     this class is to create an hdf5 file dataset from multiple patients dicom files and their segmentation. This class
     also allows the user to interact with an existing hdf5 file dataset through queries.
     """
@@ -138,7 +138,7 @@ class Hdf5Dataset:
 
         return paths_to_patients_folder_and_segmentations
 
-    def create_dataset(
+    def create_hdf5_dataset(
             self,
             path_to_patients_folder: str,
             path_to_segmentations_folder: str,

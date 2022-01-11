@@ -1,5 +1,5 @@
 from .data_generators.patient_data_generator import PatientDataGenerator
-from .datasets.hdf5_dataset import Hdf5Dataset
+from .datasets.hdf5_dataset import PatientDataset
 
 __author__ = "Maxence Larose"
 __version__ = "0.1.1"
