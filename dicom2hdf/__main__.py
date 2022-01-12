@@ -4,14 +4,14 @@ import warnings
 
 from .root import *
 
-from .datasets.hdf5_dataset import PatientDataset
+from .datasets.patient_dataset import PatientDataset
 
 
 if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     #                                          Logs Setup                                                         #
     # ----------------------------------------------------------------------------------------------------------- #
-    logs_file_setup(__file__, logging.INFO)
+    logs_file_setup(logging.INFO)
     warnings.filterwarnings("default", category=DeprecationWarning)
 
     # ----------------------------------------------------------------------------------------------------------- #

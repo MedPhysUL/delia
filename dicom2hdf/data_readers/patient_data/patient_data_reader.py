@@ -12,7 +12,7 @@
 import logging
 from typing import Dict, List, Optional
 
-from src.data_model import PatientDataModel
+from ...data_model import PatientDataModel
 from ..dicom.dicom_reader import DicomReader
 from .patient_data_query_context import PatientDataQueryContext
 

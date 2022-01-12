@@ -198,7 +198,9 @@ class PatientDataset:
         paths_to_patients_folder_and_segmentations = self.get_paths_to_patient(
             paths_to_patients_dicom_folder=paths_to_patients_dicom_folder,
             path_to_segmentations_folder=path_to_segmentations_folder,
+            patient_number_prefix=patient_number_prefix
         )
+
         if verbose:
             logging.info("Done.")
 
