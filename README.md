@@ -183,25 +183,25 @@ class PathName:
 It is important to configure the directory structure correctly to ensure that the module interacts correctly with the data files. The repository, particularly the data folder, must be structured as follows. *Again, the names of the folders and files can and probably will differ, but they must be consistent with the names written in the* `root.py` *file*.
 
 ```
-|_📂 Project directory
+|_📂 Project directory/
   |_📄 root.py
   |_📄 main.py
-  |_📂 data
+  |_📂 data/
     |_📄 organs.json
     |_📄 series_descriptions.json
-    |_📂 Patients
-      |_📂 patient1
-       	|_📂 IMAGES
+    |_📂 Patients/
+      |_📂 patient1/
+       	|_📂 IMAGES/
        	  |_📄 IM0.DCM
        	  |_📄 IM1.DCM
        	  |_📄 ...
-      |_📂 patient2
-        |_📂 IMAGES
+      |_📂 patient2/
+        |_📂 IMAGES/
        	  |_📄 IM0.DCM
        	  |_📄 IM1.DCM
        	  |_📄 ...
-      |_📂 ...
-    |_📂 Segmentations
+      |_📂 .../
+    |_📂 Segmentations/
       |_📄 Patient1_CTSeriesUids.seg.nrrd
       |_📄 Patient1_TEPSeriesUids.seg.nrrd
       |_📄 Patient2_CTSeriesUids.nrrd
