@@ -200,7 +200,7 @@ It is important to configure the directory structure correctly to ensure that th
        	  |_📄 IM0.DCM
        	  |_📄 IM1.DCM
        	  |_📄 ...
-      |_📂 .../
+      |_📂 ...
     |_📂 Segmentations/
       |_📄 Patient1_CTSeriesUids.seg.nrrd
       |_📄 Patient1_TEPSeriesUids.seg.nrrd
