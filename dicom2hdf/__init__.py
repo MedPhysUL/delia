@@ -4,7 +4,7 @@ from .logging_tools import logs_file_setup
 from .paths_manager.path_generator import PathGenerator
 
 __author__ = "Maxence Larose"
-__version__ = "0.1.4"
+__version__ = "0.0.5"
 __copyright__ = "Copyright 2022, Maxence Larose"
 __credits__ = ["Maxence Larose"]
 __license__ = "GPL"
