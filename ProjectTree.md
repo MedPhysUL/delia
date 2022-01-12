@@ -1,15 +1,15 @@
 # Project Tree
 
 ```
-|_📂 dicom2hdf/                             
+|_📂 dicom2hdf/
   |_📂 data_generators/
-    |_📄 patient_data_generator.py                  
+    |_📄 patient_data_generator.py
   |_📂 data_readers/
     |_📂 dicom/
-	  |_📄 dicom_reader.py 		
+	  |_📄 dicom_reader.py
 	|_📂 patient_data/
-	  |_📄 patient_data_query_context.py 
-	  |_📄 patient_data_query_stategy.py      
+	  |_📄 patient_data_query_context.py
+	  |_📄 patient_data_query_stategy.py
 	  |_📄 patient_data_reader.py
 	  |_📂 factories/
 		|_📄 base_patient_data_factory.py
