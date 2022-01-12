@@ -66,9 +66,9 @@ class PatientDataQueryContext:
         """
         if self._paths_to_segmentations and self._series_descriptions:
             return PatientDataQueryStrategies.SEGMENTATION_AND_SERIES_DESCRIPTION
-        elif self._paths_to_segmentations is None and self._series_descriptions:
+        elif not self._paths_to_segmentations and self._series_descriptions:
             return PatientDataQueryStrategies.SERIES_DESCRIPTION
-        elif self._paths_to_segmentations and self._series_descriptions is None:
+        elif self._paths_to_segmentations and not self._series_descriptions:
             return PatientDataQueryStrategies.SEGMENTATION
         else:
             return PatientDataQueryStrategies.DEFAULT
