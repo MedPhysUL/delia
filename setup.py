@@ -10,7 +10,7 @@ setuptools.setup(
                 " (DICOM format) and their associated segmentations. The HDF5 dataset"\
                 " is then easier to use to perform tasks on the medical data, such as"\
                 " machine learning tasks.",
-    long_description=open('README.md').read(),
+    long_description=open('README.md', "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/MaxenceLarose/DicomToHDF5",
     license="Apache License 2.0",

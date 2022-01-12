@@ -100,7 +100,7 @@ organs = {
 
 The series descriptions are specified as a **dictionary** that contains the series descriptions of the images that absolutely needs to be extracted from the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of series descriptions. The images associated with these series descriptions do not need to have a corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that must be added to the dataset is to be able to add images without their segmentation. Note that it can also be specified as a path to a **json file** that contains the series descriptions. Both methods are presented below.
 
-<span style="color:red">Warning : *This dictionary (or json file) can be modified during the execution of the package functions. THIS IS NORMAL, we potentially want to add series descriptions if none of the descriptions match the series in the patient file.* </span> 
+Warning! *This dictionary (or json file) can be modified during the execution of the package functions. THIS IS NORMAL, we potentially want to add series descriptions if none of the descriptions match the series in the patient file.* 
 
 ##### Using a json file
 
