@@ -14,10 +14,11 @@ from collections.abc import Generator
 from copy import deepcopy
 import json
 import logging
-from typing import Dict, List, NamedTuple, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from ..data_readers.patient_data.patient_data_reader import PatientDataReader
 from ..data_model import PatientDataModel
+from ..paths_manager.path_generator import PathGenerator
 
 
 class PatientDataGenerator(Generator):
@@ -26,30 +27,21 @@ class PatientDataGenerator(Generator):
     obtain all patients' data. The PatientDataGenerator inherits from the Generator abstract class.
     """
 
-    class PathsToPatientFolderAndSegmentations(NamedTuple):
-        """
-        Namedtuple of paths to patient folder and segmentations.
-        """
-        path_to_patient_folder: str
-        path_to_segmentations: Optional[List[str]] = None
-
     def __init__(
             self,
-            paths_to_patients_folder_and_segmentations: List[PathsToPatientFolderAndSegmentations],
-            verbose: bool,
+            path_generator: PathGenerator,
             organs: Optional[Union[str, Dict[str, List[str]]]] = None,
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
+            verbose: bool = True,
     ):
         """
         Used to check if either the series descriptions or the path to the series description json dictionary is None.
 
         Parameters
         ----------
-        paths_to_patients_folder_and_segmentations : List[PathsToPatientFolderAndSegmentations]
-            List of named tuples including the path to the folder containing the patient dicom files and the path to
-            the segmentations related to these dicom files.
-        verbose : bool
-            True to log/print some information else False.
+        path_generator : PathGenerator.
+            A PathGenerator object. This object defines, for all patients, the path to the folder containing the
+            patient's dicom files and the path to the segmentations related to these dicom files.
         organs : Optional[Union[str, Dict[str, List[str]], None]], default = None.
             A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
             and values are lists of possible segment names. It can also be specified as a path to a json file that
@@ -61,8 +53,15 @@ class PatientDataGenerator(Generator):
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without their segmentation. Can be specified as a
             path to a json file that contains the series descriptions dictionary.
+        verbose : bool
+            True to log/print some information else False.
         """
-        self.paths_to_patients_folder_and_segmentations = paths_to_patients_folder_and_segmentations
+        if isinstance(path_generator, PathGenerator):
+            pass
+        else:
+            raise TypeError("The parameter path_generator needs to be an instance of the PathGenerator object.")
+
+        self.paths_to_patients_folder_and_segmentations = list(path_generator)
 
         if isinstance(series_descriptions, str):
             self.path_to_series_description_json = series_descriptions
@@ -82,7 +81,7 @@ class PatientDataGenerator(Generator):
             self.organs = organs
             self.path_to_organs_json = None
         elif organs is None:
-            if any(paths.path_to_segmentations for paths in self.paths_to_patients_folder_and_segmentations):
+            if any(path.paths_to_segmentations for path in self.paths_to_patients_folder_and_segmentations):
                 raise AssertionError("The variable organs is required. It is a dictionary where keys are arbitrary"
                                      " organ names and values are lists of possible segment names.")
             self.organs = None
@@ -260,17 +259,16 @@ class PatientDataGenerator(Generator):
         if self.current_index == self.__len__():
             self.throw()
 
-        path_to_dicom_folder = self.paths_to_patients_folder_and_segmentations[self.current_index][0]
-        paths_to_segmentations = self.paths_to_patients_folder_and_segmentations[self.current_index][1]
+        path = self.paths_to_patients_folder_and_segmentations[self.current_index]
 
         if self._verbose:
             logging.info(f"\n\n# {'-'*50} Patient {self.current_index + 1} {'-'*50} #")
 
         patient_data_reader = PatientDataReader(
-            path_to_dicom_folder=path_to_dicom_folder,
+            path_to_dicom_folder=path.path_to_dicom_folder,
             verbose=self._verbose,
             organs=self.organs,
-            paths_to_segmentations=paths_to_segmentations,
+            paths_to_segmentations=path.paths_to_segmentations,
             series_descriptions=self.series_descriptions
         )
         self.series_descriptions = patient_data_reader.series_descriptions

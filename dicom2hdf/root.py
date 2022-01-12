@@ -7,25 +7,25 @@ This file essentially gives the same important folders and paths root names to a
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
-class DatasetName:
-    PATIENT_DATASET_BASE_NAME = "patient_dataset"
-    RADIOMICS_DATASET_BASE_NAME = "radiomics_dataset"
+class FileName:
+    ORGANS_JSON = "organs.json"
+    SERIES_DESCRIPTIONS_JSON = "series_descriptions.json"
+    PATIENT_DATASET = "patient_dataset.h5"
 
 
 class FolderName:
-    DATA_FOLDER_NAME = "data"
-    PATIENTS_FOLDER_NAME = "Patients"
-    SEGMENTATIONS_FOLDER_NAME = "Segmentations"
-    IMAGES_FOLDER_NAME = "IMAGES"
+    DATA_FOLDER = "data"
+    PATIENTS_FOLDER = "Patients"
+    SEGMENTATIONS_FOLDER = "Segmentations"
+    IMAGES_FOLDER = "IMAGES"
 
 
 class PathName:
-    PATH_TO_DATA_FOLDER = os.path.join(ROOT, FolderName.DATA_FOLDER_NAME)
-    PATH_TO_PATIENTS_FOLDER = os.path.join(PATH_TO_DATA_FOLDER, FolderName.PATIENTS_FOLDER_NAME)
-    PATH_TO_SEGMENTATIONS_FOLDER = os.path.join(PATH_TO_DATA_FOLDER, FolderName.SEGMENTATIONS_FOLDER_NAME)
+    PATH_TO_DATA_FOLDER = os.path.join(ROOT, FolderName.DATA_FOLDER)
 
-    PATH_TO_PATIENT_DATASET = os.path.join(PATH_TO_DATA_FOLDER, DatasetName.PATIENT_DATASET_BASE_NAME)
-    BASE_PATH_TO_RADIOMICS_DATASET = os.path.join(
-        PATH_TO_DATA_FOLDER,
-        DatasetName.RADIOMICS_DATASET_BASE_NAME
-    )
+    PATH_TO_ORGANS_JSON = os.path.join(PATH_TO_DATA_FOLDER, FileName.ORGANS_JSON)
+    PATH_TO_SERIES_DESCRIPTIONS_JSON = os.path.join(PATH_TO_DATA_FOLDER, FileName.SERIES_DESCRIPTIONS_JSON)
+    PATH_TO_PATIENT_DATASET = os.path.join(PATH_TO_DATA_FOLDER, FileName.PATIENT_DATASET)
+
+    PATH_TO_PATIENTS_FOLDER = os.path.join(PATH_TO_DATA_FOLDER, FolderName.PATIENTS_FOLDER)
+    PATH_TO_SEGMENTATIONS_FOLDER = os.path.join(PATH_TO_DATA_FOLDER, FolderName.SEGMENTATIONS_FOLDER)

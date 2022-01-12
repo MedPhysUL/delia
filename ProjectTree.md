@@ -25,7 +25,9 @@
 	    |_📄 segmentation.py
   |_📂 datasets/
 	|_📄 patient_dataset.py
-	|_📂 tools/
+  |_📂 paths_manager/
+	  |_📄 path.py
+	  |_📄 path_generator.py
 	  |_📄 segmentation_filename_patterns_matcher.py
 |_📄 __main__.py
 |_📄 data_model.py

@@ -21,16 +21,15 @@ import time
 from tqdm import tqdm
 from typing import Dict, List, Optional, Union
 
-from ..data_readers.patient_data.patient_data_reader import PatientDataReader
 from ..data_generators.patient_data_generator import PatientDataGenerator
-from .tools.segmentation_filename_patterns_matcher import SegmentationFilenamePatternsMatcher
+from ..paths_manager.path_generator import PathGenerator
 
 
 class PatientDataset:
     """
-    This file contains the PatientDataset class that is used to interact with an hdf5 file dataset. The main purpose of
-    this class is to create an hdf5 file dataset from multiple patients dicom files and their segmentation. This class
-    also allows the user to interact with an existing hdf5 file dataset through queries.
+    A class that is used to interact with a patient dataset. The main purpose of this class is to create an hdf5 file
+    dataset from multiple patients dicom files and their segmentation. This class also allows the user to interact with
+    an existing hdf5 file dataset through queries.
     """
 
     def __init__(
@@ -95,59 +94,13 @@ class PatientDataset:
         else:
             logging.info(f"Writing dataset (HDF5 dataset file path : {self.path_to_dataset}).")
 
-    @staticmethod
-    def get_paths_to_patient(
-            paths_to_patients_dicom_folder: List[str],
-            path_to_segmentations_folder: str,
-            patient_number_prefix: str = "Ano"
-    ) -> List[PatientDataGenerator.PathsToPatientFolderAndSegmentations]:
-        """
-        Paths to patients dicom folder.
-
-        Parameters
-        ----------
-        paths_to_patients_dicom_folder : List[str]
-            List of the paths to all the patients dicom folder.
-        path_to_segmentations_folder : str
-            Path to the folder containing the segmentations.
-        patient_number_prefix : str
-            Prefix of the patient number common to all segmentations (default is 'Ano').
-        """
-        paths_to_patients_folder_and_segmentations = []
-
-        for path_to_patient_dicom_folder in paths_to_patients_dicom_folder:
-            patient_data_reader = PatientDataReader(
-                path_to_dicom_folder=path_to_patient_dicom_folder,
-                verbose=True,
-            )
-
-            segmentation_filename_patterns_matcher = SegmentationFilenamePatternsMatcher(
-                path_to_segmentations_folder=path_to_segmentations_folder,
-                patient_name=patient_data_reader.patient_name,
-                patient_number_prefix=patient_number_prefix
-            )
-
-            paths_to_segmentations = segmentation_filename_patterns_matcher.get_absolute_paths_to_segmentation_files()
-
-            paths_to_patient_folder_and_segmentations = PatientDataGenerator.PathsToPatientFolderAndSegmentations(
-                path_to_patient_folder=path_to_patient_dicom_folder,
-                path_to_segmentations=paths_to_segmentations
-            )
-
-            paths_to_patients_folder_and_segmentations.append(paths_to_patient_folder_and_segmentations)
-
-        return paths_to_patients_folder_and_segmentations
-
     def create_hdf5_dataset(
             self,
-            path_to_patients_folder: str,
-            path_to_segmentations_folder: str,
-            images_folder_name: str,
-            verbose: bool,
+            path_generator: PathGenerator,
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
             organs: Optional[Union[str, Dict[str, List[str]]]] = None,
-            patient_number_prefix: str = "Ano",
-            overwrite_dataset: bool = True,
+            verbose: bool = True,
+            overwrite_dataset: bool = False,
     ) -> None:
         """
         Create an hdf5 file dataset from multiple patients dicom files and their segmentation and get patient's images
@@ -156,27 +109,22 @@ class PatientDataset:
 
         Parameters
         ----------
-        path_to_patients_folder : str
-            Patients folder path.
-        path_to_segmentations_folder : str
-            Images folder name.
-        series_descriptions : Union[str, Dict[str, List[str]]]
+        path_generator : PathGenerator.
+            A PathGenerator object. This object defines, for all patients, the path to the folder containing the
+            patient's dicom files and the path to the segmentations related to these dicom files.
+        series_descriptions : Union[str, Dict[str, List[str]]], default = None.
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without their segmentation. Can be specified as a
             path to a json dictionary that contains the series descriptions.
-        organs : Union[str, Dict[str, List[str]]]
+        organs : Union[str, Dict[str, List[str]]], default = None.
             A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
             and values are lists of possible segment names. It can also be specified as a path to a json file that
             contains the organs dictionary.
-        images_folder_name : str
-            Images folder name.
-        verbose : bool
+        verbose : bool, default = True.
             True to log/print some information else False.
-        patient_number_prefix : str
-            Prefix of the patient number common to all segmentations (default is 'Ano').
         overwrite_dataset : bool, default = False.
             Overwrite existing dataset.
         """
@@ -184,28 +132,8 @@ class PatientDataset:
 
         hf = h5py.File(self.path_to_dataset, "w")
 
-        paths_to_patients_dicom_folder = []
-        for path_to_patient_folder in os.listdir(path_to_patients_folder):
-            path_to_dicom_folder = os.path.join(
-                path_to_patients_folder,
-                path_to_patient_folder,
-                images_folder_name
-            )
-            paths_to_patients_dicom_folder.append(path_to_dicom_folder)
-
-        if verbose:
-            logging.info("\nAssociating patient records with their corresponding image segmentation files...")
-        paths_to_patients_folder_and_segmentations = self.get_paths_to_patient(
-            paths_to_patients_dicom_folder=paths_to_patients_dicom_folder,
-            path_to_segmentations_folder=path_to_segmentations_folder,
-            patient_number_prefix=patient_number_prefix
-        )
-
-        if verbose:
-            logging.info("Done.")
-
         patient_data_generator = PatientDataGenerator(
-            paths_to_patients_folder_and_segmentations=paths_to_patients_folder_and_segmentations,
+            path_generator=path_generator,
             verbose=verbose,
             series_descriptions=series_descriptions,
             organs=organs
