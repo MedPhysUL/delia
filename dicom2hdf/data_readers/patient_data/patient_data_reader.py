@@ -243,8 +243,8 @@ class PatientDataReader(DicomReader):
         patient_dataset = patient_data_context.create_patient_data()
 
         if self._verbose:
-            logging.debug("\nThe chosen patient data query strategy is called "
-                          "'{patient_data_context.patient_data_query_strategy.name}'.")
+            logging.debug(f"\nThe chosen patient data query strategy is called "
+                          f"'{patient_data_context.patient_data_query_strategy.name}'.")
             logging.info(f"\nA total of {len(patient_dataset.data)} images were added to the patient dataset, namely:")
 
             for image_and_segmentation_data in patient_dataset.data:
