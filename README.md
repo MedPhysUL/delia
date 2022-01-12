@@ -184,7 +184,11 @@ It is important to configure the directory structure correctly to ensure that th
 
 ```
 |_📂 Project directory
+  |_📄 root.py
+  |_📄 main.py
   |_📂 data
+    |_📄 organs.json
+    |_📄 series_descriptions.json
     |_📂 Patients
       |_📂 patient1
        	|_📂 IMAGES
@@ -203,10 +207,6 @@ It is important to configure the directory structure correctly to ensure that th
       |_📄 Patient2_CTSeriesUids.nrrd
       |_📄 Patient2_TEPSeriesUids.nrrd
       |_📄 ...
-    |_📄 organs.json
-    |_📄 series_descriptions.json
-  |_📄 root.py
-  |_📄 use_dicom2hdf.py
 ```
 
 ### Import the package
@@ -221,7 +221,11 @@ This will import the useful classes `PathGenerator`, `PatientDataset`, `PatientD
 
 ### Use the package
 
+The two examples below show code to add to the `main.py` file. 
+
 #### Example using the patient dataset class
+
+This file can then be executed to obtain an hdf5 dataset.
 
 ```python
 import logging
@@ -255,6 +259,8 @@ dataset.create_hdf5_dataset(
 ```
 
 #### Example using the patient data generator class
+
+This file can then be executed to perform on-the-fly tasks on images.
 
 ```python
 import logging
