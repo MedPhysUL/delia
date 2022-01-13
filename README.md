@@ -112,8 +112,7 @@ Here is an example of a json file configured as expected :
 {
     "TEP": [
         "TEP WB CORR (AC)",
-        "TEP WB XL CORR (AC)",
-        "None"
+        "TEP WB XL CORR (AC)"
     ],
     "CT": [
         "CT 2.5 WB",
@@ -145,46 +144,46 @@ series_descriptions = {
 
 It is good practice to create a class that lists the various names and important paths of the folders that contain the data, because, let's face it, everything is a bit arbitrary anyway. I propose here a way to organize this class. This allows the user to have an overview of the parameters to be defined and it will also simplify the explanations in the next section on the structure of the data file. 
 
-To do this, it is first necessary to create a file named `root.py` which will contain the important `FolderName` and `PathName` class.  The `root.py` file must be placed in the same folder as the `data` folder (*this will become clearer in the next section*).  It is easier to understand this step with an example so here is the expected content of `root.py `. *The names of the folders and files can differ.*
+To do this, it is first necessary to create a file named `settings.py` which will contain the important `FolderName` and `PathName` class.  The `settings.py` file must be placed in the same folder as the `data` folder (*this will become clearer in the next section*).  It is easier to understand this step with an example so here is the expected content of `settings.py `. *The names of the folders and files can differ.*
 
 ```python
-import os
+from os.path import abspath, dirname, join
 
-ROOT = os.path.abspath(os.path.dirname(__file__))
+ROOT = abspath(dirname(__file__))
 
 
 class FileName:
-    ORGANS_JSON = "organs.json"
-    SERIES_DESCRIPTIONS_JSON = "series_descriptions.json"
-    PATIENT_DATASET = "patient_dataset.h5"
+    ORGANS_JSON: str = "organs.json"
+    SERIES_DESCRIPTIONS_JSON: str = "series_descriptions.json"
+    PATIENT_DATASET: str = "patient_dataset.h5"
 
 
 class FolderName:
-    DATA_FOLDER = "data"
-    PATIENTS_FOLDER = "Patients"
-    SEGMENTATIONS_FOLDER = "Segmentations"
-    IMAGES_FOLDER = "IMAGES"
+    DATA_FOLDER: str = "data"
+    PATIENTS_FOLDER: str = "Patients"
+    SEGMENTATIONS_FOLDER: str = "Segmentations"
+    IMAGES_FOLDER: str = "IMAGES"
 
 
 class PathName:
-    PATH_TO_DATA_FOLDER = os.path.join(ROOT, FolderName.DATA_FOLDER)
-    
-    PATH_TO_ORGANS_JSON = os.path.join(PATH_TO_DATA_FOLDER, FileName.ORGANS_JSON)
-    PATH_TO_SERIES_DESCRIPTIONS_JSON = os.path.join(PATH_TO_DATA_FOLDER, FileName.SERIES_DESCRIPTIONS_JSON)
-    PATH_TO_PATIENT_DATASET = os.path.join(PATH_TO_DATA_FOLDER, FileName.PATIENT_DATASET)
-    
-    PATH_TO_PATIENTS_FOLDER = os.path.join(PATH_TO_DATA_FOLDER, FolderName.PATIENTS_FOLDER)
-    PATH_TO_SEGMENTATIONS_FOLDER = os.path.join(PATH_TO_DATA_FOLDER, FolderName.SEGMENTATIONS_FOLDER)
+    PATH_TO_DATA_FOLDER: str = join(ROOT, FolderName.DATA_FOLDER)
+
+    PATH_TO_ORGANS_JSON: str = join(PATH_TO_DATA_FOLDER, FileName.ORGANS_JSON)
+    PATH_TO_SERIES_DESCRIPTIONS_JSON: str = join(PATH_TO_DATA_FOLDER, FileName.SERIES_DESCRIPTIONS_JSON)
+    PATH_TO_PATIENT_DATASET: str = join(PATH_TO_DATA_FOLDER, FileName.PATIENT_DATASET)
+
+    PATH_TO_PATIENTS_FOLDER: str = join(PATH_TO_DATA_FOLDER, FolderName.PATIENTS_FOLDER)
+    PATH_TO_SEGMENTATIONS_FOLDER: str = join(PATH_TO_DATA_FOLDER, FolderName.SEGMENTATIONS_FOLDER)
 
 ```
 
 #### Structure your data directory
 
-It is important to configure the directory structure correctly to ensure that the module interacts correctly with the data files. The repository, particularly the data folder, must be structured as follows. *Again, the names of the folders and files can and probably will differ, but they must be consistent with the names written in the* `root.py` *file*.
+It is important to configure the directory structure correctly to ensure that the module interacts correctly with the data files. The repository, particularly the data folder, must be structured as follows. *Again, the names of the folders and files can and probably will differ, but they must be consistent with the names written in the* `settings.py` *file*.
 
 ```
 |_📂 Project directory/
-  |_📄 root.py
+  |_📄 settings.py
   |_📄 main.py
   |_📂 data/
     |_📄 organs.json
@@ -232,7 +231,7 @@ import logging
 
 from dicom2hdf import *
 
-from .root import *
+from .settings import *
 
 logs_file_setup(level=logging.INFO)
 
@@ -267,7 +266,7 @@ import logging
 
 from dicom2hdf import *
 
-from .root import *
+from .settings import *
 
 logs_file_setup(level=logging.INFO)
 

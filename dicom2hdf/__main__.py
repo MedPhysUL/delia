@@ -1,7 +1,7 @@
 import logging
 from .logging_tools import logs_file_setup
 
-from .root import *
+from .settings import *
 
 from .datasets.patient_dataset import PatientDataset
 from .paths_manager.path_generator import PathGenerator
