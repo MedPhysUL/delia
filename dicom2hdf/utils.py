@@ -1,3 +1,13 @@
+"""
+    @file:              utils.py
+    @Author:            Maxence Larose
+
+    @Creation Date:     10/2021
+    @Last modification: 01/2022
+
+    @Description:       A collection of functions and classes that may or may not be useful.
+"""
+
 import os
 import enum
 from typing import Callable, Union

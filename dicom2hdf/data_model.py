@@ -1,3 +1,14 @@
+"""
+    @file:              data_model.py
+    @Author:            Maxence Larose
+
+    @Creation Date:     10/2021
+    @Last modification: 01/2022
+
+    @Description:       This file contains several named tuples that are used to standardize the structure of objects
+                        containing data.
+"""
+
 from typing import Dict, List, NamedTuple
 
 import pydicom

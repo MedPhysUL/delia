@@ -1,3 +1,14 @@
+"""
+    @file:              logging_tools.py
+    @Author:            Maxence Larose
+
+    @Creation Date:     10/2021
+    @Last modification: 01/2022
+
+    @Description:       This file contains the logs_file_setup function, which allows the user to set the root logger
+                        level to the specified level.
+"""
+
 import logging
 
 
@@ -15,7 +26,3 @@ def logs_file_setup(level=logging.INFO):
     logging.basicConfig(filename=logs_file, filemode='w+', level=level)
     handler = logging.StreamHandler(sys.stdout)
     logging.getLogger().addHandler(handler)
-
-
-if __name__ == '__main__':
-    logs_file_setup(logging.DEBUG)
