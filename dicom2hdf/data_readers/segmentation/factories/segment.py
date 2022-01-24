@@ -9,6 +9,7 @@
 """
 
 import numpy as np
+import SimpleITK as sitk
 
 
 class Segment:
@@ -16,7 +17,7 @@ class Segment:
     A class used to represent a segment object.
     """
 
-    def __init__(self, name: str, label_map: np.ndarray):
+    def __init__(self, name: str, simple_itk_label_map: np.ndarray):
         """
         Constructor of the segment object.
 
@@ -24,11 +25,11 @@ class Segment:
         ----------
         name : str
             Segment's name.
-        label_map : np.ndarray
-            A binary label map with the same size as the original image.
+        simple_itk_label_map : sitk.Image
+            The segmentation as a SimpleITK image.
         """
         self._name = name
-        self._label_map = label_map
+        self._simple_itk_label_map = simple_itk_label_map
 
     @property
     def name(self) -> str:
@@ -43,13 +44,13 @@ class Segment:
         return self._name
 
     @property
-    def label_map(self) -> np.ndarray:
+    def simple_itk_label_map(self) -> sitk.Image:
         """
-        Label map property.
+        Simple ITK label map image.
 
         Returns
         -------
-        label_map : np.ndarray
-            A binary label map with the same size as the original image.
+        simple_itk_label_map : sitk.Image
+            The segmentation as a SimpleITK image.
         """
-        return self._label_map
+        return self._simple_itk_label_map

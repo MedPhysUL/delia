@@ -34,20 +34,20 @@ class DicomReader:
 
     def __init__(
             self,
-            path_to_dicom_folder: str
+            path_to_images_folder: str
     ):
         """
         Constructor of the class DicomReader.
 
         Parameters
         ----------
-        path_to_dicom_folder : str
-            Path to the folder containing the patient dicom files.
+        path_to_images_folder : str
+            Path to the folder containing the patient DICOM images files.
         """
         super(DicomReader, self).__init__()
 
-        check_validity_of_given_path(path=path_to_dicom_folder)
-        self._path_to_dicom_folder = path_to_dicom_folder
+        check_validity_of_given_path(path=path_to_images_folder)
+        self._path_to_images_folder = path_to_images_folder
 
     @staticmethod
     def get_dicom_header(
@@ -87,10 +87,10 @@ class DicomReader:
             All series IDs contained in a patient folder.
         """
         series_reader = sitk.ImageSeriesReader()
-        series_ids = series_reader.GetGDCMSeriesIDs(self._path_to_dicom_folder)
+        series_ids = series_reader.GetGDCMSeriesIDs(self._path_to_images_folder)
 
         if not series_ids:
-            raise FileNotFoundError(f"Given directory {self._path_to_dicom_folder} does not contain a DICOM series.")
+            raise FileNotFoundError(f"Given directory {self._path_to_images_folder} does not contain a DICOM series.")
 
         return series_ids
 
@@ -108,7 +108,7 @@ class DicomReader:
         all_patient_names: Set[str] = set()
         for idx, series_id in enumerate(self.__series_ids):
             series_reader = sitk.ImageSeriesReader()
-            paths_to_dicoms_from_series = series_reader.GetGDCMSeriesFileNames(self._path_to_dicom_folder, series_id)
+            paths_to_dicoms_from_series = series_reader.GetGDCMSeriesFileNames(self._path_to_images_folder, series_id)
 
             path_to_first_dicom_of_series = paths_to_dicoms_from_series[0]
             loaded_dicom_header = self.get_dicom_header(path_to_dicom=path_to_first_dicom_of_series)
@@ -122,7 +122,7 @@ class DicomReader:
             series_data_dict[series_id] = series_data
 
         if len(all_patient_names) != 1:
-            raise AssertionError(f"All dicom files in the same folder must belong to the same patient. This is not the "
+            raise AssertionError(f"All DICOM files in the same folder must belong to the same patient. This is not the "
                                  f"case for the patient whose data is currently being downloaded since the names "
                                  f"{all_patient_names} are found in his or her folder.")
 
@@ -164,14 +164,14 @@ class DicomReader:
         Returns
         -------
         dicom_headers : List[pydicom.dataset.FileDataset]
-            A list of the patient's dicom headers.
+            A list of the patient's DICOM headers.
         """
         dicom_headers = []
         for idx, series_data in enumerate(self.__series_data_dict.values()):
             if verbose:
                 if idx == 0:
                     logging.info(f"Patient name : {series_data.dicom_header.PatientName}.")
-                    logging.debug(f"\nPath to dicom folder : {self._path_to_dicom_folder}. \nThe following series "
+                    logging.debug(f"\nPath to images folder : {self._path_to_images_folder}. \nThe following series "
                                   f"description are found in the patient's folder :")
 
                 logging.debug(f"---> Series description: {series_data.series_description}")
@@ -182,7 +182,7 @@ class DicomReader:
 
     def get_images_data(self, verbose: bool) -> List[ImageDataModel]:
         """
-        List of tuples containing 3D images array and their corresponding dicom header. Each element in the list
+        List of tuples containing simpleITK 3D images array and their corresponding dicom header. Each element in the list
         corresponds to an image series.
 
         Parameters
@@ -200,7 +200,7 @@ class DicomReader:
 
             if verbose:
                 if idx == 0:
-                    logging.info(f"\nThe following series description are found in the patient's folder :")
+                    logging.info(f"\nThe following series description are found in the patient's images folder :")
                 logging.info(f"---> Series description: {series_data.series_description}")
 
             image = self.__get_3d_sitk_image_from_dicom_series(

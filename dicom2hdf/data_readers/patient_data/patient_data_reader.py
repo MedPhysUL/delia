@@ -13,7 +13,7 @@ import logging
 from typing import Dict, List, Optional
 
 from ...data_model import PatientDataModel
-from ..dicom.dicom_reader import DicomReader
+from ..image.dicom_reader import DicomReader
 from .patient_data_query_context import PatientDataQueryContext
 
 
@@ -24,52 +24,36 @@ class PatientDataReader(DicomReader):
 
     def __init__(
             self,
-            path_to_dicom_folder: str,
+            path_to_images_folder: str,
+            path_to_segmentations_folder: Optional[str],
+            series_descriptions: Optional[Dict[str, List[str]]],
             verbose: bool,
-            organs: Optional[Dict[str, List[str]]] = None,
-            paths_to_segmentations: Optional[List[str]] = None,
-            series_descriptions: Optional[Dict[str, List[str]]] = None,
     ):
         """
         Used to check availability of given series' uid and series descriptions in the patient's dicom files.
 
         Parameters
         ----------
-        path_to_dicom_folder : str
-            Path to the folder containing the patient dicom files.
-        verbose : bool
-            True to log/print some information else False.
-        organs : Optional[Dict[str, List[str]], None], default = None.
-            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
-            and values are lists of possible segment names.
-        paths_to_segmentations : Optional[List[str]], default = None.
-            A list of paths to the segmentation files. The name of the segmentation files must include the series uid
-            of their corresponding image, i.e. the image on which the segmentation was made.
-        series_descriptions : Optional[Dict[str, List[str]]], default = None.
+        path_to_images_folder : str
+            Path to the folder containing the patient's image files.
+        path_to_segmentations_folder : Optional[str]
+            Path to the folder containing the patient's segmentation files.
+        series_descriptions : Optional[Dict[str, List[str]]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
+        verbose : bool
+            True to log/print some information else False.
         """
-        super(PatientDataReader, self).__init__(path_to_dicom_folder=path_to_dicom_folder)
-        if paths_to_segmentations:
-            if any(path for path in paths_to_segmentations) and organs is None:
-                raise AssertionError("The variable organs is required. It is a dictionary where keys are arbitrary"
-                                     " organ names and values are lists of possible segment names.")
+        super(PatientDataReader, self).__init__(path_to_images_folder=path_to_images_folder)
 
         self._dicom_headers = self.get_dicom_headers(verbose=verbose)
-        self._organs = organs
-        self._paths_to_segmentations = paths_to_segmentations
+        self._path_to_segmentations_folder = path_to_segmentations_folder
         self._series_descriptions = series_descriptions
         self._verbose = verbose
 
-        if paths_to_segmentations is not None:
-            if verbose:
-                logging.info("\nChecking availability of given series uids...")
-            self.check_availability_of_given_series_uids()
-            if verbose:
-                logging.info("Done.\n")
         if series_descriptions is not None:
             if verbose:
                 logging.info("Checking availability of given series description...")
@@ -90,17 +74,16 @@ class PatientDataReader(DicomReader):
         return str(self._dicom_headers[0].PatientName)
 
     @property
-    def paths_to_segmentations(self) -> List[str]:
+    def path_to_segmentations_folder(self) -> str:
         """
         Paths to segmentations property.
 
         Returns
         -------
-        paths_to_segmentations : List[str]
-            A list of paths to the segmentation files. The name of the segmentation files must include the series uid
-            of their corresponding image, i.e. the image on which the segmentation was made.
+        path_to_segmentations_folder : List[str]
+            Path to the folder containing the patient's segmentation files.
         """
-        return self._paths_to_segmentations
+        return self._path_to_segmentations_folder
 
     @property
     def series_descriptions(self) -> Dict[str, List[str]]:
@@ -159,22 +142,6 @@ class PatientDataReader(DicomReader):
 
         return available_series_descriptions + ["None"]
 
-    @property
-    def available_series_uids(self) -> List[str]:
-        """
-        Available series' uids.
-
-        Returns
-        -------
-        available_series_uids : List[str]
-            Available series uids in the patient dicom files.
-        """
-        available_series_uid = [
-            dicom_header.SeriesInstanceUID for dicom_header in self._dicom_headers
-        ]
-
-        return available_series_uid
-
     def update_series_descriptions(self, series_key: str) -> None:
         """
         Add a series description to the series description list of the given series key.
@@ -212,18 +179,6 @@ class PatientDataReader(DicomReader):
                 self.update_series_descriptions(series_key)
                 self.check_availability_of_given_series_description()
 
-    def check_availability_of_given_series_uids(self) -> None:
-        """
-        Check availability of given series uids in the patient's dicom files.
-        """
-        for path_to_segmentation in self.paths_to_segmentations:
-            if any(uid in path_to_segmentation for uid in self.available_series_uids):
-                pass
-            else:
-                logging.warning(f"The given segmentation file name is {path_to_segmentation}. \nHowever, this file name"
-                                f" does NOT contain any of the available series uids found in the patient's dicom "
-                                f"files. \nAvailable series uids are {self.available_series_uids}.")
-
     def get_patient_dataset(self) -> PatientDataModel:
         """
         Get the patient dataset.
@@ -231,14 +186,14 @@ class PatientDataReader(DicomReader):
         Returns
         -------
         patient_dataset : PatientDataModel
-            A named tuple grouping the patient's data extracted from its dicom files and the patient's medical image
+            A named tuple grouping the patient's data extracted from its DICOM files and the patient's medical image
             segmentation data extracted from the segmentation files.
         """
         patient_data_context = PatientDataQueryContext(
-            images_data=self.get_images_data(self._verbose),
-            organs=self._organs,
-            paths_to_segmentations=self._paths_to_segmentations,
-            series_descriptions=self._series_descriptions
+            path_to_images_folder=self._path_to_images_folder,
+            path_to_segmentations_folder=self._path_to_segmentations_folder,
+            series_descriptions=self._series_descriptions,
+            verbose=self._verbose
         )
         patient_dataset = patient_data_context.create_patient_data()
 
@@ -252,7 +207,7 @@ class PatientDataReader(DicomReader):
                 series_description = image_and_segmentation_data.image.dicom_header.SeriesDescription
                 segmentation = image_and_segmentation_data.segmentation
                 image_segmentation_available = True if segmentation else False
-                segmented_organs = list(segmentation.binary_label_maps.keys()) if segmentation else None
+                segmented_organs = list(segmentation.simple_itk_label_maps.keys()) if segmentation else None
 
                 logging.info(f"---> Series Description ({series_description})"
                              f"\n     ---> Modality : {modality}"

@@ -11,13 +11,13 @@
 
 import logging
 
+import os
+import sys
+import time
+from datetime import date
+
 
 def logs_file_setup(level=logging.INFO):
-    import os
-    import sys
-    import time
-    from datetime import date
-
     today = date.today()
     timestamp = str(time.time()).replace('.', '')
     logs_dir = f"logs/logs-{today.strftime('%d-%m-%Y')}"

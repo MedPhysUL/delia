@@ -5,13 +5,13 @@
     @Creation Date:     01/2022
     @Last modification: 01/2022
 
-    @Description:       This file contains the class PatientDataQueryContext that is used as a context class where strategies are
-                        types of requests the client could ask the PatientDataReader class.
+    @Description:       This file contains the class PatientDataQueryContext that is used as a context class where
+                        strategies are types of requests the client could ask the PatientDataReader class.
 """
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from ...data_model import ImageDataModel, PatientDataModel
+from ...data_model import PatientDataModel
 from .patient_data_query_strategy import PatientDataQueryStrategy, PatientDataQueryStrategies
 
 
@@ -23,35 +23,33 @@ class PatientDataQueryContext:
 
     def __init__(
             self,
-            images_data: List[ImageDataModel],
-            organs: Dict[str, List[str]],
-            paths_to_segmentations: List[str],
-            series_descriptions: Dict[str, List[str]]
+            path_to_images_folder: str,
+            path_to_segmentations_folder: Optional[str],
+            series_descriptions: Dict[str, List[str]],
+            verbose: bool
     ):
         """
         Constructor of the PatientDataQueryContext class.
 
         Parameters
         ----------
-        images_data : List[ImageDataModel]
-            A list of the patient's images data.
-        organs : Dict[str, List[str]]
-            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
-            and values are lists of possible segment names.
-        paths_to_segmentations : List[str]
-            A list of paths to the segmentation files. The name of the segmentation files must include the series uid
-            of their corresponding image, i.e. the image on which the segmentation was made.
+        path_to_images_folder : str
+            Path to the folder containing the patient's image files.
+        path_to_segmentations_folder : Optional[str]
+            Path to the folder containing the patient's segmentation files.
         series_descriptions : Dict[str, List[str]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
+        verbose : bool
+            True to log/print some information else False.
         """
-        self._images_data = images_data
-        self._organs = organs
-        self._paths_to_segmentations = paths_to_segmentations
+        self._path_to_images_folder = path_to_images_folder
+        self._path_to_segmentations_folder = path_to_segmentations_folder
         self._series_descriptions = series_descriptions
+        self._verbose = verbose
 
     @property
     def patient_data_query_strategy(self) -> PatientDataQueryStrategy:
@@ -64,14 +62,14 @@ class PatientDataQueryContext:
         patient_data_query_strategy : PatientDataQueryStrategy
             Patient data query strategy.
         """
-        if self._paths_to_segmentations and self._series_descriptions:
-            return PatientDataQueryStrategies.SEGMENTATION_AND_SERIES_DESCRIPTION
-        elif not self._paths_to_segmentations and self._series_descriptions:
-            return PatientDataQueryStrategies.SERIES_DESCRIPTION
-        elif self._paths_to_segmentations and not self._series_descriptions:
-            return PatientDataQueryStrategies.SEGMENTATION
+        if self._path_to_segmentations_folder and self._series_descriptions:
+            return PatientDataQueryStrategies.SEGMENTATION_AND_SERIES_DESCRIPTION.value
+        elif not self._path_to_segmentations_folder and self._series_descriptions:
+            return PatientDataQueryStrategies.SERIES_DESCRIPTION.value
+        elif self._path_to_segmentations_folder and not self._series_descriptions:
+            return PatientDataQueryStrategies.SEGMENTATION.value
         else:
-            return PatientDataQueryStrategies.DEFAULT
+            return PatientDataQueryStrategies.DEFAULT.value
 
     @property
     def _patient_data_factory_instance(self) -> PatientDataQueryStrategy.factory:
@@ -84,10 +82,10 @@ class PatientDataQueryContext:
             Factory class instance used to get a patient's data.
         """
         _patient_data_factory_instance = self.patient_data_query_strategy.factory(
-            images_data=self._images_data,
-            organs=self._organs,
-            paths_to_segmentations=self._paths_to_segmentations,
-            series_descriptions=self._series_descriptions
+            path_to_images_folder=self._path_to_images_folder,
+            path_to_segmentations_folder=self._path_to_segmentations_folder,
+            series_descriptions=self._series_descriptions,
+            verbose=self._verbose
         )
 
         return _patient_data_factory_instance

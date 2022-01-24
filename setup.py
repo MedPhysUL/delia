@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="dicom2hdf",
-    version="0.0.6",
+    version="0.0.7",
     author="Maxence Larose",
     author_email="maxence.larose.1@ulaval.ca",
     description="Medical data formatting and pre-processing module whose main objective"\
@@ -16,7 +16,7 @@ setuptools.setup(
     license="Apache License 2.0",
     keywords='dicom hdf5 medical image segmentation pre-processing python3',
     packages=setuptools.find_packages(),
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",
@@ -26,6 +26,7 @@ setuptools.setup(
         "h5py",
         "numpy",
         "pydicom",
+        "pydicom-seg",
         "pynrrd",
         "SimpleITK",
         "tqdm"

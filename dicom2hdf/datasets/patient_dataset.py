@@ -22,7 +22,6 @@ from tqdm import tqdm
 from typing import Dict, List, Optional, Union
 
 from ..data_generators.patient_data_generator import PatientDataGenerator
-from ..paths_manager.path_generator import PathGenerator
 
 
 class PatientDataset:
@@ -96,9 +95,10 @@ class PatientDataset:
 
     def create_hdf5_dataset(
             self,
-            path_generator: PathGenerator,
+            path_to_patients_folder: str,
+            images_folder_name: str = "images",
+            segmentations_folder_name: str = "segmentations",
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
-            organs: Optional[Union[str, Dict[str, List[str]]]] = None,
             verbose: bool = True,
             overwrite_dataset: bool = False,
     ) -> None:
@@ -109,9 +109,12 @@ class PatientDataset:
 
         Parameters
         ----------
-        path_generator : PathGenerator.
-            A PathGenerator object. This object defines, for all patients, the path to the folder containing the
-            patient's dicom files and the path to the segmentations related to these dicom files.
+        path_to_patients_folder : str
+            The path to the folder that contains all the patients' folders.
+        images_folder_name : str, default = "images".
+            Images folder name.
+        segmentations_folder_name : str, default = "segmentations".
+            Segmentations folder name.
         series_descriptions : Union[str, Dict[str, List[str]]], default = None.
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
@@ -119,10 +122,6 @@ class PatientDataset:
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without their segmentation. Can be specified as a
             path to a json dictionary that contains the series descriptions.
-        organs : Union[str, Dict[str, List[str]]], default = None.
-            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
-            and values are lists of possible segment names. It can also be specified as a path to a json file that
-            contains the organs dictionary.
         verbose : bool, default = True.
             True to log/print some information else False.
         overwrite_dataset : bool, default = False.
@@ -133,10 +132,11 @@ class PatientDataset:
         hf = h5py.File(self.path_to_dataset, "w")
 
         patient_data_generator = PatientDataGenerator(
-            path_generator=path_generator,
+            path_to_patients_folder=path_to_patients_folder,
+            images_folder_name=images_folder_name,
+            segmentations_folder_name=segmentations_folder_name,
             verbose=verbose,
             series_descriptions=series_descriptions,
-            organs=organs
         )
 
         if verbose:
@@ -144,6 +144,7 @@ class PatientDataset:
             time.sleep(0.001)
             progress_bar = tqdm(range(len(patient_data_generator)), unit='itr', postfix="patients")
             time.sleep(0.001)
+
         for patient_dataset in patient_data_generator:
             patient_name = patient_dataset.patient_name
             patient_group = hf.create_group(name=patient_name)
@@ -174,10 +175,12 @@ class PatientDataset:
                 if patient_image_data.segmentation is None:
                     pass
                 else:
-                    for organ, label_map in patient_image_data.segmentation.binary_label_maps.items():
+                    for organ, simple_itk_label_map in patient_image_data.segmentation.simple_itk_label_maps.items():
+                        numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
+                        transposed_numpy_array_label_map = numpy_array_label_map.transpose(1, 2, 0)
                         series_group.create_dataset(
                             name=f"{organ}_label_map",
-                            data=label_map
+                            data=transposed_numpy_array_label_map
                         )
 
             if verbose:

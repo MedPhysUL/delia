@@ -10,7 +10,7 @@
 
 from typing import Dict, List
 
-import numpy as np
+import SimpleITK as sitk
 
 from .segment import Segment
 
@@ -76,20 +76,21 @@ class Segmentation:
         self._segments[index] = value
 
     @property
-    def label_maps(self) -> Dict[str, np.ndarray]:
+    def simple_itk_label_maps(self) -> Dict[str, sitk.Image]:
         """
-        Label maps of all the organs/segments that are found in the segmentation file.
+        SimpleITK label maps of all the organs/segments that are found in the segmentation file.
 
         Returns
         -------
-        label_maps : Dict[str, np.ndarray]
-            A dictionary that contains the name of the organs and their corresponding binary label map. Keys are organ
-            names and values are binary label maps. Thus, the label maps dictionary is formatted as follows :
+        simple_itk_label_maps : Dict[str, sitk.Image]
+            A dictionary that contains the name of the organs and their corresponding binary label map as a simpleITK
+            image. Keys are organ names and values are binary label maps. Thus, the label maps dictionary is formatted
+            as follows :
 
                 label_maps = {
-                    organ_name (example: "PROSTATE"): np.ndarray,
-                    organ_name (example: "RECTUM"): np.ndarray,
+                    organ_name (example: "PROSTATE"): sitk.Image,
+                    organ_name (example: "RECTUM"): sitk.Image,
                     ...
                 }
         """
-        return {segment.name: segment.label_map for segment in self._segments}
+        return {segment.name: segment.simple_itk_label_map for segment in self._segments}

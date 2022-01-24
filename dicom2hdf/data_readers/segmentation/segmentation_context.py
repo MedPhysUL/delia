@@ -10,7 +10,7 @@
                         segmentation object factory.
 """
 
-from typing import Dict, List
+import pydicom
 
 from .segmentation_strategy import SegmentationStrategy, SegmentationStrategies
 from .factories.segmentation import Segmentation
@@ -25,8 +25,7 @@ class SegmentationContext:
 
     def __init__(
             self,
-            path_to_segmentation: str,
-            organs: Dict[str, List[str]]
+            path_to_segmentation: str
     ):
         """
         Constructor of the SegmentationContext class.
@@ -35,12 +34,8 @@ class SegmentationContext:
         ----------
         path_to_segmentation : str
             The path to the segmentation file.
-        organs : Dict[str, List[str]]
-            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
-            and values are lists of possible segment names.
         """
         self._path_to_segmentation = path_to_segmentation
-        self._organs = organs
 
     @property
     def path_to_segmentation(self) -> str:
@@ -67,21 +62,39 @@ class SegmentationContext:
         self._path_to_segmentation = path_to_segmentation
 
     @property
+    def segmentation_modality(self) -> str:
+        """
+        Segmentation modality.
+
+        Returns
+        -------
+        segmentation_modality : str
+            Segmentation modality.
+        """
+        dicom = pydicom.dcmread(self.path_to_segmentation)
+        modality = dicom.Modality
+        available_modalities = SegmentationStrategies.available_modalities()
+
+        assert modality in available_modalities, f"The given segmentation file ({self.path_to_segmentation}) is of" \
+                                                 f" modality {modality}. However, the available modalities for the" \
+                                                 f" segmentations are {available_modalities}."
+
+        return dicom.Modality
+
+    @property
     def segmentation_strategy(self) -> SegmentationStrategy:
         """
-        Segmentation strategy corresponding to the given segmentation file extension.
+        Segmentation strategy corresponding to the given segmentation modality.
 
         Returns
         -------
         segmentation_strategy : SegmentationStrategy
             Segmentation strategy.
         """
-        possible_segmentation_strategies: List[SegmentationStrategy] = []
+        modality = self.segmentation_modality
         for segmentation_category in list(SegmentationStrategies):
-            if self.path_to_segmentation.endswith(segmentation_category.file_extension):
-                possible_segmentation_strategies.append(segmentation_category)
-
-        return max(possible_segmentation_strategies, key=len)
+            if modality == segmentation_category.value.modality:
+                return segmentation_category.value
 
     @property
     def _segmentation_factory_instance(self) -> SegmentationStrategy.factory:
@@ -93,10 +106,7 @@ class SegmentationContext:
         _segmentation_factory_instance : SegmentationStrategy.factory
             Factory class instance used to get the label maps and the segmentation metadata from a segmentation file.
         """
-        return self.segmentation_strategy.factory(
-            path_to_segmentation=self.path_to_segmentation,
-            organs=self._organs
-        )
+        return self.segmentation_strategy.factory(path_to_segmentation=self.path_to_segmentation)
 
     def create_segmentation(self) -> Segmentation:
         """

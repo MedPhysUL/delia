@@ -13,7 +13,6 @@ from typing import Dict, List, NamedTuple
 
 import pydicom
 import SimpleITK as sitk
-import numpy as np
 
 
 class SegmentationDataModel(NamedTuple):
@@ -23,20 +22,18 @@ class SegmentationDataModel(NamedTuple):
 
     Elements
     --------
-    binary_label_maps : Dict[str, np.ndarray]
-        Dictionary grouping organs to their corresponding binary label map. The keys are organ names and the values are
-        the binary label maps. The binary label maps dictionary is formatted as follows :
+    simple_itk_label_maps : Dict[str, sitk.Image]
+        A dictionary that contains the name of the organs and their corresponding binary label map as a simpleITK
+        image. Keys are organ names and values are binary label maps. Thus, the label maps dictionary is formatted
+        as follows :
 
-            binary_label_maps = {
-                organ_name (example: "PROSTATE"): np.ndarray,
-                organ_name (example: "RECTUM"): np.ndarray,
+            label_maps = {
+                organ_name (example: "PROSTATE"): sitk.Image,
+                organ_name (example: "RECTUM"): sitk.Image,
                 ...
             }
-    simple_itk_label_map : Image
-        The segmentation as a SimpleITK image.
     """
-    binary_label_maps: Dict[str, np.ndarray] = None
-    simple_itk_label_map: sitk.Image = None
+    simple_itk_label_maps: Dict[str, sitk.Image] = None
 
 
 class ImageDataModel(NamedTuple):

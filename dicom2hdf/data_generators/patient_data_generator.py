@@ -14,11 +14,11 @@ from collections.abc import Generator
 from copy import deepcopy
 import json
 import logging
+import os
 from typing import Dict, List, Optional, Union
 
 from ..data_readers.patient_data.patient_data_reader import PatientDataReader
 from ..data_model import PatientDataModel
-from ..paths_manager.path_generator import PathGenerator
 
 
 class PatientDataGenerator(Generator):
@@ -29,8 +29,9 @@ class PatientDataGenerator(Generator):
 
     def __init__(
             self,
-            path_generator: PathGenerator,
-            organs: Optional[Union[str, Dict[str, List[str]]]] = None,
+            path_to_patients_folder: str,
+            images_folder_name: str = "images",
+            segmentations_folder_name: str = "segmentations",
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
             verbose: bool = True,
     ):
@@ -39,13 +40,12 @@ class PatientDataGenerator(Generator):
 
         Parameters
         ----------
-        path_generator : PathGenerator.
-            A PathGenerator object. This object defines, for all patients, the path to the folder containing the
-            patient's dicom files and the path to the segmentations related to these dicom files.
-        organs : Optional[Union[str, Dict[str, List[str]], None]], default = None.
-            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
-            and values are lists of possible segment names. It can also be specified as a path to a json file that
-            contains the organs dictionary.
+        path_to_patients_folder : str
+            The path to the folder that contains all the patients' folders.
+        images_folder_name : str, default = "images".
+            Images folder name.
+        segmentations_folder_name : str, default = "segmentations".
+            Segmentations folder name.
         series_descriptions : Optional[Union[str, Dict[str, List[str]], None]], default = None.
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
@@ -53,15 +53,12 @@ class PatientDataGenerator(Generator):
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without their segmentation. Can be specified as a
             path to a json file that contains the series descriptions dictionary.
-        verbose : bool
+        verbose : bool, default = True.
             True to log/print some information else False.
         """
-        if isinstance(path_generator, PathGenerator):
-            pass
-        else:
-            raise TypeError("The parameter path_generator needs to be an instance of the PathGenerator object.")
-
-        self.paths_to_patients_folder_and_segmentations = list(path_generator)
+        self._path_to_patients_folder = path_to_patients_folder
+        self._paths_to_images_folder = self.get_paths_to_folder(images_folder_name)
+        self._paths_to_segmentations_folder = self.get_paths_to_folder(segmentations_folder_name)
 
         if isinstance(series_descriptions, str):
             self.path_to_series_description_json = series_descriptions
@@ -74,20 +71,6 @@ class PatientDataGenerator(Generator):
         else:
             raise TypeError(f"Given series descriptions {series_descriptions} doesn't have the right type. Allowed"
                             f" types are str, dict and None.")
-
-        if isinstance(organs, str):
-            self.path_to_organs_json = organs
-        elif isinstance(organs, dict):
-            self.organs = organs
-            self.path_to_organs_json = None
-        elif organs is None:
-            if any(path.paths_to_segmentations for path in self.paths_to_patients_folder_and_segmentations):
-                raise AssertionError("The variable organs is required. It is a dictionary where keys are arbitrary"
-                                     " organ names and values are lists of possible segment names.")
-            self.organs = None
-            self.path_to_organs_json = None
-        else:
-            raise TypeError(f"Given organs {organs} doesn't have the right type. Allowed types are str, dict and None.")
 
         self._verbose = verbose
         self.current_index = 0
@@ -104,7 +87,7 @@ class PatientDataGenerator(Generator):
         length: int
             Total number of patients.
         """
-        return len(self.paths_to_patients_folder_and_segmentations)
+        return len(self._paths_to_images_folder)
 
     @property
     def series_descriptions(self) -> Dict[str, List[str]]:
@@ -189,60 +172,30 @@ class PatientDataGenerator(Generator):
         with open(path, 'w', encoding='utf-8') as json_file:
             json.dump(self.series_descriptions, json_file, ensure_ascii=False, indent=4)
 
-    @property
-    def organs(self) -> Dict[str, List[str]]:
+    def get_paths_to_folder(self, folder_name: str) -> List[str]:
         """
-        Organs property.
-
-        Returns
-        -------
-        organs : Dict[str, List[str]]
-            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
-            and values are the list of possible segment names for each organ.
-        """
-        return self._organs
-
-    @organs.setter
-    def organs(self, organs: Dict[str, List[str]]) -> None:
-        """
-        Organs setter.
+        Get a list of paths to the patients' folders that have the given folder name.
 
         Parameters
         ----------
-        organs : Dict[str, List[str]]
-            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
-            and values are the list of possible segment names for each organ.
-        """
-        self._organs = organs
-
-    @property
-    def path_to_organs_json(self) -> str:
-        """
-        Path to organs json property.
+        folder_name: str
+            The name of a folder that is present in all patient folders.
 
         Returns
         -------
-        path_to_organs_json : str
-            Path to a json dictionary that contains the list of possible segment names for each organ. Keys are
-            arbitrary organ names and values are the list of possible segment names for each organ.
+        paths_to_images_folder: List[str]
+            A list of paths to the folders containing the patients' images.
         """
-        return self._path_to_series_description_json
+        paths_to_folder = []
+        for patient_folder_name in os.listdir(self._path_to_patients_folder):
+            path_to_folder = os.path.join(
+                self._path_to_patients_folder,
+                patient_folder_name,
+                folder_name
+            )
+            paths_to_folder.append(path_to_folder)
 
-    @path_to_organs_json.setter
-    def path_to_organs_json(self, path_to_organs_json: str) -> None:
-        """
-        Path to organs json setter.
-
-        Parameters
-        ----------
-        path_to_organs_json : str
-            Path to a json dictionary that contains the list of possible segment names for each organ. Keys are
-            arbitrary organ names and values are the list of possible segment names for each organ.
-        """
-        with open(path_to_organs_json, "r") as json_file:
-            self.organs = deepcopy(json.load(json_file))
-
-        self._path_to_organs_json = path_to_organs_json
+        return paths_to_folder
 
     def send(self, _) -> PatientDataModel:
         """
@@ -259,18 +212,16 @@ class PatientDataGenerator(Generator):
         if self.current_index == self.__len__():
             self.throw()
 
-        path = self.paths_to_patients_folder_and_segmentations[self.current_index]
-
         if self._verbose:
             logging.info(f"\n\n# {'-'*50} Patient {self.current_index + 1} {'-'*50} #")
 
         patient_data_reader = PatientDataReader(
-            path_to_dicom_folder=path.path_to_dicom_folder,
+            path_to_images_folder=self._paths_to_images_folder[self.current_index],
+            path_to_segmentations_folder=self._paths_to_segmentations_folder[self.current_index],
+            series_descriptions=self.series_descriptions,
             verbose=self._verbose,
-            organs=self.organs,
-            paths_to_segmentations=path.paths_to_segmentations,
-            series_descriptions=self.series_descriptions
         )
+
         self.series_descriptions = patient_data_reader.series_descriptions
         if self.path_to_series_description_json:
             self.save_series_descriptions_to_json(path=self._path_to_series_description_json)

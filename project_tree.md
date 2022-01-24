@@ -3,15 +3,17 @@
 ```
 |_📂 dicom2hdf/
   |_📂 dicom2hdf/
-    |_📄 __main__.py
+    |_📄 main.py
     |_📄 data_model.py
     |_📄 logging_tools.py
     |_📄 settings.py
     |_📄 utils.py
     |_📂 data_generators/
       |_📄 patient_data_generator.py
+    |_📂 datasets/
+	  |_📄 patient_dataset.py
     |_📂 data_readers/
-      |_📂 dicom/
+      |_📂 image/
         |_📄 dicom_reader.py
 	  |_📂 patient_data/
 	    |_📄 patient_data_query_context.py
@@ -26,15 +28,9 @@
 	    |_📄 segmentation_strategy.py
 	    |_📂 factories/
 	      |_📄 base_segmentation_factory.py
-	      |_📄 nrrd_segmentation_factories.py
+	      |_📄 dicom_segmentation_factories.py
 	      |_📄 segment.py
 	      |_📄 segmentation.py
-    |_📂 datasets/
-	  |_📄 patient_dataset.py
-    |_📂 paths_manager/
-	  |_📄 path.py
-	  |_📄 path_generator.py
-	  |_📄 segmentation_filename_patterns_matcher.py
   |_📄 LICENSE
   |_📄 project_tree.md
   |_📄 README.md

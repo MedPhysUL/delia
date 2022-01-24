@@ -10,7 +10,8 @@
 
 from typing import Dict, List, Optional
 
-from ....data_model import ImageDataModel, ImageAndSegmentationDataModel, PatientDataModel
+from ....data_model import ImageAndSegmentationDataModel, PatientDataModel
+from ...image.dicom_reader import DicomReader
 from .base_patient_data_factory import BasePatientDataFactory
 from ...segmentation.segmentation_reader import SegmentationReader
 
@@ -23,36 +24,34 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
 
     def __init__(
             self,
-            images_data: List[ImageDataModel],
-            organs: Dict[str, List[str]],
-            paths_to_segmentations: Optional[List[str]] = None,
-            series_descriptions: Optional[Dict[str, List[str]]] = None
+            path_to_images_folder: str,
+            path_to_segmentations_folder: Optional[str],
+            series_descriptions: Optional[Dict[str, List[str]]],
+            verbose: bool
     ):
         """
         Constructor of the class BasePatientDataFactory.
 
         Parameters
         ----------
-        images_data : List[ImageDataModel]
-            A list of the patient's images data.
-        organs : Dict[str, List[str]]
-            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
-            and values are lists of possible segment names.
-        paths_to_segmentations : Optional[List[str]]
-            A list of paths to the segmentation files. The name of the segmentation files must include the series uid
-            of their corresponding image, i.e. the image on which the segmentation was made.
+        path_to_images_folder : str
+            Path to the folder containing the patient's image files.
+        path_to_segmentations_folder : Optional[str]
+            Path to the folder containing the patient's segmentation files.
         series_descriptions : Optional[Dict[str, List[str]]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
+        verbose : bool
+            True to log/print some information else False.
         """
         super(DefaultPatientDataFactory, self).__init__(
-            images_data=images_data,
-            organs=organs,
-            paths_to_segmentations=paths_to_segmentations,
-            series_descriptions=series_descriptions
+            path_to_images_folder=path_to_images_folder,
+            path_to_segmentations_folder=path_to_segmentations_folder,
+            series_descriptions=series_descriptions,
+            verbose=verbose
         )
 
     def create_patient_data(self) -> PatientDataModel:
@@ -80,36 +79,34 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
 
     def __init__(
             self,
-            images_data: List[ImageDataModel],
-            organs: Dict[str, List[str]],
-            paths_to_segmentations: Optional[List[str]] = None,
-            series_descriptions: Optional[Dict[str, List[str]]] = None
+            path_to_images_folder: str,
+            path_to_segmentations_folder: Optional[str],
+            series_descriptions: Optional[Dict[str, List[str]]],
+            verbose: bool
     ):
         """
         Constructor of the class SegmentationOnlyPatientDataFactory.
 
         Parameters
         ----------
-        images_data : List[ImageDataModel]
-            A list of the patient's images data.
-        organs : Dict[str, List[str]]
-            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
-            and values are the list of possible segment names for each organ.
-        paths_to_segmentations : Optional[List[str]]
-            A list of paths to the segmentation files. The name of the segmentation files must include the series uid
-            of their corresponding image, i.e. the image on which the segmentation was made.
+        path_to_images_folder : str
+            Path to the folder containing the patient's image files.
+        path_to_segmentations_folder : Optional[str]
+            Path to the folder containing the patient's segmentation files.
         series_descriptions : Optional[Dict[str, List[str]]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
+        verbose : bool
+            True to log/print some information else False.
         """
         super(SegmentationPatientDataFactory, self).__init__(
-            images_data=images_data,
-            organs=organs,
-            paths_to_segmentations=paths_to_segmentations,
-            series_descriptions=series_descriptions
+            path_to_images_folder=path_to_images_folder,
+            path_to_segmentations_folder=path_to_segmentations_folder,
+            series_descriptions=series_descriptions,
+            verbose=verbose
         )
 
     def create_patient_data(self) -> PatientDataModel:
@@ -124,7 +121,8 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
         data = []
         for image in self._images_data:
             for path_to_segmentation in self._paths_to_segmentations:
-                if image.dicom_header.SeriesInstanceUID in path_to_segmentation:
+                dicom_header = DicomReader.get_dicom_header(path_to_dicom=path_to_segmentation)
+                if image.dicom_header.SeriesInstanceUID == dicom_header.ReferencedSeriesSequence[0].SeriesInstanceUID:
                     segmentation_reader = SegmentationReader(path_to_segmentation=path_to_segmentation)
 
                     image_and_segmentation_data = ImageAndSegmentationDataModel(
@@ -150,36 +148,34 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
 
     def __init__(
             self,
-            images_data: List[ImageDataModel],
-            organs: Dict[str, List[str]],
-            paths_to_segmentations: Optional[List[str]] = None,
-            series_descriptions: Optional[Dict[str, List[str]]] = None
+            path_to_images_folder: str,
+            path_to_segmentations_folder: Optional[str],
+            series_descriptions: Optional[Dict[str, List[str]]],
+            verbose: bool
     ):
         """
         Constructor of the class SegmentationOnlyPatientDataFactory.
 
         Parameters
         ----------
-        images_data : List[ImageDataModel]
-            A list of the patient's images data.
-        organs : Dict[str, List[str]]
-            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
-            and values are the list of possible segment names for each organ.
-        paths_to_segmentations : Optional[List[str]]
-            A list of paths to the segmentation files. The name of the segmentation files must include the series uid
-            of their corresponding image, i.e. the image on which the segmentation was made.
+        path_to_images_folder : str
+            Path to the folder containing the patient's image files.
+        path_to_segmentations_folder : Optional[str]
+            Path to the folder containing the patient's segmentation files.
         series_descriptions : Optional[Dict[str, List[str]]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
+        verbose : bool
+            True to log/print some information else False.
         """
         super(SeriesDescriptionPatientDataFactory, self).__init__(
-            images_data=images_data,
-            organs=organs,
-            paths_to_segmentations=paths_to_segmentations,
-            series_descriptions=series_descriptions
+            path_to_images_folder=path_to_images_folder,
+            path_to_segmentations_folder=path_to_segmentations_folder,
+            series_descriptions=series_descriptions,
+            verbose=verbose
         )
         
     @property
@@ -225,36 +221,34 @@ class SegmentationAndSeriesDescriptionPatientDataFactory(BasePatientDataFactory)
 
     def __init__(
             self,
-            images_data: List[ImageDataModel],
-            organs: Dict[str, List[str]],
-            paths_to_segmentations: Optional[List[str]] = None,
-            series_descriptions: Optional[Dict[str, List[str]]] = None
+            path_to_images_folder: str,
+            path_to_segmentations_folder: Optional[str],
+            series_descriptions: Optional[Dict[str, List[str]]],
+            verbose: bool
     ):
         """
         Constructor of the class SegmentationOnlyPatientDataFactory.
 
         Parameters
         ----------
-        images_data : List[ImageDataModel]
-            A list of the patient's images data.
-        organs : Dict[str, List[str]]
-            A dictionary that contains the organs and their associated segment names. Keys are arbitrary organ names
-            and values are the list of possible segment names for each organ.
-        paths_to_segmentations : Optional[List[str]]
-            A list of paths to the segmentation files. The name of the segmentation files must include the series uid
-            of their corresponding image, i.e. the image on which the segmentation was made.
+        path_to_images_folder : str
+            Path to the folder containing the patient's image files.
+        path_to_segmentations_folder : Optional[str]
+            Path to the folder containing the patient's segmentation files.
         series_descriptions : Optional[Dict[str, List[str]]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
+        verbose : bool
+            True to log/print some information else False.
         """
         super(SegmentationAndSeriesDescriptionPatientDataFactory, self).__init__(
-            images_data=images_data,
-            organs=organs,
-            paths_to_segmentations=paths_to_segmentations,
-            series_descriptions=series_descriptions
+            path_to_images_folder=path_to_images_folder,
+            path_to_segmentations_folder=path_to_segmentations_folder,
+            series_descriptions=series_descriptions,
+            verbose=verbose
         )
 
     @property
@@ -282,11 +276,9 @@ class SegmentationAndSeriesDescriptionPatientDataFactory(BasePatientDataFactory)
         for image_idx, image in enumerate(self._images_data):
             image_added = False
             for path_to_segmentation in self._paths_to_segmentations:
-                if image.dicom_header.SeriesInstanceUID in path_to_segmentation:
-                    segmentation_reader = SegmentationReader(
-                        path_to_segmentation=path_to_segmentation,
-                        organs=self._organs
-                    )
+                dicom_header = DicomReader.get_dicom_header(path_to_dicom=path_to_segmentation)
+                if image.dicom_header.SeriesInstanceUID == dicom_header.ReferencedSeriesSequence[0].SeriesInstanceUID:
+                    segmentation_reader = SegmentationReader(path_to_segmentation=path_to_segmentation)
 
                     image_and_segmentation_data = ImageAndSegmentationDataModel(
                         image=image,
