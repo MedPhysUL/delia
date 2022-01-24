@@ -12,7 +12,7 @@ setuptools.setup(
                 " machine learning tasks.",
     long_description=open('README.md', "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/MaxenceLarose/DicomToHDF5",
+    url="https://github.com/MaxenceLarose/dicom2hdf",
     license="Apache License 2.0",
     keywords='dicom hdf5 medical image segmentation pre-processing python3',
     packages=setuptools.find_packages(),

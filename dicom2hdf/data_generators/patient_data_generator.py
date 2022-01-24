@@ -73,7 +73,7 @@ class PatientDataGenerator(Generator):
                             f" types are str, dict and None.")
 
         self._verbose = verbose
-        self.current_index = 0
+        self._current_index = 0
 
         if verbose:
             logging.info(f"\n# {'-'*111} #\n# {' ' * 40} DOWNLOADING ALL PATIENTS DATA {' ' * 40} #\n# {'-'*111} #")
@@ -209,15 +209,15 @@ class PatientDataGenerator(Generator):
             A named tuple grouping the patient's data extracted from its dicom files and the patient's medical image
             segmentation data extracted from the segmentation files.
         """
-        if self.current_index == self.__len__():
+        if self._current_index == self.__len__():
             self.throw()
 
         if self._verbose:
-            logging.info(f"\n\n# {'-'*50} Patient {self.current_index + 1} {'-'*50} #")
+            logging.info(f"\n\n# {'-'*50} Patient {self._current_index + 1} {'-' * 50} #")
 
         patient_data_reader = PatientDataReader(
-            path_to_images_folder=self._paths_to_images_folder[self.current_index],
-            path_to_segmentations_folder=self._paths_to_segmentations_folder[self.current_index],
+            path_to_images_folder=self._paths_to_images_folder[self._current_index],
+            path_to_segmentations_folder=self._paths_to_segmentations_folder[self._current_index],
             series_descriptions=self.series_descriptions,
             verbose=self._verbose,
         )
@@ -225,7 +225,7 @@ class PatientDataGenerator(Generator):
         self.series_descriptions = patient_data_reader.series_descriptions
         if self.path_to_series_description_json:
             self.save_series_descriptions_to_json(path=self._path_to_series_description_json)
-        self.current_index += 1
+        self._current_index += 1
 
         return patient_data_reader.get_patient_dataset()
 
