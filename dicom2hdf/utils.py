@@ -80,4 +80,3 @@ class Decorators:
             return wrapper
 
         return deprecated_func
-
