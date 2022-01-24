@@ -3,7 +3,7 @@ from .datasets.patient_dataset import PatientDataset
 from .logging_tools import logs_file_setup
 
 __author__ = "Maxence Larose"
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __copyright__ = "Copyright 2022, Maxence Larose"
 __credits__ = ["Maxence Larose"]
 __license__ = "GPL"
