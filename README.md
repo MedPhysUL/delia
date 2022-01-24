@@ -31,7 +31,7 @@ First, it is necessary to explain briefly how the package builds a patient's dat
 >
 > *Note : If no `series_descriptions` dictionary is given, the step of selecting the images according to this criterion is simply ignored. In the same way, if no DICOM-SEG file is present in the `segmentations` folder, the segmentations and images selection step according to this criterion is simply ignored.* 
 
-The above description is confusing. To fully understand it, it is necessary to read the [Getting started](#getting-started) section.
+The above description is confusing. To fully understand it, read the [Getting started](#getting-started) section.
 
 ## Getting started
 
@@ -47,7 +47,7 @@ If your segmentations are in a research file format (`.nrrd`, `.nii`, etc.) and 
 
 #### Series descriptions (Optional)
 
-*This dictionary is not mandatory for the code to work and therefore its default value is `None`.*
+*This dictionary is **not** mandatory for the code to work and therefore its default value is `None`.*
 
 The series descriptions are specified as a **dictionary** that contains the series descriptions of the images that absolutely needs to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of series descriptions. The images associated with these series descriptions do not need to have a corresponding segmentation. In fact, **the whole point of adding a way to specify which series descriptions should be added to the dataset is to be able to add images without their segmentation.** Note that it can also be specified as a path to a **json file** that contains the series descriptions. Both methods are presented below.
 
@@ -197,7 +197,7 @@ dataset.create_hdf5_dataset(
 
 ```
 
-The created HDF5 dataset will then look like :
+The created HDF5 dataset will then look something like :
 
 ![patient_dataset](images/patient_dataset.png)
 
