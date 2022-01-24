@@ -199,7 +199,7 @@ dataset.create_hdf5_dataset(
 
 The created HDF5 dataset will then look something like :
 
-![patient_dataset](images/patient_dataset.png)
+![patient_dataset](https://github.com/MaxenceLarose/dicom2hdf/raw/main/images/patient_dataset.png)
 
 #### Example using the patient data generator class
 
