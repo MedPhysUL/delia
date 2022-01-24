@@ -27,9 +27,9 @@ pip install git+https://github.com/MaxenceLarose/dicom2hdf
 
 First, it is necessary to explain briefly how the package builds a patient's dataset using the provided data.
 
-> For each of the patients contained in the `patients` folder, all DICOM files present in its `images` folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume is automatically added to the patient dataset. Then, all DICOM-SEG files present in the `segmentations` folder are read. Segmentation volumes whose reference series UID matches one of the series UID read from the patient's `images` folder are added to the patient's dataset. The reference volume is also added to the patient dataset.
->
-> *Note : If no `series_descriptions` dictionary is given, the step of selecting the images according to this criterion is simply ignored. In the same way, if no DICOM-SEG file is present in the `segmentations` folder, the segmentations and images selection step according to this criterion is simply ignored.* 
+For each of the patients contained in the `patients` folder, all DICOM files present in its `images` folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume is automatically added to the patient dataset. Then, all DICOM-SEG files present in the `segmentations` folder are read. Segmentation volumes whose reference series UID matches one of the series UID read from the patient's `images` folder are added to the patient's dataset. The reference volume is also added to the patient dataset.
+
+*Note : If no `series_descriptions` dictionary is given, the step of selecting the images according to this criterion is simply ignored. In the same way, if no DICOM-SEG file is present in the `segmentations` folder, the segmentations and images selection step according to this criterion is simply ignored.* 
 
 The above description is confusing. To fully understand it, read the [Getting started](#getting-started) section.
 
