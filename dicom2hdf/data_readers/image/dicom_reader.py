@@ -203,15 +203,19 @@ class DicomReader:
                     logging.info(f"\nThe following series description are found in the patient's images folder :")
                 logging.info(f"---> Series description: {series_data.series_description}")
 
-            image = self.__get_3d_sitk_image_from_dicom_series(
-                paths_to_dicoms_from_series=series_data.paths_to_dicoms_from_series
-            )
+            try:
+                image = self.__get_3d_sitk_image_from_dicom_series(
+                    paths_to_dicoms_from_series=series_data.paths_to_dicoms_from_series
+                )
 
-            image_data = ImageDataModel(
-                dicom_header=series_data.dicom_header,
-                simple_itk_image=image
-            )
+                image_data = ImageDataModel(
+                    dicom_header=series_data.dicom_header,
+                    simple_itk_image=image
+                )
 
-            images_data.append(image_data)
+                images_data.append(image_data)
+            except RuntimeError as e:
+                logging.info(f"      Simple ITK raised an error while loading the series named "
+                             f"{series_data.series_description}. This series is therefore ignored.")
 
         return images_data
