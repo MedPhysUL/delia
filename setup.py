@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="dicom2hdf",
-    version="0.1.3",
+    version="0.1.4",
     author="Maxence Larose",
     author_email="maxence.larose.1@ulaval.ca",
     description="Medical data formatting and pre-processing module whose main objective"\
@@ -27,7 +27,6 @@ setuptools.setup(
         "numpy",
         "pydicom",
         "pydicom-seg",
-        "pynrrd",
         "SimpleITK",
         "tqdm"
     ],

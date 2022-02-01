@@ -27,7 +27,7 @@ pip install git+https://github.com/MaxenceLarose/dicom2hdf
 
 First, it is necessary to explain briefly how the package builds a patient's dataset using the provided data.
 
-For each of the patients contained in the `patients` folder, all DICOM files present in its `images` folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume is automatically added to the patient dataset. Then, all DICOM-SEG files present in the `segmentations` folder are read. Segmentation volumes whose reference series UID matches one of the series UID read from the patient's `images` folder are added to the patient's dataset. The reference volume is also added to the patient dataset.
+For each of the patients contained in the `patients` folder, all DICOM files present in the `images` folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume is automatically added to the patient dataset. Then, all DICOM-SEG files present in the `segmentations` folder are read. Segmentation volumes whose reference series UID matches one of the series UID read from the patient's `images` folder are added to the patient's dataset. The reference volume is also added to the patient dataset.
 
 *Note : If no `series_descriptions` dictionary is given, the step of selecting the images according to this criterion is simply ignored. In the same way, if no DICOM-SEG file is present in the `segmentations` folder, the segmentations and images selection step according to this criterion is simply ignored.* 
 
@@ -209,6 +209,7 @@ This file can then be executed to perform on-the-fly tasks on images.
 import logging
 
 from dicom2hdf import *
+import SimpleITK as sitk
 
 from .settings import *
 
@@ -225,7 +226,7 @@ patient_data_generator = PatientDataGenerator(
 for patient_dataset in patient_data_generator:
     patient_name = patient_dataset.patient_name
     
-    for patient_image_data in enumerate(patient_dataset.data):
+    for patient_image_data in patient_dataset.data:
         dicom_header = patient_image_data.image.dicom_header
         simple_itk_image = patient_image_data.image.simple_itk_image
         numpy_array_image = sitk.GetArrayFromImage(simple_itk_image)
