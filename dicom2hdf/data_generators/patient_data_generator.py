@@ -66,8 +66,8 @@ class PatientDataGenerator(Generator):
             self.series_descriptions = series_descriptions
             self.path_to_series_description_json = None
         elif series_descriptions is None:
-            self.series_descriptions = None
-            self.path_to_series_description_json = None
+            self._series_descriptions = None
+            self._path_to_series_description_json = None
         else:
             raise TypeError(f"Given series descriptions {series_descriptions} doesn't have the right type. Allowed"
                             f" types are str, dict and None.")
