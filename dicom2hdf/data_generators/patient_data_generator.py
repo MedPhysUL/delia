@@ -222,7 +222,8 @@ class PatientDataGenerator(Generator):
             verbose=self._verbose,
         )
 
-        self.series_descriptions = patient_data_reader.series_descriptions
+        if self._series_descriptions is not None:
+            self.series_descriptions = patient_data_reader.series_descriptions
         if self.path_to_series_description_json:
             self.save_series_descriptions_to_json(path=self._path_to_series_description_json)
         self._current_index += 1
