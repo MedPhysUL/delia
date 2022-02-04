@@ -93,11 +93,10 @@ series_descriptions = {
 
 #### Structure your patients directory
 
-It is important to configure the directory structure correctly to ensure that the module interacts correctly with the data files. The repository, particularly the `patients` folder, must be structured as follows. *The names of the folders and files can differ, but they must be consistent with the names written in the* `settings.py` *file* (See the [File names](#file-names) section below).
+It is important to configure the directory structure correctly to ensure that the module interacts correctly with the data files. The repository, particularly the `patients` folder, must be structured as follows. *The names of the folders and files can differ, but they must be consistent with your own folders and files names*.
 
 ```
 |_📂 Project directory/
-  |_📄 settings.py
   |_📄 main.py
   |_📂 data/
     |_📄 series_descriptions.json
@@ -121,40 +120,6 @@ It is important to configure the directory structure correctly to ensure that th
       |_📂 ...
 ```
 
-#### File names
-
-It is good practice to create a class that lists the various names and important paths of the folders that contain the data. I propose here a way to organize this class.
-
-It is first necessary to populate a file named `settings.py` which contains the important  `FileName` ,`FolderName` and `PathName` classes.  The `settings.py` file must be placed in the same folder as the `data` folder. It is easier to understand this step with an example so here is the expected content of `settings.py `. *You can adapt the names of folders and files to your own personal data.*
-
-```python
-from os.path import abspath, dirname, join
-
-ROOT = abspath(dirname(__file__))
-
-
-class FileName:
-    SERIES_DESCRIPTIONS_JSON: str = "series_descriptions.json"
-    PATIENT_DATASET_HDF5: str = "patient_dataset.h5"
-
-
-class FolderName:
-    DATA_FOLDER: str = "data"
-    PATIENTS_FOLDER: str = "patients"
-    IMAGES_FOLDER: str = "images"
-    SEGMENTATIONS_FOLDER: str = "segmentations"
-
-
-class PathName:
-    PATH_TO_DATA_FOLDER: str = join(ROOT, FolderName.DATA_FOLDER)
-
-    PATH_TO_SERIES_DESCRIPTIONS_JSON: str = join(PATH_TO_DATA_FOLDER, FileName.SERIES_DESCRIPTIONS_JSON)
-    PATH_TO_PATIENT_DATASET_HDF5: str = join(PATH_TO_DATA_FOLDER, FileName.PATIENT_DATASET_HDF5)
-
-    PATH_TO_PATIENTS_FOLDER: str = join(PATH_TO_DATA_FOLDER, FolderName.PATIENTS_FOLDER)
-
-```
-
 ### Import the package
 
 The easiest way to import the package is to use :
@@ -176,21 +141,19 @@ This file can then be executed to obtain an hdf5 dataset.
 ```python
 import logging
 
-from dicom2hdf import *
-
-from .settings import *
+from dicom2hdf import logs_file_setup, PatientDataset
 
 logs_file_setup(level=logging.INFO)
 
 dataset = PatientDataset(
-    path_to_dataset=PathName.PATH_TO_PATIENT_DATASET_HDF5,
+    path_to_dataset= "data/patient_dataset.h5",
 )
 
 dataset.create_hdf5_dataset(
-    path_to_patients_folder=PathName.PATH_TO_PATIENTS_FOLDER,
-    images_folder_name=FolderName.IMAGES_FOLDER,
-    segmentations_folder_name=FolderName.SEGMENTATIONS_FOLDER,
-    series_descriptions=PathName.PATH_TO_SERIES_DESCRIPTIONS_JSON,
+    path_to_patients_folder= "data/patients",
+    images_folder_name="images",
+    segmentations_folder_name="segmentations",
+    series_descriptions="data/series_descriptions.json",
     verbose=True,
     overwrite_dataset=True
 )
@@ -208,10 +171,8 @@ This file can then be executed to perform on-the-fly tasks on images.
 ```python
 import logging
 
-from dicom2hdf import *
+from dicom2hdf import logs_file_setup, PatientDataGenerator
 import SimpleITK as sitk
-
-from .settings import *
 
 logs_file_setup(level=logging.INFO)
 
@@ -234,6 +195,11 @@ for patient_dataset in patient_data_generator:
         """Perform any tasks on images on-the-fly like printing the image array shape."""
         print(numpy_array_image.shape)
 ```
+
+### TODO
+
+- [ ] Generalize the use of a specific tag to add images without their segmentation. At the moment, the only tag available is `series_descriptions`.
+- [ ] Add a parameter named `tags_to_used_as_attributes ` to the function `create_hdf5_dataset ` of the class `PatientDataset`. This parameter allows to choose the tags to be used as attributes for the images in the hdf5 file.
 
 ## License
 
