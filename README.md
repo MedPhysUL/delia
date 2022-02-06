@@ -1,5 +1,5 @@
 # Medical data formatting and pre-processing module
-This package is a medical data formatting and pre-processing module whose main objective is to build an HDF5 dataset containing patients' medical images as well as the label maps obtained from the segmentation of these images (if available). The HDF5 dataset is then easier to use to perform tasks on the medical data, such as machine learning tasks.
+This package is a medical data formatting and pre-processing module whose main objective is to build an HDF5 dataset containing patients' medical images as well as label maps obtained from the segmentation of these images (if available). The HDF5 dataset is then easier to use to perform tasks on the medical data, such as machine learning tasks.
 
 Anyone who is willing to contribute is welcome to do so.
 
@@ -7,7 +7,7 @@ Anyone who is willing to contribute is welcome to do so.
 
 **Digital Imaging and Communications in Medicine** ([**DICOM**](https://www.dicomstandard.org/)) is *the* international standard for medical images and related information. It defines the formats for medical images that can be exchanged with the data and quality necessary for clinical use. The working group [DICOM WG-23](https://www.dicomstandard.org/activity/wgs/wg-23/) on Artificial Intelligence / Application Hosting is currently working to identify or develop the DICOM mechanisms to support AI workflows, concentrating on the clinical context. Moreover, their future *roadmap and objectives* includes working on the concern that current DICOM mechanisms might not be adequate to cover some use cases, particularly bulk analysis of large repository data, e.g. for training deep learning neural networks. However, no tool has been developed to achieve this goal at present.
 
-The **purpose** of this module is therefore to provide the necessary tools to facilitate the use of medical images in an AI workflow.  This goal is accomplished by using the [HDF file format](https://www.hdfgroup.org/) to create a dataset containing patients' medical images as well as the label maps obtained from the segmentation of these images (if available).
+The **purpose** of this module is therefore to provide the necessary tools to facilitate the use of medical images in an AI workflow.  This goal is accomplished by using the [HDF file format](https://www.hdfgroup.org/) to create a dataset containing patients' medical images as well as label maps obtained from the segmentation of these images (if available).
 
 ## Installation
 
