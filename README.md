@@ -1,5 +1,5 @@
 # Medical data formatting and pre-processing module
-This package is a medical data formatting and pre-processing module whose main objective is to build an HDF5 dataset containing patients' medical images as well as the segmentations associated with these images (if available). The HDF5 dataset is then easier to use to perform tasks on the medical data, such as machine learning tasks.
+This package is a medical data formatting and pre-processing module whose main objective is to build an HDF5 dataset containing patients' medical images as well as the label maps obtained from the segmentation of these images (if available). The HDF5 dataset is then easier to use to perform tasks on the medical data, such as machine learning tasks.
 
 Anyone who is willing to contribute is welcome to do so.
 
@@ -7,7 +7,7 @@ Anyone who is willing to contribute is welcome to do so.
 
 **Digital Imaging and Communications in Medicine** ([**DICOM**](https://www.dicomstandard.org/)) is *the* international standard for medical images and related information. It defines the formats for medical images that can be exchanged with the data and quality necessary for clinical use. The working group [DICOM WG-23](https://www.dicomstandard.org/activity/wgs/wg-23/) on Artificial Intelligence / Application Hosting is currently working to identify or develop the DICOM mechanisms to support AI workflows, concentrating on the clinical context. Moreover, their future *roadmap and objectives* includes working on the concern that current DICOM mechanisms might not be adequate to cover some use cases, particularly bulk analysis of large repository data, e.g. for training deep learning neural networks. However, no tool has been developed to achieve this goal at present.
 
-The **purpose** of this module is therefore to provide the necessary tools to facilitate the use of medical images in an AI workflow.  This goal is accomplished by using the [HDF file format](https://www.hdfgroup.org/) to create a dataset containing all medical images of patients and their associated segmentations.
+The **purpose** of this module is therefore to provide the necessary tools to facilitate the use of medical images in an AI workflow.  This goal is accomplished by using the [HDF file format](https://www.hdfgroup.org/) to create a dataset containing patients' medical images as well as the label maps obtained from the segmentation of these images (if available).
 
 ## Installation
 
@@ -41,15 +41,15 @@ Since this module requires the use of data, it is important to properly configur
 
 #### File format
 
-Images must be in standard [**DICOM**](https://www.dicomstandard.org/) format and segmentations must be in [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) format.
+Images files must be in standard [**DICOM**](https://www.dicomstandard.org/) format and segmentations files must be in [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) format.
 
-If your segmentations are in a research file format (`.nrrd`, `.nii`, etc.), you need to convert them into the standardized [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) format. You can use the [pydicom-seg](https://pypi.org/project/pydicom-seg/) library to create the DICOM-SEG files OR use the [itkimage2dicomSEG](https://github.com/MaxenceLarose/itkimage2dicomSEG) python module, which provide a complete pipeline to perform this conversion.
+If your segmentations files are in a research file format (`.nrrd`, `.nii`, etc.), you need to convert them into the standardized [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) format. You can use the [pydicom-seg](https://pypi.org/project/pydicom-seg/) library to create the DICOM-SEG files OR use the [itkimage2dicomSEG](https://github.com/MaxenceLarose/itkimage2dicomSEG) python module, which provide a complete pipeline to perform this conversion.
 
 #### Series descriptions (Optional)
 
 *This dictionary is **not** mandatory for the code to work and therefore its default value is `None`.*
 
-The series descriptions are specified as a **dictionary** that contains the series descriptions of the images that absolutely needs to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of series descriptions. The images associated with these series descriptions do not need to have a corresponding segmentation. In fact, **the whole point of adding a way to specify which series descriptions should be added to the dataset is to be able to add images without their segmentation.** Note that it can also be specified as a path to a **json file** that contains the series descriptions. Both methods are presented below.
+The series descriptions are specified as a **dictionary** that contains the series descriptions of the images that absolutely needs to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of series descriptions. The images associated with these series descriptions do not need to have a corresponding segmentation volume. In fact, **the whole point of adding a way to specify which series descriptions should be added to the dataset is to be able to add images that have not been segmented.** Note that it can also be specified as a path to a **json file** that contains the series descriptions. Both methods are presented below.
 
 **Warning!** *This dictionary (or json file) can be modified during the execution of the package functions. THIS IS NORMAL, we potentially want to add series descriptions if none of the descriptions match the series in the patient's files.* 
 
@@ -198,7 +198,7 @@ for patient_dataset in patient_data_generator:
 
 ### TODO
 
-- [ ] Generalize the use of a specific tag to add images without their segmentation. At the moment, the only tag available is `series_descriptions`.
+- [ ] Generalize the use of a specific tag to add images that have not been segmented. At the moment, the only tag available is `series_descriptions`.
 - [ ] Add a parameter named `tags_to_used_as_attributes ` to the function `create_hdf5_dataset ` of the class `PatientDataset`. This parameter allows to choose the tags to be used as attributes for the images in the hdf5 file.
 
 ## License
