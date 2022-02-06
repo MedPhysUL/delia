@@ -1,5 +1,5 @@
 # Medical data formatting and pre-processing module
-This package is a medical data formatting and pre-processing module whose main objective is to build an HDF5 dataset containing all medical images of patients (DICOM format) and their associated segmentations. The HDF5 dataset is then easier to use to perform tasks on the medical data, such as machine learning tasks.
+This package is a medical data formatting and pre-processing module whose main objective is to build an HDF5 dataset containing patients' medical images as well as the segmentations associated with these images (if available). The HDF5 dataset is then easier to use to perform tasks on the medical data, such as machine learning tasks.
 
 Anyone who is willing to contribute is welcome to do so.
 
@@ -25,25 +25,25 @@ pip install git+https://github.com/MaxenceLarose/dicom2hdf
 
 ## Brief explanation of how it works 
 
-First, it is necessary to explain briefly how the package builds a patient's dataset using the provided data.
+First, it is necessary to explain briefly how the package builds a dataset using the provided data.
 
-For each of the patients contained in the `patients` folder, all DICOM files present in the `images` folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume is automatically added to the patient dataset. Then, all DICOM-SEG files present in the `segmentations` folder are read. Segmentation volumes whose reference series UID matches one of the series UID read from the patient's `images` folder are added to the patient's dataset. The reference volume is also added to the patient dataset.
+For each of the folders/patients contained in the `patients` folder, all DICOM files present in the `images` subfolder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume is automatically added to the patient dataset. Then, all DICOM-SEG files present in the `segmentations` folder are read. Segmentation volumes whose reference series UID matches one of the series UID read from the patient's `images` folder are added to the patient's dataset. The reference volume is also added to the patient dataset.
 
 *Note : If no `series_descriptions` dictionary is given, the step of selecting the images according to this criterion is simply ignored. In the same way, if no DICOM-SEG file is present in the `segmentations` folder, the segmentations and images selection step according to this criterion is simply ignored.* 
 
-The above description is confusing. To fully understand it, read the [Getting started](#getting-started) section.
+I know, the above description is confusing. To fully understand it, read [Getting started](#getting-started).
 
 ## Getting started
 
 ### Organize your data
 
-As this module requires the use of data, it is important to properly configure the data-related elements before using it. The following sections present how to configure these elements.
+Since this module requires the use of data, it is important to properly configure the data-related elements before using it. The following sections show how to configure these.
 
 #### File format
 
 Images must be in standard [**DICOM**](https://www.dicomstandard.org/) format and segmentations must be in [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) format.
 
-If your segmentations are in a research file format (`.nrrd`, `.nii`, etc.) and you want to convert them into the standardized [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) format, you can use the [pydicom-seg](https://pypi.org/project/pydicom-seg/) library to create the DICOM-SEG files OR use the [itkimage2dicomSEG](https://github.com/MaxenceLarose/itkimage2dicomSEG) python module, which provide a complete pipeline to perform this conversion.
+If your segmentations are in a research file format (`.nrrd`, `.nii`, etc.), you need to convert them into the standardized [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) format. You can use the [pydicom-seg](https://pypi.org/project/pydicom-seg/) library to create the DICOM-SEG files OR use the [itkimage2dicomSEG](https://github.com/MaxenceLarose/itkimage2dicomSEG) python module, which provide a complete pipeline to perform this conversion.
 
 #### Series descriptions (Optional)
 
@@ -150,7 +150,7 @@ dataset = PatientDataset(
 )
 
 dataset.create_hdf5_dataset(
-    path_to_patients_folder= "data/patients",
+    path_to_patients_folder="data/patients",
     images_folder_name="images",
     segmentations_folder_name="segmentations",
     series_descriptions="data/series_descriptions.json",
@@ -177,10 +177,10 @@ import SimpleITK as sitk
 logs_file_setup(level=logging.INFO)
 
 patient_data_generator = PatientDataGenerator(
-    path_to_patients_folder=PathName.PATH_TO_PATIENTS_FOLDER,
-    images_folder_name=FolderName.IMAGES_FOLDER,
-    segmentations_folder_name=FolderName.SEGMENTATIONS_FOLDER,
-    series_descriptions=PathName.PATH_TO_SERIES_DESCRIPTIONS_JSON,
+    path_to_patients_folder="data/patients",
+    images_folder_name=¨images¨,
+    segmentations_folder_name=¨segmentations¨,
+    series_descriptions="data/series_descriptions.json",
     verbose=True
 )
 
