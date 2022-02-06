@@ -51,7 +51,7 @@ If your segmentations files are in a research file format (`.nrrd`, `.nii`, etc.
 
 The series descriptions are specified as a **dictionary** that contains the series descriptions of the images that absolutely needs to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of series descriptions. The images associated with these series descriptions do not need to have a corresponding segmentation volume. In fact, **the whole point of adding a way to specify which series descriptions should be added to the dataset is to be able to add images that have not been segmented.** Note that it can also be specified as a path to a **json file** that contains the series descriptions. Both methods are presented below.
 
-**Warning!** *This dictionary (or json file) can be modified during the execution of the package functions. THIS IS NORMAL, we potentially want to add series descriptions if none of the descriptions match the series in the patient's files.* 
+**Warning!** *This dictionary (or json file) can be modified during the execution of the package functions. THIS IS NORMAL, we potentially want to add a new series description to this dictionary if none of the descriptions match the series in a patient's files.* 
 
 ##### Using a json file
 
