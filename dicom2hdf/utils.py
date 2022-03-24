@@ -3,18 +3,17 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 01/2022
+    @Last modification: 03/2022
 
     @Description:       A collection of functions and classes that may or may not be useful.
 """
 
 import os
-import enum
-from typing import Callable, Union
+from typing import Callable
 import warnings
 
 
-def check_validity_of_given_path(
+def is_path_valid(
         path: str
 ) -> None:
     """
@@ -31,28 +30,6 @@ def check_validity_of_given_path(
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"Given path {path} does not exist.")
-
-
-def check_validity_of_given_name(name: str, enum_class: Union[enum.Enum, enum.IntEnum]) -> None:
-    """
-    Raise a ValueError if the given anatomical plane is not a member of the AnatomicalPlane Enum Class.
-
-    Parameters
-    ----------
-    name : str
-        Name.
-    enum_class : Union[enum.Enum, enum.IntEnum]
-        Class inheriting from enum.Enum or enum.IntEnum.
-
-    Returns
-    -------
-    None
-    """
-    if name in enum_class.__members__:
-        pass
-    else:
-        raise ValueError(f"Given member {name} doesn't exist. Allowed members of {enum_class} are "
-                         f"{list(enum_class.__members__)}.")
 
 
 class Decorators:

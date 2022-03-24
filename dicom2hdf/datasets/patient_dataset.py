@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 01/2022
+    @Last modification: 03/2022
 
     @Description:       This file contains the PatientDataset class that is used to interact with an hdf5 file dataset.
                         The main purpose of this class is to create an hdf5 file dataset from multiple patients dicom
@@ -21,7 +21,7 @@ import time
 from tqdm import tqdm
 from typing import Dict, List, Optional, Union
 
-from ..data_generators.patient_data_generator import PatientDataGenerator
+from dicom2hdf.data_generators.patient_data_generator import PatientDataGenerator
 
 
 class PatientDataset:
@@ -70,7 +70,7 @@ class PatientDataset:
         if path_to_dataset.endswith(".h5"):
             self._path_to_dataset = path_to_dataset
         else:
-            self._path_to_dataset = f"{path_to_dataset}" + ".h5"
+            self._path_to_dataset = f"{path_to_dataset}.h5"
 
     def _check_authorization_of_dataset_creation(
             self,
@@ -158,23 +158,21 @@ class PatientDataset:
                 transposed_image_array = image_array.transpose(1, 2, 0)
 
                 series_group = patient_group.create_group(name=str(idx))
-                series_group.attrs.__setitem__(name="series_description", value=series_description)
-                series_group.attrs.__setitem__(name="series_uid", value=str(series_uid))
-                series_group.attrs.__setitem__(name="modality", value=modality)
+                series_group["series_description"] = series_description
+                series_group["series_uid"] = str(series_uid)
+                series_group["modality"] = modality
 
                 series_group.create_dataset(
-                    name=f"image",
+                    name="image",
                     data=transposed_image_array
                 )
 
                 series_group.create_dataset(
-                    name=f"dicom_header",
+                    name="dicom_header",
                     data=json.dumps(patient_image_data.image.dicom_header.to_json_dict())
                 )
 
-                if patient_image_data.segmentation is None:
-                    pass
-                else:
+                if patient_image_data.segmentation:
                     for organ, simple_itk_label_map in patient_image_data.segmentation.simple_itk_label_maps.items():
                         numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
                         transposed_numpy_array_label_map = numpy_array_label_map.transpose(1, 2, 0)

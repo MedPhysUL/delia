@@ -1,7 +1,7 @@
 import logging
 from .logging_tools import logs_file_setup
 
-from .settings import *
+from .settings import FolderName, PathName
 
 from .datasets.patient_dataset import PatientDataset
 

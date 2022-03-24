@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     01/2022
-    @Last modification: 01/2022
+    @Last modification: 03/2022
 
     @Description:       This file contains the class BasePatientDataFactory that is used as an abstract class used as a
                         reference for all other patient data factories.
@@ -13,8 +13,8 @@ from abc import ABC, abstractmethod
 import os
 from typing import Dict, List, Optional
 
-from ....data_model import PatientDataModel
-from ...image.dicom_reader import DicomReader
+from dicom2hdf.data_model import PatientDataModel
+from dicom2hdf.data_readers.image.dicom_reader import DicomReader
 
 
 class BasePatientDataFactory(ABC):
@@ -101,4 +101,4 @@ class BasePatientDataFactory(ABC):
         patient_data: PatientDataModel
             Patient data.
         """
-        pass
+        raise NotImplementedError

@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     01/2022
-    @Last modification: 01/2022
+    @Last modification: 03/2022
 
     @Description:       This file contains the class PatientDataQueryContext that is used as a context class where
                         strategies are types of requests the client could ask the PatientDataReader class.
@@ -11,7 +11,7 @@
 
 from typing import Dict, List, Optional
 
-from ...data_model import PatientDataModel
+from dicom2hdf.data_model import PatientDataModel
 from .patient_data_query_strategy import PatientDataQueryStrategy, PatientDataQueryStrategies
 
 
@@ -81,14 +81,14 @@ class PatientDataQueryContext:
         _patient_data_factory_instance : PatientDataQueryStrategy.factory
             Factory class instance used to get a patient's data.
         """
-        _patient_data_factory_instance = self.patient_data_query_strategy.factory(
+        patient_data_factory_instance = self.patient_data_query_strategy.factory(
             path_to_images_folder=self._path_to_images_folder,
             path_to_segmentations_folder=self._path_to_segmentations_folder,
             series_descriptions=self._series_descriptions,
             verbose=self._verbose
         )
 
-        return _patient_data_factory_instance
+        return patient_data_factory_instance
 
     def create_patient_data(self) -> PatientDataModel:
         """

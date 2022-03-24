@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 01/2022
+    @Last modification: 03/2022
 
     @Description:       This file contains the PatientDataGenerator class which is used to iterate on multiple
                         patients' dicom files and segmentation files using the PatientDataReader to obtain all patients'
@@ -17,8 +17,8 @@ import logging
 import os
 from typing import Dict, List, Optional, Union
 
-from ..data_readers.patient_data.patient_data_reader import PatientDataReader
-from ..data_model import PatientDataModel
+from dicom2hdf.data_readers.patient_data.patient_data_reader import PatientDataReader
+from dicom2hdf.data_model import PatientDataModel
 
 
 class PatientDataGenerator(Generator):
@@ -33,10 +33,11 @@ class PatientDataGenerator(Generator):
             images_folder_name: str = "images",
             segmentations_folder_name: str = "segmentations",
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
-            verbose: bool = True,
-    ):
+            verbose: bool = True
+    ) -> None:
         """
-        Used to check if either the series descriptions or the path to the series description json dictionary is None.
+        Used to get the paths to the images and segmentations folders. Also used to check if either the series
+        descriptions or the path to the series description json dictionary is None.
 
         Parameters
         ----------
@@ -162,7 +163,7 @@ class PatientDataGenerator(Generator):
 
     def save_series_descriptions_to_json(self, path: str) -> None:
         """
-        Save the dictionary of series descriptions in a json format at the given path.
+        Saves the dictionary of series descriptions in a json format at the given path.
 
         Parameters
         ----------
@@ -230,7 +231,7 @@ class PatientDataGenerator(Generator):
 
         return patient_data_reader.get_patient_dataset()
 
-    def throw(self, typ=StopIteration, value=None, traceback=None) -> None:
+    def throw(self, typ: Exception = StopIteration, value=None, traceback=None) -> None:
         """
         Raises an exception of type typ.
         """

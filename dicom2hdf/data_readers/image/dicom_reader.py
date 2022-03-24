@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 01/2022
+    @Last modification: 03/2022
 
     @Description:       This file contains the DicomReader class which is used to read dicom files contained in a given
                         folder.
@@ -15,8 +15,8 @@ from typing import Dict, List, NamedTuple, Set
 import pydicom
 import SimpleITK as sitk
 
-from ...data_model import ImageDataModel
-from ...utils import check_validity_of_given_path
+from dicom2hdf.data_model import ImageDataModel
+from dicom2hdf.utils import is_path_valid
 
 
 class DicomReader:
@@ -46,7 +46,7 @@ class DicomReader:
         """
         super(DicomReader, self).__init__()
 
-        check_validity_of_given_path(path=path_to_images_folder)
+        is_path_valid(path=path_to_images_folder)
         self._path_to_images_folder = path_to_images_folder
 
     @staticmethod
@@ -124,7 +124,7 @@ class DicomReader:
         if len(all_patient_names) != 1:
             raise AssertionError(f"All DICOM files in the same folder must belong to the same patient. This is not the "
                                  f"case for the patient whose data is currently being downloaded since the names "
-                                 f"{all_patient_names} are found in his or her folder.")
+                                 f"{all_patient_names} are found in their folder.")
 
         return series_data_dict
 

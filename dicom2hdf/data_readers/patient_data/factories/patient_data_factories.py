@@ -3,22 +3,22 @@
     @Author:            Maxence Larose
 
     @Creation Date:     01/2022
-    @Last modification: 01/2022
+    @Last modification: 03/2022
 
     @Description:       This file contains all factories that inherit from the BasePatientDataFactory class.
 """
 
 from typing import Dict, List, Optional
 
-from ....data_model import ImageAndSegmentationDataModel, PatientDataModel
-from ...image.dicom_reader import DicomReader
-from .base_patient_data_factory import BasePatientDataFactory
-from ...segmentation.segmentation_reader import SegmentationReader
+from dicom2hdf.data_readers.patient_data.factories.base_patient_data_factory import BasePatientDataFactory
+from dicom2hdf.data_model import ImageAndSegmentationDataModel, PatientDataModel
+from dicom2hdf.data_readers.image.dicom_reader import DicomReader
+from dicom2hdf.data_readers.segmentation.segmentation_reader import SegmentationReader
 
 
 class DefaultPatientDataFactory(BasePatientDataFactory):
     """
-    Class that defined the methods that are used to get the patient data. The default factory consists in obtaining all
+    Class that defines the methods that are used to get the patient data. The default factory consists in obtaining all
     the images without any segmentation.
     """
 
@@ -30,7 +30,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             verbose: bool
     ):
         """
-        Constructor of the class BasePatientDataFactory.
+        Constructor of the class DefaultPatientDataFactory.
 
         Parameters
         ----------
@@ -47,7 +47,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
         verbose : bool
             True to log/print some information else False.
         """
-        super(DefaultPatientDataFactory, self).__init__(
+        super().__init__(
             path_to_images_folder=path_to_images_folder,
             path_to_segmentations_folder=path_to_segmentations_folder,
             series_descriptions=series_descriptions,
@@ -72,7 +72,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
 
 class SegmentationPatientDataFactory(BasePatientDataFactory):
     """
-    Class that defined the methods that are used to get the patient data. The segmentation patient data factory consists
+    Class that defines the methods that are used to get the patient data. The segmentation patient data factory consists
     in obtaining the images that have the same serial uids as those contained in the file names of the given
     segmentations. The final dataset therefore contains both the segmentations and their corresponding images.
     """
@@ -85,7 +85,7 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
             verbose: bool
     ):
         """
-        Constructor of the class SegmentationOnlyPatientDataFactory.
+        Constructor of the class SegmentationPatientDataFactory.
 
         Parameters
         ----------
@@ -102,7 +102,7 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
         verbose : bool
             True to log/print some information else False.
         """
-        super(SegmentationPatientDataFactory, self).__init__(
+        super().__init__(
             path_to_images_folder=path_to_images_folder,
             path_to_segmentations_folder=path_to_segmentations_folder,
             series_descriptions=series_descriptions,
@@ -141,7 +141,7 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
 
 class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
     """
-    Class that defined the methods that are used to get the patient data. The series description patient data factory
+    Class that defines the methods that are used to get the patient data. The series description patient data factory
     consists in obtaining only the images that have the given series descriptions. The final dataset therefore contains
     both the segmentations and their corresponding images.
     """
@@ -154,7 +154,7 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
             verbose: bool
     ):
         """
-        Constructor of the class SegmentationOnlyPatientDataFactory.
+        Constructor of the class SeriesDescriptionPatientDataFactory.
 
         Parameters
         ----------
@@ -171,7 +171,7 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
         verbose : bool
             True to log/print some information else False.
         """
-        super(SeriesDescriptionPatientDataFactory, self).__init__(
+        super().__init__(
             path_to_images_folder=path_to_images_folder,
             path_to_segmentations_folder=path_to_segmentations_folder,
             series_descriptions=series_descriptions,
@@ -212,9 +212,9 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
         return patient_data
 
 
-class SegmentationAndSeriesDescriptionPatientDataFactory(BasePatientDataFactory):
+class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
     """
-    Class that defined the methods that are used to get the patient data. The segmentation and series description
+    Class that defines the methods that are used to get the patient data. The segmentation and series description
     factory consists in obtaining the images that have the same serial uids as those contained in the file names of the
     given segmentations and the images that have the given series descriptions.
     """
@@ -227,7 +227,7 @@ class SegmentationAndSeriesDescriptionPatientDataFactory(BasePatientDataFactory)
             verbose: bool
     ):
         """
-        Constructor of the class SegmentationOnlyPatientDataFactory.
+        Constructor of the class SegAndSeriesPatientDataFactory.
 
         Parameters
         ----------
@@ -244,7 +244,7 @@ class SegmentationAndSeriesDescriptionPatientDataFactory(BasePatientDataFactory)
         verbose : bool
             True to log/print some information else False.
         """
-        super(SegmentationAndSeriesDescriptionPatientDataFactory, self).__init__(
+        super().__init__(
             path_to_images_folder=path_to_images_folder,
             path_to_segmentations_folder=path_to_segmentations_folder,
             series_descriptions=series_descriptions,

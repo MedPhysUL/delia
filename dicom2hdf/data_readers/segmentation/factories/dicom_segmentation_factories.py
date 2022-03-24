@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     01/2022
-    @Last modification: 01/2022
+    @Last modification: 03/2022
 
     @Description:       This file contains the abstract class BaseDicomSegmentationFactory and all factories that
                         inherit from this class.
@@ -38,7 +38,7 @@ class BaseDicomSegmentationFactory(BaseSegmentationFactory):
         path_to_segmentation : str
             The path to the segmentation file.
         """
-        super(BaseDicomSegmentationFactory, self).__init__(path_to_segmentation=path_to_segmentation)
+        super().__init__(path_to_segmentation=path_to_segmentation)
 
         self._dicom: pydicom.FileDataset = pydicom.dcmread(path_to_segmentation)
 
@@ -72,7 +72,7 @@ class DicomSEGSegmentationFactory(BaseDicomSegmentationFactory):
         path_to_segmentation : str
             The path to the segmentation file.
         """
-        super(DicomSEGSegmentationFactory, self).__init__(path_to_segmentation=path_to_segmentation)
+        super().__init__(path_to_segmentation=path_to_segmentation)
 
     @property
     def _reader(self) -> pydicom_seg.SegmentReader:

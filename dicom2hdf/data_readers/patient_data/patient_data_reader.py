@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 01/2022
+    @Last modification: 03/2022
 
     @Description:       This file contains the PatientDataReader class which is used to read dicom files AND
                         segmentation files.
@@ -12,9 +12,9 @@
 import logging
 from typing import Dict, List, Optional
 
-from ...data_model import PatientDataModel
-from ..image.dicom_reader import DicomReader
-from .patient_data_query_context import PatientDataQueryContext
+from dicom2hdf.data_model import PatientDataModel
+from dicom2hdf.data_readers.image.dicom_reader import DicomReader
+from dicom2hdf.data_readers.patient_data.patient_data_query_context import PatientDataQueryContext
 
 
 class PatientDataReader(DicomReader):

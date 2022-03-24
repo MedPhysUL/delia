@@ -197,6 +197,11 @@ for patient_dataset in patient_data_generator:
 ```
 
 ### TODO
+
+- [ ] Remove time sleep to handle tqdm console output.
+
+- [ ] Set up logging to fit the expected configuration in a library.
+
 - [ ] Use patients' unique identifiers rather than their names.
 - [ ] Add a way to specify an opening mode ("w", "r", "a", etc.) when creating an instance of the `PatientDataset` class.
 - [ ] Generalize the use of a specific tag to add images that have not been segmented. At the moment, the only tag available is `series_descriptions`.
