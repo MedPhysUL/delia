@@ -198,7 +198,7 @@ for patient_dataset in patient_data_generator:
 
 ### TODO
 
-- [ ] Remove time sleep to handle tqdm console output.
+- [x] Remove time sleep to handle tqdm console output.
 
 - [ ] Set up logging to fit the expected configuration in a library.
 

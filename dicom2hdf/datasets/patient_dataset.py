@@ -17,8 +17,6 @@ import os
 import h5py
 import json
 import SimpleITK as sitk
-import time
-from tqdm import tqdm
 from typing import Dict, List, Optional, Union
 
 from dicom2hdf.data_generators.patient_data_generator import PatientDataGenerator
@@ -139,17 +137,12 @@ class PatientDataset:
             series_descriptions=series_descriptions,
         )
 
-        if verbose:
-            print("\nProgress:")
-            time.sleep(0.001)
-            progress_bar = tqdm(range(len(patient_data_generator)), unit='itr', postfix="patients")
-            time.sleep(0.001)
-
-        for patient_dataset in patient_data_generator:
+        number_of_patients = len(patient_data_generator)
+        for patient_idx, patient_dataset in enumerate(patient_data_generator):
             patient_name = patient_dataset.patient_name
             patient_group = hf.create_group(name=patient_name)
 
-            for idx, patient_image_data in enumerate(patient_dataset.data):
+            for image_idx, patient_image_data in enumerate(patient_dataset.data):
                 series_description = patient_image_data.image.dicom_header.SeriesDescription
                 series_uid = patient_image_data.image.dicom_header.SeriesInstanceUID
                 modality = patient_image_data.image.dicom_header.Modality
@@ -157,7 +150,7 @@ class PatientDataset:
                 image_array = sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image)
                 transposed_image_array = image_array.transpose(1, 2, 0)
 
-                series_group = patient_group.create_group(name=str(idx))
+                series_group = patient_group.create_group(name=str(image_idx))
                 series_group["series_description"] = series_description
                 series_group["series_uid"] = str(series_uid)
                 series_group["modality"] = modality
@@ -182,12 +175,6 @@ class PatientDataset:
                         )
 
             if verbose:
-                print("\nProgress:")
-                time.sleep(0.001)
-                progress_bar.update()
-                time.sleep(0.001)
-
-        if verbose:
-            progress_bar.close()
+                print(f"\nProgress: {patient_idx + 1}/{number_of_patients} patients added to dataset.")
 
         patient_data_generator.close()
