@@ -26,8 +26,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             self,
             path_to_images_folder: str,
             path_to_segmentations_folder: Optional[str],
-            series_descriptions: Optional[Dict[str, List[str]]],
-            verbose: bool
+            series_descriptions: Optional[Dict[str, List[str]]]
     ):
         """
         Constructor of the class DefaultPatientDataFactory.
@@ -44,14 +43,11 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
-        verbose : bool
-            True to log/print some information else False.
         """
         super().__init__(
             path_to_images_folder=path_to_images_folder,
             path_to_segmentations_folder=path_to_segmentations_folder,
-            series_descriptions=series_descriptions,
-            verbose=verbose
+            series_descriptions=series_descriptions
         )
 
     def create_patient_data(self) -> PatientDataModel:
@@ -64,7 +60,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             Patient data.
         """
         patient_data = PatientDataModel(
-            patient_name=self.patient_name,
+            patient_id=self.patient_id,
             data=[ImageAndSegmentationDataModel(image=image) for image in self._images_data]
         )
         return patient_data
@@ -81,8 +77,7 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
             self,
             path_to_images_folder: str,
             path_to_segmentations_folder: Optional[str],
-            series_descriptions: Optional[Dict[str, List[str]]],
-            verbose: bool
+            series_descriptions: Optional[Dict[str, List[str]]]
     ):
         """
         Constructor of the class SegmentationPatientDataFactory.
@@ -99,14 +94,11 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
-        verbose : bool
-            True to log/print some information else False.
         """
         super().__init__(
             path_to_images_folder=path_to_images_folder,
             path_to_segmentations_folder=path_to_segmentations_folder,
-            series_descriptions=series_descriptions,
-            verbose=verbose
+            series_descriptions=series_descriptions
         )
 
     def create_patient_data(self) -> PatientDataModel:
@@ -133,7 +125,7 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
                     data.append(image_and_segmentation_data)
 
         patient_data = PatientDataModel(
-            patient_name=self.patient_name,
+            patient_id=self.patient_id,
             data=data
         )
         return patient_data
@@ -150,8 +142,7 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
             self,
             path_to_images_folder: str,
             path_to_segmentations_folder: Optional[str],
-            series_descriptions: Optional[Dict[str, List[str]]],
-            verbose: bool
+            series_descriptions: Optional[Dict[str, List[str]]]
     ):
         """
         Constructor of the class SeriesDescriptionPatientDataFactory.
@@ -168,14 +159,11 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
-        verbose : bool
-            True to log/print some information else False.
         """
         super().__init__(
             path_to_images_folder=path_to_images_folder,
             path_to_segmentations_folder=path_to_segmentations_folder,
-            series_descriptions=series_descriptions,
-            verbose=verbose
+            series_descriptions=series_descriptions
         )
         
     @property
@@ -206,7 +194,7 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
                 data.append(image_data)
 
         patient_data = PatientDataModel(
-            patient_name=self.patient_name,
+            patient_id=self.patient_id,
             data=data
         )
         return patient_data
@@ -223,8 +211,7 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
             self,
             path_to_images_folder: str,
             path_to_segmentations_folder: Optional[str],
-            series_descriptions: Optional[Dict[str, List[str]]],
-            verbose: bool
+            series_descriptions: Optional[Dict[str, List[str]]]
     ):
         """
         Constructor of the class SegAndSeriesPatientDataFactory.
@@ -241,14 +228,11 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
-        verbose : bool
-            True to log/print some information else False.
         """
         super().__init__(
             path_to_images_folder=path_to_images_folder,
             path_to_segmentations_folder=path_to_segmentations_folder,
-            series_descriptions=series_descriptions,
-            verbose=verbose
+            series_descriptions=series_descriptions
         )
 
     @property
@@ -293,7 +277,7 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
                 data.append(image_data)
 
         patient_data = PatientDataModel(
-            patient_name=self.patient_name,
+            patient_id=self.patient_id,
             data=data
         )
         return patient_data

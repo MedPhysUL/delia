@@ -25,8 +25,7 @@ class PatientDataQueryContext:
             self,
             path_to_images_folder: str,
             path_to_segmentations_folder: Optional[str],
-            series_descriptions: Dict[str, List[str]],
-            verbose: bool
+            series_descriptions: Dict[str, List[str]]
     ):
         """
         Constructor of the PatientDataQueryContext class.
@@ -43,13 +42,10 @@ class PatientDataQueryContext:
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
-        verbose : bool
-            True to log/print some information else False.
         """
         self._path_to_images_folder = path_to_images_folder
         self._path_to_segmentations_folder = path_to_segmentations_folder
         self._series_descriptions = series_descriptions
-        self._verbose = verbose
 
     @property
     def patient_data_query_strategy(self) -> PatientDataQueryStrategy:
@@ -84,8 +80,7 @@ class PatientDataQueryContext:
         patient_data_factory_instance = self.patient_data_query_strategy.factory(
             path_to_images_folder=self._path_to_images_folder,
             path_to_segmentations_folder=self._path_to_segmentations_folder,
-            series_descriptions=self._series_descriptions,
-            verbose=self._verbose
+            series_descriptions=self._series_descriptions
         )
 
         return patient_data_factory_instance

@@ -26,8 +26,7 @@ class BasePatientDataFactory(ABC):
             self,
             path_to_images_folder: str,
             path_to_segmentations_folder: Optional[str],
-            series_descriptions: Optional[Dict[str, List[str]]],
-            verbose: bool
+            series_descriptions: Optional[Dict[str, List[str]]]
     ):
         """
         Constructor of the class BasePatientDataFactory.
@@ -44,8 +43,6 @@ class BasePatientDataFactory(ABC):
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
-        verbose : bool
-            True to log/print some information else False.
 
         Attributes
         ----------
@@ -55,24 +52,23 @@ class BasePatientDataFactory(ABC):
         self._path_to_images_folder = path_to_images_folder
         self._path_to_segmentations_folder = path_to_segmentations_folder
         self._series_descriptions = series_descriptions
-        self._verbose = verbose
 
         dicom_reader = DicomReader(path_to_images_folder=self._path_to_images_folder)
-        self._images_data = dicom_reader.get_images_data(self._verbose)
+        self._images_data = dicom_reader.get_images_data()
 
     @property
-    def patient_name(self) -> str:
+    def patient_id(self) -> str:
         """
-        Patient name.
+        Patient ID.
 
         Returns
         -------
-        patient_name : str
-            Patient name.
+        patient_id : str
+            Patient ID.
         """
-        patient_name = self._images_data[0].dicom_header.PatientName
+        patient_id = self._images_data[0].dicom_header.PatientID
 
-        return str(patient_name)
+        return str(patient_id)
 
     @property
     def _paths_to_segmentations(self) -> List[str]:

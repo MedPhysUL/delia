@@ -21,7 +21,7 @@ class FileName:
 
 class FolderName:
     DATA_FOLDER: str = "data"
-    PATIENTS_FOLDER: str = "patients"
+    PATIENTS_FOLDER: str = "Patients_WORKING"
     IMAGES_FOLDER: str = "images"
     SEGMENTATIONS_FOLDER: str = "segmentations"
 

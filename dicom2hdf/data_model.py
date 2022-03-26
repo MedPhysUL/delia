@@ -74,7 +74,7 @@ class PatientDataModel(NamedTuple):
     formatted as follows :
 
         PatientDataModel = (
-            "patient_name": str,
+            "patient_id": str,
             "data": [
                 ImageAndSegmentationDataModel,
                 ImageAndSegmentationDataModel
@@ -82,5 +82,5 @@ class PatientDataModel(NamedTuple):
             ]
         )
     """
-    patient_name: str
+    patient_id: str
     data: List[ImageAndSegmentationDataModel]

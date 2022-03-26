@@ -3,26 +3,28 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 01/2022
+    @Last modification: 03/2022
 
-    @Description:       This file contains the logs_file_setup function, which allows the user to set the root logger
-                        level to the specified level.
+    @Description:       This file contains the configure_logging function, which allows the user to configure the
+                        stream and file handlers of the dicom2hdf logger using the logging_conf.yaml file.
 """
 
+from datetime import datetime
 import logging
-
+import logging.config
 import os
-import sys
-import time
-from datetime import date
+import yaml
 
 
-def logs_file_setup(level=logging.INFO):
-    today = date.today()
-    timestamp = str(time.time()).replace('.', '')
-    logs_dir = f"logs/logs-{today.strftime('%d-%m-%Y')}"
-    logs_file = f'{logs_dir}/{timestamp}.log'
+def configure_logging(path_to_configuration_file: str):
+    now = datetime.now()
+    logs_dir = f"logs/{now.strftime('%Y-%m-%d')}"
+    logs_file = f"{logs_dir}/{now.strftime('%Y-%m-%d_%H-%M-%S')}.log"
     os.makedirs(logs_dir, exist_ok=True)
-    logging.basicConfig(filename=logs_file, filemode='w+', level=level)
-    handler = logging.StreamHandler(sys.stdout)
-    logging.getLogger().addHandler(handler)
+
+    with open(path_to_configuration_file, 'r') as stream:
+        config: dict = yaml.load(stream, Loader=yaml.FullLoader)
+
+    config["handlers"]["file"]["filename"] = logs_file
+
+    logging.config.dictConfig(config)

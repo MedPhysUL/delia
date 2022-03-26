@@ -1,15 +1,33 @@
-import logging
-from .logging_tools import logs_file_setup
+import env_examples  # Modifies path, DO NOT REMOVE
 
-from .settings import FolderName, PathName
+from datetime import datetime
+import logging.config
+import os
+import yaml
 
-from .datasets.patient_dataset import PatientDataset
+from dicom2hdf import PatientDataset
+from settings import FolderName, PathName
+
+
+# def configure_logging(path_to_configuration_file: str):
+#     now = datetime.now()
+#     logs_dir = f"logs/{now.strftime('%Y-%m-%d')}"
+#     logs_file = f"{logs_dir}/{now.strftime('%Y-%m-%d_%H-%M-%S')}.log"
+#     os.makedirs(logs_dir, exist_ok=True)
+#
+#     with open(path_to_configuration_file, 'r') as stream:
+#         config: dict = yaml.load(stream, Loader=yaml.FullLoader)
+#
+#     config["handlers"]["file"]["filename"] = logs_file
+#
+#     logging.config.dictConfig(config)
+
 
 if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
-    #                                          Logs Setup                                                         #
+    #                                              Logs Setup                                                     #
     # ----------------------------------------------------------------------------------------------------------- #
-    logs_file_setup(logging.INFO)
+    # configure_logging("logging_conf.yaml")
 
     # ----------------------------------------------------------------------------------------------------------- #
     #                                            Patient Dataset                                                  #
@@ -23,6 +41,5 @@ if __name__ == "__main__":
         images_folder_name=FolderName.IMAGES_FOLDER,
         segmentations_folder_name=FolderName.SEGMENTATIONS_FOLDER,
         series_descriptions=PathName.PATH_TO_SERIES_DESCRIPTIONS_JSON,
-        verbose=True,
         overwrite_dataset=True
     )

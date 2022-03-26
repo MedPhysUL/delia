@@ -18,6 +18,8 @@ import SimpleITK as sitk
 from dicom2hdf.data_model import ImageDataModel
 from dicom2hdf.utils import is_path_valid
 
+_logger = logging.getLogger(__name__)
+
 
 class DicomReader:
     """
@@ -72,7 +74,7 @@ class DicomReader:
         loaded_dicom = pydicom.dcmread(path_to_dicom, stop_before_pixels=True)
 
         if show:
-            logging.info(loaded_dicom)
+            _logger.info(loaded_dicom)
 
         return loaded_dicom
 
@@ -105,14 +107,14 @@ class DicomReader:
             Dictionary of the data from the selected series.
         """
         series_data_dict: Dict[str, DicomReader.SeriesData] = {}
-        all_patient_names: Set[str] = set()
+        all_patient_ids: Set[str] = set()
         for idx, series_id in enumerate(self.__series_ids):
             series_reader = sitk.ImageSeriesReader()
             paths_to_dicoms_from_series = series_reader.GetGDCMSeriesFileNames(self._path_to_images_folder, series_id)
 
             path_to_first_dicom_of_series = paths_to_dicoms_from_series[0]
             loaded_dicom_header = self.get_dicom_header(path_to_dicom=path_to_first_dicom_of_series)
-            all_patient_names.add(loaded_dicom_header.PatientName)
+            all_patient_ids.add(loaded_dicom_header.PatientID)
 
             series_data = self.SeriesData(
                 series_description=loaded_dicom_header.SeriesDescription,
@@ -121,10 +123,10 @@ class DicomReader:
             )
             series_data_dict[series_id] = series_data
 
-        if len(all_patient_names) != 1:
+        if len(all_patient_ids) != 1:
             raise AssertionError(f"All DICOM files in the same folder must belong to the same patient. This is not the "
-                                 f"case for the patient whose data is currently being downloaded since the names "
-                                 f"{all_patient_names} are found in their folder.")
+                                 f"case for the patient whose data is currently being downloaded since the identifiers "
+                                 f"{all_patient_ids} are found in their folder.")
 
         return series_data_dict
 
@@ -152,14 +154,9 @@ class DicomReader:
 
         return image
 
-    def get_dicom_headers(self, verbose: bool) -> List[pydicom.dataset.FileDataset]:
+    def get_dicom_headers(self) -> List[pydicom.dataset.FileDataset]:
         """
         List of all the patient's dicom headers.
-
-        Parameters
-        ----------
-        verbose : bool
-            True to log/print some information else False.
 
         Returns
         -------
@@ -168,27 +165,21 @@ class DicomReader:
         """
         dicom_headers = []
         for idx, series_data in enumerate(self.__series_data_dict.values()):
-            if verbose:
-                if idx == 0:
-                    logging.info(f"Patient name : {series_data.dicom_header.PatientName}.")
-                    logging.debug(f"\nPath to images folder : {self._path_to_images_folder}. \nThe following series "
-                                  f"description are found in the patient's folder :")
+            if idx == 0:
+                _logger.info(f"Patient ID : {series_data.dicom_header.PatientID}.")
+                _logger.debug(f"\nPath to images folder : {self._path_to_images_folder}. \nThe following series "
+                              f"description are found in the patient's folder :")
 
-                logging.debug(f"---> Series description: {series_data.series_description}")
+            _logger.debug(f"---> Series description: {series_data.series_description}")
 
             dicom_headers.append(series_data.dicom_header)
 
         return dicom_headers
 
-    def get_images_data(self, verbose: bool) -> List[ImageDataModel]:
+    def get_images_data(self) -> List[ImageDataModel]:
         """
         List of tuples containing simpleITK 3D images array and their corresponding dicom header. Each element in the list
         corresponds to an image series.
-
-        Parameters
-        ----------
-        verbose : bool
-            True to log/print some information else False.
 
         Returns
         -------
@@ -198,10 +189,9 @@ class DicomReader:
         images_data = []
         for idx, series_data in enumerate(self.__series_data_dict.values()):
 
-            if verbose:
-                if idx == 0:
-                    logging.info(f"\nThe following series description are found in the patient's images folder :")
-                logging.info(f"---> Series description: {series_data.series_description}")
+            if idx == 0:
+                _logger.info(f"\nThe following series description are found in the patient's images folder :")
+            _logger.info(f"---> Series description: {series_data.series_description}")
 
             try:
                 image = self.__get_3d_sitk_image_from_dicom_series(
@@ -215,7 +205,7 @@ class DicomReader:
 
                 images_data.append(image_data)
             except RuntimeError as e:
-                logging.info(f"      RuntimeError : {e}. Simple ITK raised an error while loading the series named "
+                _logger.info(f"      RuntimeError : {e}. Simple ITK raised an error while loading the series named "
                              f"{series_data.series_description}. This series is therefore ignored.")
 
         return images_data

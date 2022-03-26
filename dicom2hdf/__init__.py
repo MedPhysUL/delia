@@ -1,6 +1,12 @@
-from .data_generators.patient_data_generator import PatientDataGenerator
-from .datasets.patient_dataset import PatientDataset
-from .logging_tools import logs_file_setup
+import logging
+
+from dicom2hdf.data_generators.patient_data_generator import PatientDataGenerator
+from dicom2hdf.datasets.patient_dataset import PatientDataset
+from dicom2hdf.logging_tools import configure_logging
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
+
+configure_logging("logging_conf.yaml")
 
 __author__ = "Maxence Larose"
 __version__ = "0.1.6"

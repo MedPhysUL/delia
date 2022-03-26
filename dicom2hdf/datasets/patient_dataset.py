@@ -21,6 +21,8 @@ from typing import Dict, List, Optional, Union
 
 from dicom2hdf.data_generators.patient_data_generator import PatientDataGenerator
 
+_logger = logging.getLogger(__name__)
+
 
 class PatientDataset:
     """
@@ -87,9 +89,9 @@ class PatientDataset:
                 raise FileExistsError("The dataset already exists. You may overwrite it using "
                                       "overwrite_dataset = True.")
             else:
-                logging.info(f"Overwriting dataset (HDF5 dataset file path : {self.path_to_dataset}).")
+                _logger.info(f"Overwriting dataset (HDF5 dataset file path : {self.path_to_dataset}).")
         else:
-            logging.info(f"Writing dataset (HDF5 dataset file path : {self.path_to_dataset}).")
+            _logger.info(f"Writing dataset (HDF5 dataset file path : {self.path_to_dataset}).")
 
     def create_hdf5_dataset(
             self,
@@ -97,8 +99,7 @@ class PatientDataset:
             images_folder_name: str = "images",
             segmentations_folder_name: str = "segmentations",
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
-            verbose: bool = True,
-            overwrite_dataset: bool = False,
+            overwrite_dataset: bool = False
     ) -> None:
         """
         Create an hdf5 file dataset from multiple patients dicom files and their segmentation and get patient's images
@@ -120,8 +121,6 @@ class PatientDataset:
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without their segmentation. Can be specified as a
             path to a json dictionary that contains the series descriptions.
-        verbose : bool, default = True.
-            True to log/print some information else False.
         overwrite_dataset : bool, default = False.
             Overwrite existing dataset.
         """
@@ -133,14 +132,13 @@ class PatientDataset:
             path_to_patients_folder=path_to_patients_folder,
             images_folder_name=images_folder_name,
             segmentations_folder_name=segmentations_folder_name,
-            verbose=verbose,
-            series_descriptions=series_descriptions,
+            series_descriptions=series_descriptions
         )
 
         number_of_patients = len(patient_data_generator)
         for patient_idx, patient_dataset in enumerate(patient_data_generator):
-            patient_name = patient_dataset.patient_name
-            patient_group = hf.create_group(name=patient_name)
+            patient_id = patient_dataset.patient_id
+            patient_group = hf.create_group(name=patient_id)
 
             for image_idx, patient_image_data in enumerate(patient_dataset.data):
                 series_description = patient_image_data.image.dicom_header.SeriesDescription
@@ -151,9 +149,9 @@ class PatientDataset:
                 transposed_image_array = image_array.transpose(1, 2, 0)
 
                 series_group = patient_group.create_group(name=str(image_idx))
-                series_group["series_description"] = series_description
-                series_group["series_uid"] = str(series_uid)
-                series_group["modality"] = modality
+                series_group.attrs["series_description"] = series_description
+                series_group.attrs["series_uid"] = str(series_uid)
+                series_group.attrs["modality"] = modality
 
                 series_group.create_dataset(
                     name="image",
@@ -174,7 +172,6 @@ class PatientDataset:
                             data=transposed_numpy_array_label_map
                         )
 
-            if verbose:
-                print(f"\nProgress: {patient_idx + 1}/{number_of_patients} patients added to dataset.")
+            _logger.info(f"\nProgress: {patient_idx + 1}/{number_of_patients} patients added to dataset.")
 
         patient_data_generator.close()

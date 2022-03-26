@@ -1,1 +1,1 @@
-from .patient_data_generator import PatientDataGenerator
+from dicom2hdf.data_generators.patient_data_generator import PatientDataGenerator

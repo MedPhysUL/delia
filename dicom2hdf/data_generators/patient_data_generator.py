@@ -20,6 +20,8 @@ from typing import Dict, List, Optional, Union
 from dicom2hdf.data_readers.patient_data.patient_data_reader import PatientDataReader
 from dicom2hdf.data_model import PatientDataModel
 
+_logger = logging.getLogger(__name__)
+
 
 class PatientDataGenerator(Generator):
     """
@@ -32,8 +34,7 @@ class PatientDataGenerator(Generator):
             path_to_patients_folder: str,
             images_folder_name: str = "images",
             segmentations_folder_name: str = "segmentations",
-            series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
-            verbose: bool = True
+            series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None
     ) -> None:
         """
         Used to get the paths to the images and segmentations folders. Also used to check if either the series
@@ -54,8 +55,6 @@ class PatientDataGenerator(Generator):
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without their segmentation. Can be specified as a
             path to a json file that contains the series descriptions dictionary.
-        verbose : bool, default = True.
-            True to log/print some information else False.
         """
         self._path_to_patients_folder = path_to_patients_folder
         self._paths_to_images_folder = self.get_paths_to_folder(images_folder_name)
@@ -73,11 +72,9 @@ class PatientDataGenerator(Generator):
             raise TypeError(f"Given series descriptions {series_descriptions} doesn't have the right type. Allowed"
                             f" types are str, dict and None.")
 
-        self._verbose = verbose
         self._current_index = 0
 
-        if verbose:
-            logging.info(f"\n# {'-'*111} #\n# {' ' * 40} DOWNLOADING ALL PATIENTS DATA {' ' * 40} #\n# {'-'*111} #")
+        _logger.info(f"\n# {'-' * 111} #\n# {' ' * 40} DOWNLOADING ALL PATIENTS DATA {' ' * 40} #\n# {'-' * 111} #")
 
     def __len__(self) -> int:
         """
@@ -213,14 +210,12 @@ class PatientDataGenerator(Generator):
         if self._current_index == self.__len__():
             self.throw()
 
-        if self._verbose:
-            logging.info(f"\n\n# {'-'*50} Patient {self._current_index + 1} {'-' * 50} #")
+        _logger.info(f"\n\n# {'-' * 50} Patient {self._current_index + 1} {'-' * 50} #")
 
         patient_data_reader = PatientDataReader(
             path_to_images_folder=self._paths_to_images_folder[self._current_index],
             path_to_segmentations_folder=self._paths_to_segmentations_folder[self._current_index],
-            series_descriptions=self.series_descriptions,
-            verbose=self._verbose,
+            series_descriptions=self.series_descriptions
         )
 
         if self._series_descriptions is not None:

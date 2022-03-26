@@ -1,1 +1,1 @@
-from .patient_dataset import PatientDataset
+from dicom2hdf.datasets.patient_dataset import PatientDataset
