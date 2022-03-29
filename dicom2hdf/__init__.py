@@ -1,9 +1,11 @@
 import logging
 
-from dicom2hdf.data_generators.patient_data_generator import PatientDataGenerator
+from dicom2hdf.data_generators.patient_data_generator import PatientDataGenerator, PatientWhoFailed
 from dicom2hdf.datasets.patient_dataset import PatientDataset
 
-logging.getLogger(__name__).addHandler(logging.NullHandler())
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.WARNING)
+logging.getLogger(__name__).addHandler(stream_handler)
 
 __author__ = "Maxence Larose"
 __version__ = "0.1.6"

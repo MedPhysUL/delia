@@ -52,20 +52,21 @@ class PatientDataReader(DicomReader):
         self._path_to_segmentations_folder = path_to_segmentations_folder
         self._series_descriptions = series_descriptions
 
+        self.failed_images = []
         if series_descriptions is not None:
             self.check_availability_of_given_series_description()
 
     @property
-    def patient_name(self) -> str:
+    def patient_id(self) -> str:
         """
-        Patient name.
+        Patient ID.
 
         Returns
         -------
-        patient_name : str
-            Patient name.
+        patient_id : str
+            Patient id.
         """
-        return str(self._dicom_headers[0].PatientName)
+        return str(self._dicom_headers[0].PatientID)
 
     @property
     def path_to_segmentations_folder(self) -> str:
@@ -134,34 +135,7 @@ class PatientDataReader(DicomReader):
             dicom_header.SeriesDescription for dicom_header in self._dicom_headers
         ]
 
-        return available_series_descriptions + ["None"]
-
-    def update_series_descriptions(self, series_key: str) -> None:
-        """
-        Add a series description to the series description list of the given series key.
-
-        Parameters
-        ----------
-        series_key : str
-            Series key.
-        """
-        while True:
-            new_series_description = input(
-                f"\nNo available series for {series_key}. \nAvailable series are {self.available_series_descriptions}. "
-                f"\nPlease write in the following location the name of the series to add. If the image does not require "
-                f"any description, write None. \nName of the series description to add (modality = {series_key}): ")
-
-            _logger.info(f"Given series description name is {new_series_description}.")
-
-            if new_series_description in self.available_series_descriptions:
-                _logger.info(f"Series description successfully added to the series descriptions json file.")
-                break
-            else:
-                _logger.info(f"Invalid series description!")
-                _logger.info(f"{new_series_description} not found in the patient's dicom files.")
-                _logger.info(f"Please try again.")
-
-        self.series_descriptions[series_key] += [new_series_description]
+        return available_series_descriptions
 
     def check_availability_of_given_series_description(self) -> None:
         """
@@ -172,9 +146,24 @@ class PatientDataReader(DicomReader):
             if any(series in self.available_series_descriptions for series in series_description_list):
                 pass
             else:
-                self.update_series_descriptions(series_key)
-                self.check_availability_of_given_series_description()
+                self.record_failed_images(series_key)
         _logger.debug("Done.")
+
+    def record_failed_images(self, series_key: str) -> None:
+        """
+        Record failed images.
+
+        Parameters
+        ----------
+        series_key : str
+            Series key.
+        """
+        _logger.error(f"Patient with ID {self.patient_id} has no series available that correlates with the "
+                      f"image '{series_key}'. The expected series descriptions for this image are "
+                      f"{self.series_descriptions[series_key]} while the patient record only contains the following "
+                      f"series descriptions: {self.available_series_descriptions}.")
+
+        self.failed_images.append(series_key)
 
     def get_patient_dataset(self) -> PatientDataModel:
         """

@@ -15,12 +15,18 @@ from copy import deepcopy
 import json
 import logging
 import os
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, NamedTuple, Optional, Union
 
 from dicom2hdf.data_readers.patient_data.patient_data_reader import PatientDataReader
 from dicom2hdf.data_model import PatientDataModel
 
 _logger = logging.getLogger(__name__)
+
+
+class PatientWhoFailed(NamedTuple):
+    id: str
+    failed_images: Dict[str, List[str]]
+    available_series_descriptions: List[str]
 
 
 class PatientDataGenerator(Generator):
@@ -64,7 +70,7 @@ class PatientDataGenerator(Generator):
             self.path_to_series_description_json = series_descriptions
         elif isinstance(series_descriptions, dict):
             self.series_descriptions = series_descriptions
-            self.path_to_series_description_json = None
+            self._path_to_series_description_json = None
         elif series_descriptions is None:
             self._series_descriptions = None
             self._path_to_series_description_json = None
@@ -73,7 +79,7 @@ class PatientDataGenerator(Generator):
                             f" types are str, dict and None.")
 
         self._current_index = 0
-
+        self._patients_who_failed = []
         _logger.info(f"Downloading all patients (Total : {self.__len__()})")
 
     def __len__(self) -> int:
@@ -158,6 +164,20 @@ class PatientDataGenerator(Generator):
 
         self._path_to_series_description_json = path_to_series_description_json
 
+    @property
+    def patients_who_failed(self) -> List[PatientWhoFailed]:
+        """
+        List of patients with one or more images not added to the HDF5 dataset due to the absence of the series in
+        the patient record.
+
+        Returns
+        -------
+        patients_who_failed : List[PatientWhoFailed]
+            List of patients with one or more images not added to the HDF5 dataset due to the absence of the series in
+            the patient record.
+        """
+        return self._patients_who_failed
+
     def save_series_descriptions_to_json(self, path: str) -> None:
         """
         Saves the dictionary of series descriptions in a json format at the given path.
@@ -222,6 +242,17 @@ class PatientDataGenerator(Generator):
             self.series_descriptions = patient_data_reader.series_descriptions
         if self.path_to_series_description_json:
             self.save_series_descriptions_to_json(path=self._path_to_series_description_json)
+        if patient_data_reader.failed_images:
+            failed_images = {image: self.series_descriptions[image] for image in patient_data_reader.failed_images}
+
+            self._patients_who_failed.append(
+                PatientWhoFailed(
+                    id=patient_data_reader.patient_id,
+                    failed_images=failed_images,
+                    available_series_descriptions=patient_data_reader.available_series_descriptions
+                )
+            )
+
         self._current_index += 1
 
         return patient_data_reader.get_patient_dataset()

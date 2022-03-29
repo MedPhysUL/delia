@@ -19,7 +19,7 @@ import json
 import SimpleITK as sitk
 from typing import Dict, List, Optional, Union
 
-from dicom2hdf.data_generators.patient_data_generator import PatientDataGenerator
+from dicom2hdf.data_generators.patient_data_generator import PatientDataGenerator, PatientWhoFailed
 
 _logger = logging.getLogger(__name__)
 
@@ -89,9 +89,9 @@ class PatientDataset:
                 raise FileExistsError("The dataset already exists. You may overwrite it using "
                                       "overwrite_dataset = True.")
             else:
-                _logger.info(f"Overwriting HDF5 dataset with path : {self.path_to_dataset}).")
+                _logger.info(f"Overwriting HDF5 dataset with path : {self.path_to_dataset}")
         else:
-            _logger.info(f"Writing HDF5 dataset with path : {self.path_to_dataset}).")
+            _logger.info(f"Writing HDF5 dataset with path : {self.path_to_dataset}")
 
     def create_hdf5_dataset(
             self,
@@ -100,7 +100,7 @@ class PatientDataset:
             segmentations_folder_name: str = "segmentations",
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
             overwrite_dataset: bool = False
-    ) -> None:
+    ) -> List[PatientWhoFailed]:
         """
         Create an hdf5 file dataset from multiple patients dicom files and their segmentation and get patient's images
         from this dataset. The goal is to create an object from which it is easier to obtain patient images and their
@@ -123,6 +123,12 @@ class PatientDataset:
             path to a json dictionary that contains the series descriptions.
         overwrite_dataset : bool, default = False.
             Overwrite existing dataset.
+
+        Returns
+        -------
+        patients_who_failed : List[PatientWhoFailed]
+            List of patients with one or more images not added to the HDF5 dataset due to the absence of the series in
+            the patient record.
         """
         self._check_authorization_of_dataset_creation(overwrite_dataset=overwrite_dataset)
 
@@ -175,3 +181,5 @@ class PatientDataset:
             _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to dataset.")
 
         patient_data_generator.close()
+
+        return patient_data_generator.patients_who_failed
