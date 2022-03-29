@@ -74,7 +74,7 @@ class PatientDataGenerator(Generator):
 
         self._current_index = 0
 
-        _logger.info(f"\n# {'-' * 111} #\n# {' ' * 40} DOWNLOADING ALL PATIENTS DATA {' ' * 40} #\n# {'-' * 111} #")
+        _logger.info(f"Downloading all patients (Total : {self.__len__()})")
 
     def __len__(self) -> int:
         """
@@ -210,7 +210,7 @@ class PatientDataGenerator(Generator):
         if self._current_index == self.__len__():
             self.throw()
 
-        _logger.info(f"\n\n# {'-' * 50} Patient {self._current_index + 1} {'-' * 50} #")
+        _logger.info(f"Downloading Patient {self._current_index + 1}")
 
         patient_data_reader = PatientDataReader(
             path_to_images_folder=self._paths_to_images_folder[self._current_index],

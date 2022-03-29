@@ -1,14 +1,3 @@
-"""
-    @file:              logging_tools.py
-    @Author:            Maxence Larose
-
-    @Creation Date:     10/2021
-    @Last modification: 03/2022
-
-    @Description:       This file contains the configure_logging function, which allows the user to configure the
-                        stream and file handlers of the dicom2hdf logger using the logging_conf.yaml file.
-"""
-
 from datetime import datetime
 import logging
 import logging.config

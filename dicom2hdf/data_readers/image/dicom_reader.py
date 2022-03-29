@@ -166,11 +166,10 @@ class DicomReader:
         dicom_headers = []
         for idx, series_data in enumerate(self.__series_data_dict.values()):
             if idx == 0:
-                _logger.info(f"Patient ID : {series_data.dicom_header.PatientID}.")
-                _logger.debug(f"\nPath to images folder : {self._path_to_images_folder}. \nThe following series "
-                              f"description are found in the patient's folder :")
+                _logger.info(f"Patient ID : {series_data.dicom_header.PatientID}")
+                _logger.debug(f"Path to images folder : {self._path_to_images_folder}")
 
-            _logger.debug(f"---> Series description: {series_data.series_description}")
+            _logger.debug(f"  Series description : {series_data.series_description}")
 
             dicom_headers.append(series_data.dicom_header)
 
@@ -190,8 +189,8 @@ class DicomReader:
         for idx, series_data in enumerate(self.__series_data_dict.values()):
 
             if idx == 0:
-                _logger.info(f"\nThe following series description are found in the patient's images folder :")
-            _logger.info(f"---> Series description: {series_data.series_description}")
+                _logger.info(f"Series description found in the patient's images folder :")
+            _logger.info(f"  Series description {idx + 1}: {series_data.series_description}")
 
             try:
                 image = self.__get_3d_sitk_image_from_dicom_series(
@@ -205,7 +204,7 @@ class DicomReader:
 
                 images_data.append(image_data)
             except RuntimeError as e:
-                _logger.info(f"      RuntimeError : {e}. Simple ITK raised an error while loading the series named "
-                             f"{series_data.series_description}. This series is therefore ignored.")
+                _logger.error(f"      RuntimeError : {e}. Simple ITK raised an error while loading the series named "
+                              f"{series_data.series_description}. This series is therefore ignored.")
 
         return images_data

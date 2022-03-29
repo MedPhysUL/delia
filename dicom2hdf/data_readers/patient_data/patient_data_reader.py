@@ -46,7 +46,7 @@ class PatientDataReader(DicomReader):
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without segmentation.
         """
-        super(PatientDataReader, self).__init__(path_to_images_folder=path_to_images_folder)
+        super().__init__(path_to_images_folder=path_to_images_folder)
 
         self._dicom_headers = self.get_dicom_headers()
         self._path_to_segmentations_folder = path_to_segmentations_folder
@@ -151,13 +151,15 @@ class PatientDataReader(DicomReader):
                 f"\nPlease write in the following location the name of the series to add. If the image does not require "
                 f"any description, write None. \nName of the series description to add (modality = {series_key}): ")
 
+            _logger.info(f"Given series description name is {new_series_description}.")
+
             if new_series_description in self.available_series_descriptions:
-                _logger.info("Series name successfully added to the series descriptions json file.\n")
+                _logger.info(f"Series description successfully added to the series descriptions json file.")
                 break
             else:
-                _logger.info(f"The given series description name is {new_series_description}. \nHowever, this is NOT "
-                             f"one of the available series description found in the patient's dicom files. \nAvailable "
-                             f"series are {self.available_series_descriptions}. \nPlease try again.")
+                _logger.info(f"Invalid series description!")
+                _logger.info(f"{new_series_description} not found in the patient's dicom files.")
+                _logger.info(f"Please try again.")
 
         self.series_descriptions[series_key] += [new_series_description]
 
@@ -165,14 +167,14 @@ class PatientDataReader(DicomReader):
         """
         Check availability of given series description in the patient's dicom files.
         """
-        _logger.info("Checking availability of given series description...")
+        _logger.debug("Checking availability of given series description...")
         for series_key, series_description_list in self.series_descriptions.items():
             if any(series in self.available_series_descriptions for series in series_description_list):
                 pass
             else:
                 self.update_series_descriptions(series_key)
                 self.check_availability_of_given_series_description()
-        _logger.info("Done.")
+        _logger.debug("Done.")
 
     def get_patient_dataset(self) -> PatientDataModel:
         """
@@ -191,9 +193,9 @@ class PatientDataReader(DicomReader):
         )
         patient_dataset = patient_data_context.create_patient_data()
 
-        _logger.debug(f"\nThe chosen patient data query strategy is called "
+        _logger.debug(f"Chosen patient data query strategy : "
                       f"'{patient_data_context.patient_data_query_strategy.name}'.")
-        _logger.info(f"\nA total of {len(patient_dataset.data)} images were added to the patient dataset, namely:")
+        _logger.info(f"{len(patient_dataset.data)} images added to the patient dataset, namely: ")
 
         for image_and_segmentation_data in patient_dataset.data:
             modality = image_and_segmentation_data.image.dicom_header.Modality
@@ -202,11 +204,11 @@ class PatientDataReader(DicomReader):
             image_segmentation_available = True if segmentation else False
             segmented_organs = list(segmentation.simple_itk_label_maps.keys()) if segmentation else None
 
-            _logger.info(f"---> Series Description ({series_description})"
-                         f"\n     ---> Modality : {modality}"
-                         f"\n     ---> Image Segmentation available: {image_segmentation_available}")
+            _logger.info(f"Series Description : {series_description}")
+            _logger.info(f"  Modality : {modality}")
+            _logger.info(f"  Image Segmentation available: {image_segmentation_available}")
 
             if image_segmentation_available:
-                _logger.info(f"     ---> Segmented organs : {segmented_organs}")
+                _logger.info(f"  Segmented organs : {segmented_organs}")
 
         return patient_dataset

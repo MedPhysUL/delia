@@ -89,9 +89,9 @@ class PatientDataset:
                 raise FileExistsError("The dataset already exists. You may overwrite it using "
                                       "overwrite_dataset = True.")
             else:
-                _logger.info(f"Overwriting dataset (HDF5 dataset file path : {self.path_to_dataset}).")
+                _logger.info(f"Overwriting HDF5 dataset with path : {self.path_to_dataset}).")
         else:
-            _logger.info(f"Writing dataset (HDF5 dataset file path : {self.path_to_dataset}).")
+            _logger.info(f"Writing HDF5 dataset with path : {self.path_to_dataset}).")
 
     def create_hdf5_dataset(
             self,
@@ -172,6 +172,6 @@ class PatientDataset:
                             data=transposed_numpy_array_label_map
                         )
 
-            _logger.info(f"\nProgress: {patient_idx + 1}/{number_of_patients} patients added to dataset.")
+            _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to dataset.")
 
         patient_data_generator.close()
