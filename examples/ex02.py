@@ -1,8 +1,8 @@
 """
-    @Title:             Partial dataset creation + handling of patients who failed + complete dataset creation.
+    @Title:             Dataset creation + handling of patients who failed.
 
     @Description:       Create the (possibly partial) HDF5 dataset, update the series description dictionary using the
-                        information from the failed patient's images, and finally create the full HDF5 dataset.
+                        information from the failed patients' images, and finally create the full HDF5 dataset.
 """
 
 import env_examples  # Modifies path, DO NOT REMOVE
@@ -82,6 +82,9 @@ if __name__ == "__main__":
         series_descriptions=series_descriptions
     )
 
+    with open("data/series_descriptions.json", 'w', encoding='utf-8') as json_file:
+        json.dump(updated_series_descriptions, json_file, ensure_ascii=False, indent=4)
+
     # ----------------------------------------------------------------------------------------------------------- #
     #                                            Create complete dataset                                          #
     # ----------------------------------------------------------------------------------------------------------- #
@@ -89,6 +92,7 @@ if __name__ == "__main__":
         path_to_patients_folder="data/patients",
         images_folder_name="images",
         segmentations_folder_name="segmentations",
+        tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         series_descriptions=updated_series_descriptions,
         overwrite_dataset=True
     )

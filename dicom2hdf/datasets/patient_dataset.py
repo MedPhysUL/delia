@@ -17,9 +17,10 @@ import os
 import h5py
 import json
 import SimpleITK as sitk
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from dicom2hdf.data_generators.patient_data_generator import PatientDataGenerator, PatientWhoFailed
+from dicom2hdf.data_model import ImageAndSegmentationDataModel
 
 _logger = logging.getLogger(__name__)
 
@@ -93,12 +94,59 @@ class PatientDataset:
         else:
             _logger.info(f"Writing HDF5 dataset with path : {self.path_to_dataset}")
 
+    @staticmethod
+    def _add_sitk_image_attributes_to_hdf5_group(
+            patient_image_data: ImageAndSegmentationDataModel,
+            group: h5py.Group
+    ) -> None:
+        """
+        Add Simple ITK image information as attributes in the given HDF5 group.
+
+        Parameters
+        ----------
+        patient_image_data : ImageAndSegmentationDataModel
+            A named tuple grouping the patient data retrieved from his dicom files and the segmentation data retrieved
+            from the segmentation file.
+        group : h5py.Group
+            An hdf5 group.
+        """
+        group.attrs.create(name="Size", data=patient_image_data.image.simple_itk_image.GetSize())
+        group.attrs.create(name="Origin", data=patient_image_data.image.simple_itk_image.GetOrigin())
+        group.attrs.create(name="Spacing", data=patient_image_data.image.simple_itk_image.GetSpacing())
+        group.attrs.create(name="Direction", data=patient_image_data.image.simple_itk_image.GetDirection())
+        group.attrs.create(name="Pixel Type", data=patient_image_data.image.simple_itk_image.GetPixelIDTypeAsString())
+
+    @staticmethod
+    def _add_dicom_attributes_to_hdf5_group(
+            patient_image_data: ImageAndSegmentationDataModel,
+            group: h5py.Group,
+            tags_to_use_as_attributes: List[Tuple[int, int]],
+    ) -> None:
+        """
+        Add the specified DICOM tags as attributes in the given HDF5 group.
+
+        Parameters
+        ----------
+        patient_image_data : ImageAndSegmentationDataModel
+            A named tuple grouping the patient data retrieved from his dicom files and the segmentation data retrieved
+            from the segmentation file.
+        group : h5py.Group
+            An hdf5 group.
+        tags_to_use_as_attributes : List[Tuple[int, int]]
+            List of DICOM tags to add as series attributes in the HDF5 dataset.
+        """
+        for tag in tags_to_use_as_attributes:
+            dicom_data_element = patient_image_data.image.dicom_header[tag]
+            group.attrs.create(name=dicom_data_element.name, data=dicom_data_element.repval)
+
     def create_hdf5_dataset(
             self,
             path_to_patients_folder: str,
             images_folder_name: str = "images",
             segmentations_folder_name: str = "segmentations",
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
+            tags_to_use_as_attributes: Optional[List[Tuple[int, int]]] = None,
+            add_sitk_image_metadata_as_attributes: bool = True,
             overwrite_dataset: bool = False
     ) -> List[PatientWhoFailed]:
         """
@@ -114,6 +162,8 @@ class PatientDataset:
             Images folder name.
         segmentations_folder_name : str, default = "segmentations".
             Segmentations folder name.
+        tags_to_use_as_attributes : List[Tuple[int, int]]
+            List of DICOM tags to add as series attributes in the HDF5 dataset.
         series_descriptions : Union[str, Dict[str, List[str]]], default = None.
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
@@ -121,6 +171,8 @@ class PatientDataset:
             corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
             must be added to the dataset is to be able to add images without their segmentation. Can be specified as a
             path to a json dictionary that contains the series descriptions.
+        add_sitk_image_metadata_as_attributes : bool, default = True.
+            Keep Simple ITK image information as attributes in the corresponding series.
         overwrite_dataset : bool, default = False.
             Overwrite existing dataset.
 
@@ -131,6 +183,9 @@ class PatientDataset:
             the patient record.
         """
         self._check_authorization_of_dataset_creation(overwrite_dataset=overwrite_dataset)
+
+        if tags_to_use_as_attributes is None:
+            tags_to_use_as_attributes = []
 
         hf = h5py.File(self.path_to_dataset, "w")
 
@@ -147,17 +202,15 @@ class PatientDataset:
             patient_group = hf.create_group(name=patient_id)
 
             for image_idx, patient_image_data in enumerate(patient_dataset.data):
-                series_description = patient_image_data.image.dicom_header.SeriesDescription
-                series_uid = patient_image_data.image.dicom_header.SeriesInstanceUID
-                modality = patient_image_data.image.dicom_header.Modality
-
                 image_array = sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image)
                 transposed_image_array = image_array.transpose(1, 2, 0)
 
                 series_group = patient_group.create_group(name=str(image_idx))
-                series_group.attrs["series_description"] = series_description
-                series_group.attrs["series_uid"] = str(series_uid)
-                series_group.attrs["modality"] = modality
+
+                self._add_dicom_attributes_to_hdf5_group(patient_image_data, series_group, tags_to_use_as_attributes)
+
+                if add_sitk_image_metadata_as_attributes:
+                    self._add_sitk_image_attributes_to_hdf5_group(patient_image_data, series_group)
 
                 series_group.create_dataset(
                     name="image",

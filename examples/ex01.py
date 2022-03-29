@@ -7,14 +7,13 @@
 import env_examples  # Modifies path, DO NOT REMOVE
 
 from dicom2hdf import PatientDataset
-from logging_tools import configure_logging
 
 
 if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     #                                         Logs Setup (Optional)                                               #
     # ----------------------------------------------------------------------------------------------------------- #
-    configure_logging("logging_conf.yaml")
+    env_examples.configure_logging("logging_conf.yaml")
 
     # ----------------------------------------------------------------------------------------------------------- #
     #            Create dataset (some images of some patients might fail to be added to the dataset)              #
@@ -24,9 +23,10 @@ if __name__ == "__main__":
     )
 
     patients_who_failed = dataset.create_hdf5_dataset(
-        path_to_patients_folder="data/patients",
+        path_to_patients_folder="data/Patients",
         images_folder_name="images",
         segmentations_folder_name="segmentations",
+        tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         series_descriptions="data/series_descriptions.json",
         overwrite_dataset=True
     )

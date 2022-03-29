@@ -198,12 +198,8 @@ for patient_dataset in patient_data_generator:
 
 ### TODO
 
-- [x] Remove time sleep to handle tqdm console output.
-- [x] Set up logging to fit the expected configuration in a library.
-- [x] Use patients' unique identifiers rather than their names.
-- [ ] Add a way to specify an opening mode ("w", "r", "a", etc.) when creating an instance of the `PatientDataset` class.
 - [ ] Generalize the use of a specific tag to add images that have not been segmented. At the moment, the only tag available is `series_descriptions`.
-- [ ] Add a parameter named `tags_to_used_as_attributes ` to the function `create_hdf5_dataset ` of the class `PatientDataset`. This parameter allows to choose the tags to be used as attributes for the images in the hdf5 file.
+- [X] Add a parameter named `tags_to_used_as_attributes ` to the function `create_hdf5_dataset ` of the class `PatientDataset`. This parameter allows to choose the tags to be used as attributes for the images in the hdf5 file.
 
 ## License
 
