@@ -23,7 +23,7 @@ if __name__ == "__main__":
     )
 
     patients_who_failed = dataset.create_hdf5_dataset(
-        path_to_patients_folder="data/Patients",
+        path_to_patients_folder="data/patients",
         images_folder_name="images",
         segmentations_folder_name="segmentations",
         tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],

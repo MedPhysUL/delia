@@ -49,9 +49,9 @@ If your segmentations files are in a research file format (`.nrrd`, `.nii`, etc.
 
 *This dictionary is **not** mandatory for the code to work and therefore its default value is `None`.*
 
-The series descriptions are specified as a **dictionary** that contains the series descriptions of the images that absolutely needs to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of series descriptions. The images associated with these series descriptions do not need to have a corresponding segmentation volume. In fact, **the whole point of adding a way to specify which series descriptions should be added to the dataset is to be able to add images that have not been segmented.** Note that it can also be specified as a path to a **json file** that contains the series descriptions. Both methods are presented below.
+The series descriptions are specified as a **dictionary** that contains the series descriptions of the images that absolutely needs to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of series descriptions. The images associated with these series descriptions do not need to have a corresponding segmentation volume. In fact, **the whole point of adding a way to specify which series descriptions should be added to the dataset is to be able to add images that have not been segmented.** If none of the descriptions match the series in a patient's files, a warning is raised and the patient is added to the list of patients for whom the pipeline has failed.
 
-**Warning!** *This dictionary (or json file) can be modified during the execution of the package functions. THIS IS NORMAL, we potentially want to add a new series description to this dictionary if none of the descriptions match the series in a patient's files.* 
+Note that the series descriptions can be specified as a classic dictionary or as a path to a **json file** that contains the series descriptions. Both methods are presented below.
 
 ##### Using a json file
 
@@ -107,15 +107,15 @@ It is important to configure the directory structure correctly to ensure that th
        	  |_📄 IM1.dcm
        	  |_📄 ...
        	|_📂 segmentations/
-       	  |_📄 IM0.SEG.dcm
-       	  |_📄 IM1.SEG.dcm
+       	  |_📄 CT.SEG.dcm
+       	  |_📄 PET.SEG.dcm
        	  |_📄 ...
       |_📂 patient2/
        	|_📂 images/
        	  |_📄 IM0.dcm
        	  |_📄 ...
        	|_📂 segmentations/
-       	  |_📄 IM0.SEG.dcm
+       	  |_📄 MRI.SEG.dcm
        	  |_📄 ...
       |_📂 ...
 ```
@@ -128,34 +128,29 @@ The easiest way to import the package is to use :
 from dicom2hdf import *
 ```
 
-This will import the useful classes `PatientDataset` and `PatientDataGenerator` and the useful function `logs_file_setup`. These two classes represent two different ways of using the package. The following examples will present both procedures.
+This will import the useful classes `PatientDataset` and `PatientDataGenerator`. These two classes represent two different ways of using the package. The following examples will present both procedures.
 
 ### Use the package
-
-The two examples below show code to add to the `main.py` file. 
 
 #### Example using the patient dataset class
 
 This file can then be executed to obtain an hdf5 dataset.
 
 ```python
-import logging
+from dicom2hdf import PatientDataset
 
-from dicom2hdf import logs_file_setup, PatientDataset
-
-logs_file_setup(level=logging.INFO)
 
 dataset = PatientDataset(
-    path_to_dataset= "data/patient_dataset.h5",
+	path_to_dataset="data/patient_dataset.h5",
 )
 
-dataset.create_hdf5_dataset(
-    path_to_patients_folder="data/patients",
-    images_folder_name="images",
-    segmentations_folder_name="segmentations",
-    series_descriptions="data/series_descriptions.json",
-    verbose=True,
-    overwrite_dataset=True
+patients_who_failed = dataset.create_hdf5_dataset(
+	path_to_patients_folder="data/patients",
+	images_folder_name="images",
+	segmentations_folder_name="segmentations",
+	tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
+	series_descriptions="data/series_descriptions.json",
+	overwrite_dataset=True
 )
 
 ```
@@ -171,35 +166,31 @@ This file can then be executed to perform on-the-fly tasks on images.
 ```python
 import logging
 
-from dicom2hdf import logs_file_setup, PatientDataGenerator
+from dicom2hdf import PatientDataGenerator
 import SimpleITK as sitk
-
-logs_file_setup(level=logging.INFO)
 
 patient_data_generator = PatientDataGenerator(
     path_to_patients_folder="data/patients",
-    images_folder_name=¨images¨,
-    segmentations_folder_name=¨segmentations¨,
-    series_descriptions="data/series_descriptions.json",
-    verbose=True
+    images_folder_name="images",
+    segmentations_folder_name="segmentations",
+    series_descriptions="data/series_descriptions.json"
 )
 
 for patient_dataset in patient_data_generator:
-    patient_name = patient_dataset.patient_name
+    print(f"Patient ID: {patient_dataset.patient_id}"
     
     for patient_image_data in patient_dataset.data:
         dicom_header = patient_image_data.image.dicom_header
         simple_itk_image = patient_image_data.image.simple_itk_image
         numpy_array_image = sitk.GetArrayFromImage(simple_itk_image)
         
-        """Perform any tasks on images on-the-fly like printing the image array shape."""
+        """Perform any tasks on images on-the-fly."""
         print(numpy_array_image.shape)
 ```
 
 ### TODO
 
 - [ ] Generalize the use of a specific tag to add images that have not been segmented. At the moment, the only tag available is `series_descriptions`.
-- [X] Add a parameter named `tags_to_used_as_attributes ` to the function `create_hdf5_dataset ` of the class `PatientDataset`. This parameter allows to choose the tags to be used as attributes for the images in the hdf5 file.
 
 ## License
 
