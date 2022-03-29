@@ -144,7 +144,7 @@ dataset = PatientDataset(
 	path_to_dataset="data/patient_dataset.h5",
 )
 
-patients_who_failed = dataset.create_hdf5_dataset(
+dataset.create_hdf5_dataset(
 	path_to_patients_folder="data/patients",
 	images_folder_name="images",
 	segmentations_folder_name="segmentations",
@@ -187,6 +187,10 @@ for patient_dataset in patient_data_generator:
         """Perform any tasks on images on-the-fly."""
         print(numpy_array_image.shape)
 ```
+
+#### Need more examples?
+
+You can find more in the [examples folder](https://github.com/MaxenceLarose/dicom2hdf/tree/main/examples).
 
 ### TODO
 
