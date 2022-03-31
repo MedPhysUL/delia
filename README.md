@@ -53,7 +53,8 @@ The series descriptions are specified as a **dictionary** that contains the seri
 
 Note that the series descriptions can be specified as a classic dictionary or as a path to a **json file** that contains the series descriptions. Both methods are presented below.
 
-##### Using a json file
+<details>
+  <summary>Using a json file</summary>
 
 Create a json file containing only the dictionary of the names given to the images we want to add (keys) and lists of series descriptions (values). Place this file in your data folder.
 
@@ -71,8 +72,10 @@ Here is an example of a json file configured as expected :
     ]
 }
 ```
+</details>
 
-##### Using a Python dictionary
+<details>
+  <summary>Using a Python dictionary</summary>
 
 Create the organs dictionary in your main.py python file.
 
@@ -90,6 +93,7 @@ series_descriptions = {
     ]
 }
 ```
+</details>
 
 #### Structure your patients directory
 
