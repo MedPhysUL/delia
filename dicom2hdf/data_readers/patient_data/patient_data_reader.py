@@ -26,8 +26,7 @@ class PatientDataReader(DicomReader):
 
     def __init__(
             self,
-            path_to_images_folder: str,
-            path_to_segmentations_folder: Optional[str],
+            path_to_patient_folder: str,
             series_descriptions: Optional[Dict[str, List[str]]]
     ):
         """
@@ -35,21 +34,16 @@ class PatientDataReader(DicomReader):
 
         Parameters
         ----------
-        path_to_images_folder : str
-            Path to the folder containing the patient's image files.
-        path_to_segmentations_folder : Optional[str]
-            Path to the folder containing the patient's segmentation files.
-        series_descriptions : Optional[Dict[str, List[str]]]
+        path_to_patient_folder : str
+            Path to the folder containing the patient's files.
+        series_descriptions : Dict[str, List[str]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions. The images associated with these series descriptions do not need to have a
-            corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without segmentation.
+            series descriptions.
         """
-        super().__init__(path_to_images_folder=path_to_images_folder)
+        super().__init__(path_to_patient_folder=path_to_patient_folder)
 
-        self._dicom_headers = self.get_dicom_headers()
-        self._path_to_segmentations_folder = path_to_segmentations_folder
+        self._images_dicom_headers = self.get_dicom_headers(remove_segmentations=True)
         self._series_descriptions = series_descriptions
 
         self.failed_images = []
@@ -66,19 +60,23 @@ class PatientDataReader(DicomReader):
         patient_id : str
             Patient id.
         """
-        return str(self._dicom_headers[0].PatientID)
+        return str(self._images_dicom_headers[0].PatientID)
 
     @property
-    def path_to_segmentations_folder(self) -> str:
+    def paths_to_segmentations(self) -> List[str]:
         """
-        Paths to segmentations property.
+        Paths to segmentations.
 
         Returns
         -------
-        path_to_segmentations_folder : List[str]
-            Path to the folder containing the patient's segmentation files.
+        paths_to_segmentations : List[str]
+            List of paths to the segmentation files.
         """
-        return self._path_to_segmentations_folder
+        paths_to_segmentations = [
+            series.paths_to_dicoms_from_series[0] for series in self._segmentations_series_data_dict.values()
+        ]
+
+        return paths_to_segmentations
 
     @property
     def series_descriptions(self) -> Dict[str, List[str]]:
@@ -104,9 +102,7 @@ class PatientDataReader(DicomReader):
         series_descriptions : Dict[str, List[str]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions. The images associated with these series descriptions do not need to have a
-            corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without segmentation. the patient dataset.
+            series descriptions.
         """
         items = list(series_descriptions.items())
         for previous_items, current_items in zip(items, items[1:]):
@@ -132,7 +128,7 @@ class PatientDataReader(DicomReader):
             Available series descriptions in the patient dicom files.
         """
         available_series_descriptions = [
-            dicom_header.SeriesDescription for dicom_header in self._dicom_headers
+            dicom_header.SeriesDescription for dicom_header in self._images_dicom_headers
         ]
 
         return available_series_descriptions
@@ -176,8 +172,8 @@ class PatientDataReader(DicomReader):
             segmentation data extracted from the segmentation files.
         """
         patient_data_context = PatientDataQueryContext(
-            path_to_images_folder=self._path_to_images_folder,
-            path_to_segmentations_folder=self._path_to_segmentations_folder,
+            path_to_patient_folder=self._path_to_patient_folder,
+            paths_to_segmentations=self.paths_to_segmentations,
             series_descriptions=self._series_descriptions
         )
         patient_dataset = patient_data_context.create_patient_data()

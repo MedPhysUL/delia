@@ -58,13 +58,11 @@ if __name__ == "__main__":
     #              Create dataset (some images of some patients might fail to be added to the dataset)            #
     # ----------------------------------------------------------------------------------------------------------- #
     dataset = PatientDataset(
-        path_to_dataset="data/patient_dataset.h5",
+        path_to_dataset="data/patients_dataset.h5",
     )
     patients_who_failed = dataset.create_hdf5_dataset(
-        path_to_patients_folder="data/patients",
-        images_folder_name="images",
-        segmentations_folder_name="segmentations",
-        series_descriptions="data/series_descriptions.json",
+        path_to_patients_folder="data/Patients",
+        series_descriptions="data/incorrect_series_descriptions.json",
         overwrite_dataset=True
     )
 
@@ -74,7 +72,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     #                                          Update series descriptions                                         #
     # ----------------------------------------------------------------------------------------------------------- #
-    with open("data/series_descriptions.json", "r") as json_file:
+    with open("data/incorrect_series_descriptions.json", "r") as json_file:
         series_descriptions = json.load(json_file)
 
     updated_series_descriptions = get_updated_series_descriptions(
@@ -82,16 +80,14 @@ if __name__ == "__main__":
         series_descriptions=series_descriptions
     )
 
-    with open("data/series_descriptions.json", 'w', encoding='utf-8') as json_file:
+    with open("data/incorrect_series_descriptions.json", 'w', encoding='utf-8') as json_file:
         json.dump(updated_series_descriptions, json_file, ensure_ascii=False, indent=4)
 
     # ----------------------------------------------------------------------------------------------------------- #
     #                                            Create complete dataset                                          #
     # ----------------------------------------------------------------------------------------------------------- #
     patients_who_failed = dataset.create_hdf5_dataset(
-        path_to_patients_folder="data/patients",
-        images_folder_name="images",
-        segmentations_folder_name="segmentations",
+        path_to_patients_folder="data/Patients",
         tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         series_descriptions=updated_series_descriptions,
         overwrite_dataset=True

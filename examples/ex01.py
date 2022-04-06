@@ -19,13 +19,11 @@ if __name__ == "__main__":
     #            Create dataset (some images of some patients might fail to be added to the dataset)              #
     # ----------------------------------------------------------------------------------------------------------- #
     dataset = PatientDataset(
-        path_to_dataset="data/patient_dataset.h5",
+        path_to_dataset="data/patients_dataset.h5",
     )
 
     patients_who_failed = dataset.create_hdf5_dataset(
-        path_to_patients_folder="data/patients",
-        images_folder_name="images",
-        segmentations_folder_name="segmentations",
+        path_to_patients_folder="data/Patients",
         tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         series_descriptions="data/series_descriptions.json",
         overwrite_dataset=True

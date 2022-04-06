@@ -73,7 +73,7 @@ class SegmentationContext:
         """
         dicom = pydicom.dcmread(self.path_to_segmentation)
         modality = dicom.Modality
-        available_modalities = SegmentationStrategies.available_modalities()
+        available_modalities = SegmentationStrategies.get_available_modalities()
 
         assert modality in available_modalities, f"The given segmentation file ({self.path_to_segmentation}) is of" \
                                                  f" modality {modality}. However, the available modalities for the" \

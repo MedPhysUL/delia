@@ -24,8 +24,8 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
 
     def __init__(
             self,
-            path_to_images_folder: str,
-            path_to_segmentations_folder: Optional[str],
+            path_to_patient_folder: str,
+            paths_to_segmentations: Optional[List[str]],
             series_descriptions: Optional[Dict[str, List[str]]]
     ):
         """
@@ -33,20 +33,18 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
 
         Parameters
         ----------
-        path_to_images_folder : str
+        path_to_patient_folder : str
             Path to the folder containing the patient's image files.
-        path_to_segmentations_folder : Optional[str]
-            Path to the folder containing the patient's segmentation files.
+        paths_to_segmentations : Optional[List[str]]
+            List of paths to the patient's segmentation files.
         series_descriptions : Optional[Dict[str, List[str]]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions. The images associated with these series descriptions do not need to have a
-            corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without segmentation.
+            series descriptions.
         """
         super().__init__(
-            path_to_images_folder=path_to_images_folder,
-            path_to_segmentations_folder=path_to_segmentations_folder,
+            path_to_patient_folder=path_to_patient_folder,
+            paths_to_segmentations=paths_to_segmentations,
             series_descriptions=series_descriptions
         )
 
@@ -75,8 +73,8 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
 
     def __init__(
             self,
-            path_to_images_folder: str,
-            path_to_segmentations_folder: Optional[str],
+            path_to_patient_folder: str,
+            paths_to_segmentations: List[str],
             series_descriptions: Optional[Dict[str, List[str]]]
     ):
         """
@@ -84,20 +82,18 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
 
         Parameters
         ----------
-        path_to_images_folder : str
+        path_to_patient_folder : str
             Path to the folder containing the patient's image files.
-        path_to_segmentations_folder : Optional[str]
-            Path to the folder containing the patient's segmentation files.
+        paths_to_segmentations : Optional[List[str]]
+            List of paths to the patient's segmentation files.
         series_descriptions : Optional[Dict[str, List[str]]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions. The images associated with these series descriptions do not need to have a
-            corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without segmentation.
+            series descriptions.
         """
         super().__init__(
-            path_to_images_folder=path_to_images_folder,
-            path_to_segmentations_folder=path_to_segmentations_folder,
+            path_to_patient_folder=path_to_patient_folder,
+            paths_to_segmentations=paths_to_segmentations,
             series_descriptions=series_descriptions
         )
 
@@ -140,8 +136,8 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
 
     def __init__(
             self,
-            path_to_images_folder: str,
-            path_to_segmentations_folder: Optional[str],
+            path_to_patient_folder: str,
+            paths_to_segmentations: Optional[List[str]],
             series_descriptions: Optional[Dict[str, List[str]]]
     ):
         """
@@ -149,20 +145,18 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
 
         Parameters
         ----------
-        path_to_images_folder : str
+        path_to_patient_folder : str
             Path to the folder containing the patient's image files.
-        path_to_segmentations_folder : Optional[str]
-            Path to the folder containing the patient's segmentation files.
+        paths_to_segmentations : Optional[List[str]]
+            List of paths to the patient's segmentation files.
         series_descriptions : Optional[Dict[str, List[str]]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions. The images associated with these series descriptions do not need to have a
-            corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without segmentation.
+            series descriptions.
         """
         super().__init__(
-            path_to_images_folder=path_to_images_folder,
-            path_to_segmentations_folder=path_to_segmentations_folder,
+            path_to_patient_folder=path_to_patient_folder,
+            paths_to_segmentations=paths_to_segmentations,
             series_descriptions=series_descriptions
         )
         
@@ -209,8 +203,8 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
 
     def __init__(
             self,
-            path_to_images_folder: str,
-            path_to_segmentations_folder: Optional[str],
+            path_to_patient_folder: str,
+            paths_to_segmentations: Optional[List[str]],
             series_descriptions: Optional[Dict[str, List[str]]]
     ):
         """
@@ -218,20 +212,18 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
 
         Parameters
         ----------
-        path_to_images_folder : str
+        path_to_patient_folder : str
             Path to the folder containing the patient's image files.
-        path_to_segmentations_folder : Optional[str]
-            Path to the folder containing the patient's segmentation files.
+        paths_to_segmentations : Optional[List[str]]
+            List of paths to the patient's segmentation files.
         series_descriptions : Optional[Dict[str, List[str]]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions. The images associated with these series descriptions do not need to have a
-            corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without segmentation.
+            series descriptions.
         """
         super().__init__(
-            path_to_images_folder=path_to_images_folder,
-            path_to_segmentations_folder=path_to_segmentations_folder,
+            path_to_patient_folder=path_to_patient_folder,
+            paths_to_segmentations=paths_to_segmentations,
             series_descriptions=series_descriptions
         )
 
@@ -258,23 +250,24 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
         """
         data = []
         for image_idx, image in enumerate(self._images_data):
-            image_added = False
-            for path_to_segmentation in self._paths_to_segmentations:
-                dicom_header = DicomReader.get_dicom_header(path_to_dicom=path_to_segmentation)
-                if image.dicom_header.SeriesInstanceUID == dicom_header.ReferencedSeriesSequence[0].SeriesInstanceUID:
-                    segmentation_reader = SegmentationReader(path_to_segmentation=path_to_segmentation)
-
-                    image_and_segmentation_data = ImageAndSegmentationDataModel(
-                        image=image,
-                        segmentation=segmentation_reader.get_segmentation_data()
-                    )
-                    data.append(image_and_segmentation_data)
-                    image_added = True
-
             series_description = image.dicom_header.SeriesDescription
-            if series_description in self.flatten_series_descriptions and image_added is False:
-                image_data = ImageAndSegmentationDataModel(image=image)
-                data.append(image_data)
+            if series_description in self.flatten_series_descriptions:
+                image_added = False
+                for path_to_segmentation in self._paths_to_segmentations:
+                    seg_header = DicomReader.get_dicom_header(path_to_dicom=path_to_segmentation)
+                    if image.dicom_header.SeriesInstanceUID == seg_header.ReferencedSeriesSequence[0].SeriesInstanceUID:
+                        segmentation_reader = SegmentationReader(path_to_segmentation=path_to_segmentation)
+
+                        image_and_segmentation_data = ImageAndSegmentationDataModel(
+                            image=image,
+                            segmentation=segmentation_reader.get_segmentation_data()
+                        )
+                        data.append(image_and_segmentation_data)
+                        image_added = True
+
+                if image_added is False:
+                    image_data = ImageAndSegmentationDataModel(image=image)
+                    data.append(image_data)
 
         patient_data = PatientDataModel(
             patient_id=self.patient_id,

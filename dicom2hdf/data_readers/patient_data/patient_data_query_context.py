@@ -23,8 +23,8 @@ class PatientDataQueryContext:
 
     def __init__(
             self,
-            path_to_images_folder: str,
-            path_to_segmentations_folder: Optional[str],
+            path_to_patient_folder: str,
+            paths_to_segmentations: Optional[List[str]],
             series_descriptions: Dict[str, List[str]]
     ):
         """
@@ -32,19 +32,17 @@ class PatientDataQueryContext:
 
         Parameters
         ----------
-        path_to_images_folder : str
-            Path to the folder containing the patient's image files.
-        path_to_segmentations_folder : Optional[str]
-            Path to the folder containing the patient's segmentation files.
+        path_to_patient_folder : str
+            Path to the folder containing the patient's DICOM files.
+        paths_to_segmentations : Optional[List[str]]
+            List of paths to the patient's segmentation files.
         series_descriptions : Dict[str, List[str]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions. The images associated with these series descriptions do not need to have a
-            corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without segmentation.
+            series descriptions.
         """
-        self._path_to_images_folder = path_to_images_folder
-        self._path_to_segmentations_folder = path_to_segmentations_folder
+        self._path_to_patient_folder = path_to_patient_folder
+        self._paths_to_segmentations = paths_to_segmentations
         self._series_descriptions = series_descriptions
 
     @property
@@ -58,11 +56,11 @@ class PatientDataQueryContext:
         patient_data_query_strategy : PatientDataQueryStrategy
             Patient data query strategy.
         """
-        if self._path_to_segmentations_folder and self._series_descriptions:
+        if self._paths_to_segmentations and self._series_descriptions:
             return PatientDataQueryStrategies.SEGMENTATION_AND_SERIES_DESCRIPTION.value
-        elif not self._path_to_segmentations_folder and self._series_descriptions:
+        elif not self._paths_to_segmentations and self._series_descriptions:
             return PatientDataQueryStrategies.SERIES_DESCRIPTION.value
-        elif self._path_to_segmentations_folder and not self._series_descriptions:
+        elif self._paths_to_segmentations and not self._series_descriptions:
             return PatientDataQueryStrategies.SEGMENTATION.value
         else:
             return PatientDataQueryStrategies.DEFAULT.value
@@ -78,8 +76,8 @@ class PatientDataQueryContext:
             Factory class instance used to get a patient's data.
         """
         patient_data_factory_instance = self.patient_data_query_strategy.factory(
-            path_to_images_folder=self._path_to_images_folder,
-            path_to_segmentations_folder=self._path_to_segmentations_folder,
+            path_to_patient_folder=self._path_to_patient_folder,
+            paths_to_segmentations=self._paths_to_segmentations,
             series_descriptions=self._series_descriptions
         )
 

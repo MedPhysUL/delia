@@ -100,7 +100,11 @@ class DicomSEGSegmentationFactory(BaseDicomSegmentationFactory):
 
         segments = []
         for segment_number, dicom_header in result.segment_infos.items():
-            organ_name = dicom_header.SegmentDescription
+            if dicom_header.__contains__("SegmentLabel"):
+                organ_name = dicom_header.SegmentLabel
+            else:
+                organ_name = dicom_header.SegmentDescription
+
             simple_itk_label_map = result.segment_image(segment_number)
 
             segments.append(Segment(name=organ_name, simple_itk_label_map=simple_itk_label_map))

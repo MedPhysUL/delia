@@ -1,0 +1,11 @@
+{
+    "CT_THORAX": [
+        "Thorax  1.0  B45f"
+    ],
+    "TEP": [
+        "PET_BODY_CTAC"
+    ],
+    "CT": [
+        "CT Imag"
+    ]
+}

@@ -48,7 +48,7 @@ class SegmentationStrategies(enum.Enum):
                              f"{second_member_modality_value}.")
 
     @classmethod
-    def available_modalities(cls) -> List[str]:
+    def get_available_modalities(cls) -> List[str]:
         """
         Available segmentation DICOM modalities.
 

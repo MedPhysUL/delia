@@ -38,8 +38,6 @@ class PatientDataGenerator(Generator):
     def __init__(
             self,
             path_to_patients_folder: str,
-            images_folder_name: str = "images",
-            segmentations_folder_name: str = "segmentations",
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None
     ) -> None:
         """
@@ -50,21 +48,14 @@ class PatientDataGenerator(Generator):
         ----------
         path_to_patients_folder : str
             The path to the folder that contains all the patients' folders.
-        images_folder_name : str, default = "images".
-            Images folder name.
-        segmentations_folder_name : str, default = "segmentations".
-            Segmentations folder name.
-        series_descriptions : Optional[Union[str, Dict[str, List[str]], None]], default = None.
-            A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
-            the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+        series_descriptions : Optional[Union[str, Dict[str, List[str]]]], default = None.
+            A dictionary that contains the series descriptions of the images that needs to be extracted from the
+            patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions. The images associated with these series descriptions do not need to have a
-            corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without their segmentation. Can be specified as a
-            path to a json file that contains the series descriptions dictionary.
+            corresponding segmentation. Note that it can be specified as a path to a json dictionary that contains the
+            series descriptions.
         """
         self._path_to_patients_folder = path_to_patients_folder
-        self._paths_to_images_folder = self.get_paths_to_folder(images_folder_name)
-        self._paths_to_segmentations_folder = self.get_paths_to_folder(segmentations_folder_name)
 
         if isinstance(series_descriptions, str):
             self.path_to_series_description_json = series_descriptions
@@ -91,7 +82,27 @@ class PatientDataGenerator(Generator):
         length: int
             Total number of patients.
         """
-        return len(self._paths_to_images_folder)
+        return len(self.paths_to_patients_folders)
+
+    @property
+    def paths_to_patients_folders(self) -> List[str]:
+        """
+        Get a list of paths to the patients' folders.
+
+        Returns
+        -------
+        paths_to_patients_folders : List[str]
+            A list of paths to the folders containing the patients' data.
+        """
+        paths_to_folders = []
+        for patient_folder_name in os.listdir(self._path_to_patients_folder):
+            path_to_folder = os.path.join(
+                self._path_to_patients_folder,
+                patient_folder_name
+            )
+            paths_to_folders.append(path_to_folder)
+
+        return paths_to_folders
 
     @property
     def series_descriptions(self) -> Dict[str, List[str]]:
@@ -103,9 +114,7 @@ class PatientDataGenerator(Generator):
         series_descriptions : Dict[str, List[str]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions. The images associated with these series descriptions do not need to have a
-            corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without segmentation.
+            series descriptions.
         """
         return self._series_descriptions
 
@@ -119,9 +128,7 @@ class PatientDataGenerator(Generator):
         series_descriptions : Dict[str, List[str]]
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions. The images associated with these series descriptions do not need to have a
-            corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without segmentation.
+            series descriptions.
         """
         items = list(series_descriptions.items())
         for previous_items, current_items in zip(items, items[1:]):
@@ -190,31 +197,6 @@ class PatientDataGenerator(Generator):
         with open(path, 'w', encoding='utf-8') as json_file:
             json.dump(self.series_descriptions, json_file, ensure_ascii=False, indent=4)
 
-    def get_paths_to_folder(self, folder_name: str) -> List[str]:
-        """
-        Get a list of paths to the patients' folders that have the given folder name.
-
-        Parameters
-        ----------
-        folder_name: str
-            The name of a folder that is present in all patient folders.
-
-        Returns
-        -------
-        paths_to_images_folder: List[str]
-            A list of paths to the folders containing the patients' images.
-        """
-        paths_to_folder = []
-        for patient_folder_name in os.listdir(self._path_to_patients_folder):
-            path_to_folder = os.path.join(
-                self._path_to_patients_folder,
-                patient_folder_name,
-                folder_name
-            )
-            paths_to_folder.append(path_to_folder)
-
-        return paths_to_folder
-
     def send(self, _) -> PatientDataModel:
         """
         Resumes the execution and sends a value into the generator function. This method returns the next value yielded
@@ -233,8 +215,7 @@ class PatientDataGenerator(Generator):
         _logger.info(f"Downloading Patient {self._current_index + 1}")
 
         patient_data_reader = PatientDataReader(
-            path_to_images_folder=self._paths_to_images_folder[self._current_index],
-            path_to_segmentations_folder=self._paths_to_segmentations_folder[self._current_index],
+            path_to_patient_folder=self.paths_to_patients_folders[self._current_index],
             series_descriptions=self.series_descriptions
         )
 

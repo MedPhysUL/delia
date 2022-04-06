@@ -142,8 +142,6 @@ class PatientDataset:
     def create_hdf5_dataset(
             self,
             path_to_patients_folder: str,
-            images_folder_name: str = "images",
-            segmentations_folder_name: str = "segmentations",
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
             tags_to_use_as_attributes: Optional[List[Tuple[int, int]]] = None,
             add_sitk_image_metadata_as_attributes: bool = True,
@@ -158,19 +156,14 @@ class PatientDataset:
         ----------
         path_to_patients_folder : str
             The path to the folder that contains all the patients' folders.
-        images_folder_name : str, default = "images".
-            Images folder name.
-        segmentations_folder_name : str, default = "segmentations".
-            Segmentations folder name.
         tags_to_use_as_attributes : List[Tuple[int, int]]
             List of DICOM tags to add as series attributes in the HDF5 dataset.
-        series_descriptions : Union[str, Dict[str, List[str]]], default = None.
-            A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
-            the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+        series_descriptions : Optional[Union[str, Dict[str, List[str]]]], default = None.
+            A dictionary that contains the series descriptions of the images that needs to be extracted from the
+            patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions. The images associated with these series descriptions do not need to have a
-            corresponding segmentation. In fact, the whole point of adding a way to specify the series descriptions that
-            must be added to the dataset is to be able to add images without their segmentation. Can be specified as a
-            path to a json dictionary that contains the series descriptions.
+            corresponding segmentation. Note that it can be specified as a path to a json dictionary that contains the
+            series descriptions.
         add_sitk_image_metadata_as_attributes : bool, default = True.
             Keep Simple ITK image information as attributes in the corresponding series.
         overwrite_dataset : bool, default = False.
@@ -191,8 +184,6 @@ class PatientDataset:
 
         patient_data_generator = PatientDataGenerator(
             path_to_patients_folder=path_to_patients_folder,
-            images_folder_name=images_folder_name,
-            segmentations_folder_name=segmentations_folder_name,
             series_descriptions=series_descriptions
         )
 
