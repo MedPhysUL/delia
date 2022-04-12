@@ -108,6 +108,7 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
         """
         data = []
         for image in self._images_data:
+            image_added = False
             for path_to_segmentation in self._paths_to_segmentations:
                 dicom_header = DicomReader.get_dicom_header(path_to_dicom=path_to_segmentation)
                 if image.dicom_header.SeriesInstanceUID == dicom_header.ReferencedSeriesSequence[0].SeriesInstanceUID:
@@ -119,6 +120,11 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
                     )
 
                     data.append(image_and_segmentation_data)
+                    image_added = True
+
+            if image_added is False:
+                image_data = ImageAndSegmentationDataModel(image=image)
+                data.append(image_data)
 
         patient_data = PatientDataModel(
             patient_id=self.patient_id,
