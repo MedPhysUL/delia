@@ -1,4 +1,4 @@
-# Medical data formatting and pre-processing module
+# Medical data formatting module
 This package provides a set of utilities for extracting data contained in DICOM files into an HDF5 dataset containing patients' medical images as well as binary label maps obtained from the segmentation of these images (if available). The HDF5 dataset is then easier to use to perform tasks on the medical data, such as machine learning tasks. It is a higher-level library that builds on the excellent lower-level [pydicom](https://pydicom.github.io/pydicom/stable/) library.
 
 Anyone who is willing to contribute is welcome to do so.
