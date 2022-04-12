@@ -185,7 +185,7 @@ You can find more in the [examples folder](https://github.com/MaxenceLarose/dico
 
 ## TODO
 
-- [ ] Generalize the use of a specific tag to add images that have not been segmented. At the moment, the only tag available is `series_descriptions`.
+- [ ] Generalize the use of arbitrary tags to choose images to extract. At the moment, the only tag available is `series_descriptions`.
 
 ## License
 
