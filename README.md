@@ -1,11 +1,11 @@
 # Medical data formatting and pre-processing module
-This package is a medical data formatting and pre-processing module whose main objective is to build an HDF5 dataset containing patients' medical images as well as binary label maps obtained from the segmentation of these images (if available). The HDF5 dataset is then easier to use to perform tasks on the medical data, such as machine learning tasks.
+This package provides a set of utilities for extracting data contained in DICOM files into an HDF5 dataset containing patients' medical images as well as binary label maps obtained from the segmentation of these images (if available). The HDF5 dataset is then easier to use to perform tasks on the medical data, such as machine learning tasks. It is a higher-level library that builds on the excellent lower-level [pydicom](https://pydicom.github.io/pydicom/stable/) library.
 
 Anyone who is willing to contribute is welcome to do so.
 
 ## Motivation
 
-**Digital Imaging and Communications in Medicine** ([**DICOM**](https://www.dicomstandard.org/)) is *the* international standard for medical images and related information. It defines the formats for medical images that can be exchanged with the data and quality necessary for clinical use. The working group [DICOM WG-23](https://www.dicomstandard.org/activity/wgs/wg-23/) on Artificial Intelligence / Application Hosting is currently working to identify or develop the DICOM mechanisms to support AI workflows, concentrating on the clinical context. Moreover, their future *roadmap and objectives* includes working on the concern that current DICOM mechanisms might not be adequate to cover some use cases, particularly bulk analysis of large repository data, e.g. for training deep learning neural networks. However, no tool has been developed to achieve this goal at present.
+**Digital Imaging and Communications in Medicine** ([**DICOM**](https://www.dicomstandard.org/)) is *the* international standard for medical images and related information. It defines the formats for medical images that can be exchanged with the data and quality necessary for clinical use. The working group [DICOM WG-23](https://www.dicomstandard.org/activity/wgs/wg-23/) on Artificial Intelligence / Application Hosting is currently working to identify or develop the DICOM mechanisms to support AI workflows, concentrating on the clinical context. Moreover, their future *roadmap and objectives* includes working on the concern that current DICOM mechanisms might not be adequate to cover some use cases, particularly bulk analysis of large repository data, e.g. for training deep learning neural networks. **However, no tool has been developed to achieve this goal at present.**
 
 The **purpose** of this module is therefore to provide the necessary tools to facilitate the use of medical images in an AI workflow.  This goal is accomplished by using the [HDF file format](https://www.hdfgroup.org/) to create a dataset containing patients' medical images as well as binary label maps obtained from the segmentation of these images (if available).
 
@@ -27,13 +27,9 @@ pip install git+https://github.com/MaxenceLarose/dicom2hdf
 
 First, it is necessary to explain briefly how the package builds a dataset using the provided data.
 
-For each of the folders/patients contained in the `patients` folder, all DICOM files present in the `images` subfolder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume is automatically added to the patient dataset. Then, all DICOM-SEG files present in the `segmentations` folder are read. Segmentation volumes whose reference series UID matches one of the series UID read from the patient's `images` folder are added to the patient's dataset. The reference volume is also added to the patient dataset.
+The primary `dicom2hdf` data structure is the `PatientDataModel` object, i.e. a named tuple gathering the image and  segmentation data available in a patient record. The `PatientDataGenerator` class allows to iterate over several patient folders and create a `PatientDataModel` object for each of them, which allows to extract large amounts of data quickly. For each patient, all DICOM files in their folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume and its segmentation (if available) are automatically added to the `PatientDataModel`. Note that if no `series_descriptions` dictionary is given, i.e. `series_descriptions = None`, then all images (and associated segmentations) will be added to the dataset. 
 
-*Note : If no `series_descriptions` dictionary is given, the step of selecting the images according to this criterion is simply ignored. In the same way, if no DICOM-SEG file is present in the `segmentations` folder, the segmentations and images selection step according to this criterion is simply ignored.* 
-
-I know, the above description is confusing. To fully understand it, read [Getting started](#getting-started).
-
-## Getting started
+The `PatientDataGenerator` can therefore be used to iteratively perform tasks on each of the patients, such as displaying certain images, transforming images into numpy arrays, or populating an HDF5 dataset. It is this last task that is highlighted in this package, but it must be understood that the data extraction is performed in a very general manner by the `PatientDataGenerator` and is therefore not limited to this single application. For example, someone could easily develop a numpy dataset whose creation/ would be ensured by the `PatientDataGenerator`, similar to the HDF5 dataset.
 
 ### Organize your data
 
@@ -41,15 +37,15 @@ Since this module requires the use of data, it is important to properly configur
 
 #### File format
 
-Images files must be in standard [**DICOM**](https://www.dicomstandard.org/) format and segmentations files must be in [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) format.
+Images files must be in standard [**DICOM**](https://www.dicomstandard.org/) format and segmentation files must be in [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) format.
 
-If your segmentations files are in a research file format (`.nrrd`, `.nii`, etc.), you need to convert them into the standardized [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) format. You can use the [pydicom-seg](https://pypi.org/project/pydicom-seg/) library to create the DICOM-SEG files OR use the [itkimage2dicomSEG](https://github.com/MaxenceLarose/itkimage2dicomSEG) python module, which provide a complete pipeline to perform this conversion.
+If your segmentation files are in a research file format (`.nrrd`, `.nii`, etc.), you need to convert them into the standardized [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) format. You can use the [pydicom-seg](https://pypi.org/project/pydicom-seg/) library to create the DICOM-SEG files OR use the [itkimage2dicomSEG](https://github.com/MaxenceLarose/itkimage2dicomSEG) python module, which provide a complete pipeline to perform this conversion.
 
 #### Series descriptions (Optional)
 
-*This dictionary is **not** mandatory for the code to work and therefore its default value is `None`.*
+*This dictionary is **not** mandatory for the code to work and therefore its default value is `None`. Note that if no `series_descriptions` dictionary is given, i.e. `series_descriptions = None`, then all images (and associated segmentations) will be added to the dataset.*
 
-The series descriptions are specified as a **dictionary** that contains the series descriptions of the images that absolutely needs to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of series descriptions. The images associated with these series descriptions do not need to have a corresponding segmentation volume. In fact, **the whole point of adding a way to specify which series descriptions should be added to the dataset is to be able to add images that have not been segmented.** If none of the descriptions match the series in a patient's files, a warning is raised and the patient is added to the list of patients for whom the pipeline has failed.
+The series descriptions are specified as a **dictionary** that contains the series descriptions of the images that needs to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of series descriptions. The images associated with these series descriptions do not need to have a corresponding segmentation volume. If none of the descriptions match the series in a patient's files, a warning is raised and the patient is added to the list of patients for whom the pipeline has failed.
 
 Note that the series descriptions can be specified as a classic dictionary or as a path to a **json file** that contains the series descriptions. Both methods are presented below.
 
@@ -97,7 +93,7 @@ series_descriptions = {
 
 #### Structure your patients directory
 
-It is important to configure the directory structure correctly to ensure that the module interacts correctly with the data files. The repository, particularly the `patients` folder, must be structured as follows. *The names of the folders and files can differ, but they must be consistent with your own folders and files names*.
+It is important to configure the directory structure correctly to ensure that the module interacts correctly with the data files. The `patients` folder, must be structured as follows. *Note that all DICOM files in the patients' folder will be read.*
 
 ```
 |_📂 Project directory/
@@ -106,21 +102,11 @@ It is important to configure the directory structure correctly to ensure that th
     |_📄 series_descriptions.json
     |_📂 patients/
       |_📂 patient1/
-       	|_📂 images/
-       	  |_📄 IM0.dcm
-       	  |_📄 IM1.dcm
-       	  |_📄 ...
-       	|_📂 segmentations/
-       	  |_📄 CT.SEG.dcm
-       	  |_📄 PET.SEG.dcm
-       	  |_📄 ...
+       	|_📄 ...
+       	|_📂 ...
       |_📂 patient2/
-       	|_📂 images/
-       	  |_📄 IM0.dcm
-       	  |_📄 ...
-       	|_📂 segmentations/
-       	  |_📄 MRI.SEG.dcm
-       	  |_📄 ...
+       	|_📄 ...
+       	|_📂 ...
       |_📂 ...
 ```
 
@@ -132,7 +118,7 @@ The easiest way to import the package is to use :
 from dicom2hdf import *
 ```
 
-This will import the useful classes `PatientDataset` and `PatientDataGenerator`. These two classes represent two different ways of using the package. The following examples will present both procedures.
+This will import the useful classes `PatientsDataset` and `PatientDataGenerator`. These two classes represent two different ways of using the package. The following examples will present both procedures.
 
 ### Use the package
 
@@ -141,20 +127,17 @@ This will import the useful classes `PatientDataset` and `PatientDataGenerator`.
 This file can then be executed to obtain an hdf5 dataset.
 
 ```python
-from dicom2hdf import PatientDataset
+from dicom2hdf import PatientsDataset
 
-
-dataset = PatientDataset(
-	path_to_dataset="data/patient_dataset.h5",
+patients_dataset = PatientsDataset(
+    path_to_dataset="data/patient_dataset.h5",
 )
 
-dataset.create_hdf5_dataset(
-	path_to_patients_folder="data/patients",
-	images_folder_name="images",
-	segmentations_folder_name="segmentations",
-	tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
-	series_descriptions="data/series_descriptions.json",
-	overwrite_dataset=True
+patients_dataset.create_hdf5_dataset(
+    path_to_patients_folder="data/Patients",
+    tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
+    series_descriptions="data/series_descriptions.json",
+    overwrite_dataset=True
 )
 
 ```
@@ -168,20 +151,16 @@ The created HDF5 dataset will then look something like :
 This file can then be executed to perform on-the-fly tasks on images.
 
 ```python
-import logging
-
 from dicom2hdf import PatientDataGenerator
 import SimpleITK as sitk
 
 patient_data_generator = PatientDataGenerator(
-    path_to_patients_folder="data/patients",
-    images_folder_name="images",
-    segmentations_folder_name="segmentations",
+    path_to_patients_folder="data/Patients",
     series_descriptions="data/series_descriptions.json"
 )
 
 for patient_dataset in patient_data_generator:
-    print(f"Patient ID: {patient_dataset.patient_id}"
+    print(f"Patient ID: {patient_dataset.patient_id}")
     
     for patient_image_data in patient_dataset.data:
         dicom_header = patient_image_data.image.dicom_header
@@ -196,7 +175,7 @@ for patient_dataset in patient_data_generator:
 
 You can find more in the [examples folder](https://github.com/MaxenceLarose/dicom2hdf/tree/main/examples).
 
-### TODO
+## TODO
 
 - [ ] Generalize the use of a specific tag to add images that have not been segmented. At the moment, the only tag available is `series_descriptions`.
 
