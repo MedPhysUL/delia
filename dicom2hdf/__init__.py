@@ -1,6 +1,6 @@
 import logging
 
-from dicom2hdf.data_generators.patient_data_generator import PatientDataGenerator, PatientWhoFailed
+from dicom2hdf.data_generators.patient_data_generator import PatientsDataGenerator, PatientWhoFailed
 from dicom2hdf.data_model import PatientDataModel
 from dicom2hdf.datasets.patients_dataset import PatientsDataset
 

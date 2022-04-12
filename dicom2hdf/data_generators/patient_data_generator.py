@@ -5,9 +5,9 @@
     @Creation Date:     10/2021
     @Last modification: 03/2022
 
-    @Description:       This file contains the PatientDataGenerator class which is used to iterate on multiple
+    @Description:       This file contains the PatientsDataGenerator class which is used to iterate on multiple
                         patients' dicom files and segmentation files using the PatientDataReader to obtain all patients'
-                        data. The PatientDataGenerator inherits from the Generator abstract class.
+                        data. The PatientsDataGenerator inherits from the Generator abstract class.
 """
 
 from collections.abc import Generator
@@ -29,10 +29,10 @@ class PatientWhoFailed(NamedTuple):
     available_series_descriptions: List[str]
 
 
-class PatientDataGenerator(Generator):
+class PatientsDataGenerator(Generator):
     """
     A class used to iterate on multiple patients' dicom files and segmentation files using the PatientDataReader to
-    obtain all patients' data. The PatientDataGenerator inherits from the Generator abstract class.
+    obtain all patients' data. The PatientsDataGenerator inherits from the Generator abstract class.
     """
 
     def __init__(

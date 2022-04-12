@@ -19,7 +19,7 @@ import json
 import SimpleITK as sitk
 from typing import Dict, List, Optional, Tuple, Union
 
-from dicom2hdf.data_generators.patient_data_generator import PatientDataGenerator, PatientWhoFailed
+from dicom2hdf.data_generators.patient_data_generator import PatientsDataGenerator, PatientWhoFailed
 from dicom2hdf.data_model import ImageAndSegmentationDataModel
 
 _logger = logging.getLogger(__name__)
@@ -182,7 +182,7 @@ class PatientsDataset:
 
         hf = h5py.File(self.path_to_dataset, "w")
 
-        patient_data_generator = PatientDataGenerator(
+        patient_data_generator = PatientsDataGenerator(
             path_to_patients_folder=path_to_patients_folder,
             series_descriptions=series_descriptions
         )
