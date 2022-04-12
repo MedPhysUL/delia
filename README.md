@@ -130,7 +130,7 @@ This will import the useful classes `PatientsDataset` and `PatientsDataGenerator
 
 ## Use the package
 
-### Example using the patient dataset class
+### Example using the `PatientsDataset` class
 
 This file can then be executed to obtain an hdf5 dataset.
 
@@ -154,7 +154,7 @@ The created HDF5 dataset will then look something like :
 
 ![patient_dataset](https://github.com/MaxenceLarose/dicom2hdf/raw/main/images/patient_dataset.png)
 
-### Example using the patient data generator class
+### Example using the `PatientsDataGenerator`class
 
 This file can then be executed to perform on-the-fly tasks on images.
 
@@ -162,12 +162,12 @@ This file can then be executed to perform on-the-fly tasks on images.
 from dicom2hdf import PatientsDataGenerator
 import SimpleITK as sitk
 
-patient_data_generator = PatientsDataGenerator(
+patients_data_generator = PatientsDataGenerator(
     path_to_patients_folder="data/Patients",
     series_descriptions="data/series_descriptions.json"
 )
 
-for patient_dataset in patient_data_generator:
+for patient_dataset in patients_data_generator:
     print(f"Patient ID: {patient_dataset.patient_id}")
 
     for patient_image_data in patient_dataset.data:
