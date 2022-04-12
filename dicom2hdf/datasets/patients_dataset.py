@@ -19,7 +19,7 @@ import json
 import SimpleITK as sitk
 from typing import Dict, List, Optional, Tuple, Union
 
-from dicom2hdf.data_generators.patient_data_generator import PatientsDataGenerator, PatientWhoFailed
+from dicom2hdf.data_generators.patients_data_generator import PatientsDataGenerator, PatientWhoFailed
 from dicom2hdf.data_model import ImageAndSegmentationDataModel
 
 _logger = logging.getLogger(__name__)
