@@ -10,7 +10,7 @@ import env_examples  # Modifies path, DO NOT REMOVE
 import json
 from typing import Dict, List, Union
 
-from dicom2hdf import PatientDataset, PatientWhoFailed
+from dicom2hdf import PatientsDataset, PatientWhoFailed
 
 
 def get_updated_series_descriptions(
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     #              Create dataset (some images of some patients might fail to be added to the dataset)            #
     # ----------------------------------------------------------------------------------------------------------- #
-    dataset = PatientDataset(
+    dataset = PatientsDataset(
         path_to_dataset="data/patients_dataset.h5",
     )
     patients_who_failed = dataset.create_hdf5_dataset(

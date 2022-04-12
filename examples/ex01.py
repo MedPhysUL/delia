@@ -6,7 +6,7 @@
 
 import env_examples  # Modifies path, DO NOT REMOVE
 
-from dicom2hdf import PatientDataset
+from dicom2hdf import PatientsDataset
 
 
 if __name__ == "__main__":
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     #            Create dataset (some images of some patients might fail to be added to the dataset)              #
     # ----------------------------------------------------------------------------------------------------------- #
-    dataset = PatientDataset(
+    dataset = PatientsDataset(
         path_to_dataset="data/patients_dataset.h5",
     )
 

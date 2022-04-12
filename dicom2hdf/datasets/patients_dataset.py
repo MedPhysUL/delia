@@ -25,9 +25,9 @@ from dicom2hdf.data_model import ImageAndSegmentationDataModel
 _logger = logging.getLogger(__name__)
 
 
-class PatientDataset:
+class PatientsDataset:
     """
-    A class that is used to interact with a patient dataset. The main purpose of this class is to create an hdf5 file
+    A class that is used to interact with a patients dataset. The main purpose of this class is to create an hdf5 file
     dataset from multiple patients dicom files and their segmentation. This class also allows the user to interact with
     an existing hdf5 file dataset through queries.
     """
