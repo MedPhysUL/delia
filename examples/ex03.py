@@ -55,7 +55,8 @@ def get_updated_series_descriptions(
 
 if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
-    #              Create dataset (some images of some patients might fail to be added to the dataset)            #
+    #      Create dataset (some images of some patients might fail to be added to the dataset due to the          #
+    #                         absence of the series descriptions in the patient record)                           #
     # ----------------------------------------------------------------------------------------------------------- #
     dataset = PatientsDataset(
         path_to_dataset="data/patients_dataset.h5",
