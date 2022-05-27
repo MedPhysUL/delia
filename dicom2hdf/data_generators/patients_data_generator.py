@@ -40,7 +40,8 @@ class PatientsDataGenerator(Generator):
             self,
             path_to_patients_folder: str,
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
-            transforms: Optional[Sequence[BaseTransform]] = None
+            transforms: Optional[Sequence[BaseTransform]] = None,
+            erase_unused_dicom_files: bool = False
     ) -> None:
         """
         Used to get the paths to the images and segmentations folders. Also used to check if either the series
@@ -58,8 +59,11 @@ class PatientsDataGenerator(Generator):
             series descriptions.
         transforms : Optional[Sequence[BaseTransform]]
             A sequence of transformations to apply to images and segmentations.
+        erase_unused_dicom_files: bool = False
+            Whether to delete unused DICOM files or not. Use with caution.
         """
         self._path_to_patients_folder = path_to_patients_folder
+        self._erase_unused_dicom_files = erase_unused_dicom_files
 
         if isinstance(series_descriptions, str):
             self.path_to_series_description_json = series_descriptions
@@ -225,7 +229,8 @@ class PatientsDataGenerator(Generator):
 
         patient_data_reader = PatientDataReader(
             path_to_patient_folder=self.paths_to_patients_folders[self._current_index],
-            series_descriptions=self.series_descriptions
+            series_descriptions=self.series_descriptions,
+            erase_unused_dicom_files=self._erase_unused_dicom_files
         )
 
         if self._series_descriptions is not None:

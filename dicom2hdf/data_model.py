@@ -10,7 +10,7 @@
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Sequence
 
 import pydicom
 import SimpleITK as sitk
@@ -41,7 +41,8 @@ class SegmentationDataModel:
 @dataclass
 class ImageDataModel:
     """
-    A named tuple grouping the patient's dicom header and its medical image as a simpleITK image.
+    A named tuple grouping the patient's dicom header, its medical image as a simpleITK image and a sequence of the
+    paths to each dicom contained in the series.
 
     Elements
     --------
@@ -49,9 +50,12 @@ class ImageDataModel:
         Dicom header dataset.
     simple_itk_image : Image
         Segmentation as a SimpleITK image.
+    paths_to_dicoms : Sequence[str]
+        A list of the paths to each dicom contained in the series.
     """
     dicom_header: pydicom.dataset.FileDataset
     simple_itk_image: sitk.Image
+    paths_to_dicoms: Sequence[str]
 
 
 @dataclass

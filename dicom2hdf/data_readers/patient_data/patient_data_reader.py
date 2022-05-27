@@ -28,7 +28,8 @@ class PatientDataReader(DicomReader):
     def __init__(
             self,
             path_to_patient_folder: str,
-            series_descriptions: Optional[Dict[str, List[str]]]
+            series_descriptions: Optional[Dict[str, List[str]]],
+            erase_unused_dicom_files: bool = False
     ):
         """
         Used to check availability of given series' uid and series descriptions in the patient's dicom files.
@@ -41,11 +42,14 @@ class PatientDataReader(DicomReader):
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions.
+        erase_unused_dicom_files: bool = False
+            Whether to delete unused DICOM files or not. Use with caution.
         """
         super().__init__(path_to_patient_folder=path_to_patient_folder)
 
         self._images_dicom_headers = self.get_dicom_headers(remove_segmentations=True)
         self._series_descriptions = series_descriptions
+        self._erase_unused_dicom_files = erase_unused_dicom_files
 
         self.failed_images = []
         if series_descriptions is not None:
@@ -208,7 +212,8 @@ class PatientDataReader(DicomReader):
         patient_data_context = PatientDataQueryContext(
             path_to_patient_folder=self._path_to_patient_folder,
             paths_to_segmentations=self.paths_to_segmentations,
-            series_descriptions=self._series_descriptions
+            series_descriptions=self._series_descriptions,
+            erase_unused_dicom_files=self._erase_unused_dicom_files
         )
         patient_dataset = patient_data_context.create_patient_data()
 

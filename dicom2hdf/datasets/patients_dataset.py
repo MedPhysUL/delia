@@ -147,6 +147,7 @@ class PatientsDataset:
             tags_to_use_as_attributes: Optional[List[Tuple[int, int]]] = None,
             add_sitk_image_metadata_as_attributes: bool = True,
             transforms: Optional[Sequence[BaseTransform]] = None,
+            erase_unused_dicom_files: bool = False,
             overwrite_dataset: bool = False
     ) -> List[PatientWhoFailed]:
         """
@@ -170,6 +171,8 @@ class PatientsDataset:
             Keep Simple ITK image information as attributes in the corresponding series.
         transforms : Optional[Sequence[BaseTransform]]
             A sequence of transformations to apply to images and segmentations.
+        erase_unused_dicom_files: bool, default = False
+            Whether to delete unused DICOM files or not. Use with caution.
         overwrite_dataset : bool, default = False.
             Overwrite existing dataset.
 
@@ -189,7 +192,8 @@ class PatientsDataset:
         patient_data_generator = PatientsDataGenerator(
             path_to_patients_folder=path_to_patients_folder,
             series_descriptions=series_descriptions,
-            transforms=transforms
+            transforms=transforms,
+            erase_unused_dicom_files=erase_unused_dicom_files
         )
 
         number_of_patients = len(patient_data_generator)

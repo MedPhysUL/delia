@@ -25,7 +25,8 @@ class PatientDataQueryContext:
             self,
             path_to_patient_folder: str,
             paths_to_segmentations: Optional[List[str]],
-            series_descriptions: Dict[str, List[str]]
+            series_descriptions: Dict[str, List[str]],
+            erase_unused_dicom_files: bool = False
     ):
         """
         Constructor of the PatientDataQueryContext class.
@@ -40,10 +41,13 @@ class PatientDataQueryContext:
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions.
+        erase_unused_dicom_files: bool = False
+            Whether to delete unused DICOM files or not. Use with caution.
         """
         self._path_to_patient_folder = path_to_patient_folder
         self._paths_to_segmentations = paths_to_segmentations
         self._series_descriptions = series_descriptions
+        self._erase_unused_dicom_files = erase_unused_dicom_files
 
     @property
     def patient_data_query_strategy(self) -> PatientDataQueryStrategy:
@@ -78,7 +82,8 @@ class PatientDataQueryContext:
         patient_data_factory_instance = self.patient_data_query_strategy.factory(
             path_to_patient_folder=self._path_to_patient_folder,
             paths_to_segmentations=self._paths_to_segmentations,
-            series_descriptions=self._series_descriptions
+            series_descriptions=self._series_descriptions,
+            erase_unused_dicom_files=self._erase_unused_dicom_files
         )
 
         return patient_data_factory_instance

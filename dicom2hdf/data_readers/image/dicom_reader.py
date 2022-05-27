@@ -11,7 +11,7 @@
 
 import logging
 import os
-from typing import Dict, List, NamedTuple, Set, Tuple
+from typing import Dict, List, NamedTuple, Set
 
 import pydicom
 import SimpleITK as sitk
@@ -248,7 +248,8 @@ class DicomReader:
 
                 image_data = ImageDataModel(
                     dicom_header=series_data.dicom_header,
-                    simple_itk_image=image
+                    simple_itk_image=image,
+                    paths_to_dicoms=series_data.paths_to_dicoms_from_series
                 )
 
                 if not remove_segmentations:

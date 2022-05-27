@@ -26,7 +26,8 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             self,
             path_to_patient_folder: str,
             paths_to_segmentations: Optional[List[str]],
-            series_descriptions: Optional[Dict[str, List[str]]]
+            series_descriptions: Optional[Dict[str, List[str]]],
+            erase_unused_dicom_files: bool = False
     ):
         """
         Constructor of the class DefaultPatientDataFactory.
@@ -41,11 +42,14 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions.
+        erase_unused_dicom_files: bool = False
+            Whether to delete unused DICOM files or not. Use with caution.
         """
         super().__init__(
             path_to_patient_folder=path_to_patient_folder,
             paths_to_segmentations=paths_to_segmentations,
-            series_descriptions=series_descriptions
+            series_descriptions=series_descriptions,
+            erase_unused_dicom_files=erase_unused_dicom_files
         )
 
     def create_patient_data(self) -> PatientDataModel:
@@ -75,7 +79,8 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
             self,
             path_to_patient_folder: str,
             paths_to_segmentations: List[str],
-            series_descriptions: Optional[Dict[str, List[str]]]
+            series_descriptions: Optional[Dict[str, List[str]]],
+            erase_unused_dicom_files: bool = False
     ):
         """
         Constructor of the class SegmentationPatientDataFactory.
@@ -90,11 +95,14 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions.
+        erase_unused_dicom_files: bool = False
+            Whether to delete unused DICOM files or not. Use with caution.
         """
         super().__init__(
             path_to_patient_folder=path_to_patient_folder,
             paths_to_segmentations=paths_to_segmentations,
-            series_descriptions=series_descriptions
+            series_descriptions=series_descriptions,
+            erase_unused_dicom_files=erase_unused_dicom_files
         )
 
     def create_patient_data(self) -> PatientDataModel:
@@ -122,9 +130,8 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
                     data.append(image_and_segmentation_data)
                     image_added = True
 
-            if image_added is False:
-                image_data = ImageAndSegmentationDataModel(image=image)
-                data.append(image_data)
+            if image_added is False and self._erase_unused_dicom_files:
+                self.erase_dicom_files(image)
 
         patient_data = PatientDataModel(
             patient_id=self.patient_id,
@@ -144,7 +151,8 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
             self,
             path_to_patient_folder: str,
             paths_to_segmentations: Optional[List[str]],
-            series_descriptions: Optional[Dict[str, List[str]]]
+            series_descriptions: Optional[Dict[str, List[str]]],
+            erase_unused_dicom_files: bool = False
     ):
         """
         Constructor of the class SeriesDescriptionPatientDataFactory.
@@ -159,11 +167,14 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions.
+        erase_unused_dicom_files: bool = False
+            Whether to delete unused DICOM files or not. Use with caution.
         """
         super().__init__(
             path_to_patient_folder=path_to_patient_folder,
             paths_to_segmentations=paths_to_segmentations,
-            series_descriptions=series_descriptions
+            series_descriptions=series_descriptions,
+            erase_unused_dicom_files=erase_unused_dicom_files
         )
         
     @property
@@ -189,9 +200,14 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
         """
         data = []
         for image_idx, image in enumerate(self._images_data):
+            image_added = False
             if image.dicom_header.SeriesDescription in self.flatten_series_descriptions:
                 image_data = ImageAndSegmentationDataModel(image=image)
                 data.append(image_data)
+                image_added = True
+
+            if image_added is False and self._erase_unused_dicom_files:
+                self.erase_dicom_files(image)
 
         patient_data = PatientDataModel(
             patient_id=self.patient_id,
@@ -211,7 +227,8 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
             self,
             path_to_patient_folder: str,
             paths_to_segmentations: Optional[List[str]],
-            series_descriptions: Optional[Dict[str, List[str]]]
+            series_descriptions: Optional[Dict[str, List[str]]],
+            erase_unused_dicom_files: bool = False
     ):
         """
         Constructor of the class SegAndSeriesPatientDataFactory.
@@ -226,11 +243,14 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions.
+        erase_unused_dicom_files: bool = False
+            Whether to delete unused DICOM files or not. Use with caution.
         """
         super().__init__(
             path_to_patient_folder=path_to_patient_folder,
             paths_to_segmentations=paths_to_segmentations,
-            series_descriptions=series_descriptions
+            series_descriptions=series_descriptions,
+            erase_unused_dicom_files=erase_unused_dicom_files
         )
 
     @property
@@ -256,24 +276,28 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
         """
         data = []
         for image_idx, image in enumerate(self._images_data):
+            image_added = False
             series_description = image.dicom_header.SeriesDescription
-            if series_description in self.flatten_series_descriptions:
-                image_added = False
-                for path_to_segmentation in self._paths_to_segmentations:
-                    seg_header = DicomReader.get_dicom_header(path_to_dicom=path_to_segmentation)
-                    if image.dicom_header.SeriesInstanceUID == seg_header.ReferencedSeriesSequence[0].SeriesInstanceUID:
-                        segmentation_reader = SegmentationReader(path_to_segmentation=path_to_segmentation)
 
-                        image_and_segmentation_data = ImageAndSegmentationDataModel(
-                            image=image,
-                            segmentation=segmentation_reader.get_segmentation_data()
-                        )
-                        data.append(image_and_segmentation_data)
-                        image_added = True
+            for path_to_segmentation in self._paths_to_segmentations:
+                seg_header = DicomReader.get_dicom_header(path_to_dicom=path_to_segmentation)
+                if image.dicom_header.SeriesInstanceUID == seg_header.ReferencedSeriesSequence[0].SeriesInstanceUID:
+                    segmentation_reader = SegmentationReader(path_to_segmentation=path_to_segmentation)
 
-                if image_added is False:
-                    image_data = ImageAndSegmentationDataModel(image=image)
-                    data.append(image_data)
+                    image_and_segmentation_data = ImageAndSegmentationDataModel(
+                        image=image,
+                        segmentation=segmentation_reader.get_segmentation_data()
+                    )
+                    data.append(image_and_segmentation_data)
+                    image_added = True
+
+            if image_added is False and series_description in self.flatten_series_descriptions:
+                image_data = ImageAndSegmentationDataModel(image=image)
+                data.append(image_data)
+                image_added = True
+
+            if image_added is False and self._erase_unused_dicom_files:
+                self.erase_dicom_files(image)
 
         patient_data = PatientDataModel(
             patient_id=self.patient_id,
