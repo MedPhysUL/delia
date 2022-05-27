@@ -9,13 +9,15 @@
                         containing data.
 """
 
-from typing import Dict, List, NamedTuple
+from dataclasses import dataclass
+from typing import Dict, List
 
 import pydicom
 import SimpleITK as sitk
 
 
-class SegmentationDataModel(NamedTuple):
+@dataclass
+class SegmentationDataModel:
     """
     A named tuple grouping the segmentation as several binary label maps (one for each organ in the segmentation) and
     the segmentation as a simpleITK image.
@@ -36,7 +38,8 @@ class SegmentationDataModel(NamedTuple):
     simple_itk_label_maps: Dict[str, sitk.Image] = None
 
 
-class ImageDataModel(NamedTuple):
+@dataclass
+class ImageDataModel:
     """
     A named tuple grouping the patient's dicom header and its medical image as a simpleITK image.
 
@@ -51,7 +54,8 @@ class ImageDataModel(NamedTuple):
     simple_itk_image: sitk.Image
 
 
-class ImageAndSegmentationDataModel(NamedTuple):
+@dataclass
+class ImageAndSegmentationDataModel:
     """
     A named tuple grouping the patient data retrieved from his dicom files and the segmentation data retrieved from
     the segmentation file.
@@ -67,7 +71,8 @@ class ImageAndSegmentationDataModel(NamedTuple):
     segmentation: SegmentationDataModel = None
 
 
-class PatientDataModel(NamedTuple):
+@dataclass
+class PatientDataModel:
     """
     A named tuple grouping the patient's data extracted from its dicom files and the patient's medical image
     segmentation data extracted from the segmentation files, for each available modality. The patient data model is

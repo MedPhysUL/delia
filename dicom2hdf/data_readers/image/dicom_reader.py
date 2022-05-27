@@ -11,7 +11,7 @@
 
 import logging
 import os
-from typing import Dict, List, NamedTuple, Set
+from typing import Dict, List, NamedTuple, Set, Tuple
 
 import pydicom
 import SimpleITK as sitk
@@ -217,7 +217,10 @@ class DicomReader:
 
         return dicom_headers
 
-    def get_images_data(self, remove_segmentations: bool = False) -> List[ImageDataModel]:
+    def get_images_data(
+            self,
+            remove_segmentations: bool = False
+    ) -> List[ImageDataModel]:
         """
         List of tuples containing simpleITK 3D images array and their corresponding dicom header. Each element in the
         list corresponds to an image series.
@@ -225,7 +228,7 @@ class DicomReader:
         Parameters
         ----------
         remove_segmentations : bool
-            Whether or not to keep the segmentation files headers, default = False.
+            Whether to keep the segmentation files headers, default = False.
 
         Returns
         -------
@@ -234,7 +237,6 @@ class DicomReader:
         """
         images_data = []
         for idx, series_data in enumerate(self.__series_data_dict.values()):
-
             if idx == 0:
                 _logger.info(f"Series description found in the patient's images folder :")
             _logger.info(f"  Series description {idx + 1}: {series_data.series_description}")

@@ -15,10 +15,11 @@ from copy import deepcopy
 import json
 import logging
 import os
-from typing import Dict, List, NamedTuple, Optional, Union
+from typing import Dict, List, NamedTuple, Optional, Sequence, Union
 
 from dicom2hdf.data_readers.patient_data.patient_data_reader import PatientDataReader
 from dicom2hdf.data_model import PatientDataModel
+from dicom2hdf.processing.transforms import BaseTransform
 
 _logger = logging.getLogger(__name__)
 
@@ -38,7 +39,8 @@ class PatientsDataGenerator(Generator):
     def __init__(
             self,
             path_to_patients_folder: str,
-            series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None
+            series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
+            transforms: Optional[Sequence[BaseTransform]] = None
     ) -> None:
         """
         Used to get the paths to the images and segmentations folders. Also used to check if either the series
@@ -54,6 +56,8 @@ class PatientsDataGenerator(Generator):
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. Note that it can be specified as a path to a json dictionary that contains the
             series descriptions.
+        transforms : Optional[Sequence[BaseTransform]]
+            A sequence of transformations to apply to images and segmentations.
         """
         self._path_to_patients_folder = path_to_patients_folder
 
@@ -68,6 +72,11 @@ class PatientsDataGenerator(Generator):
         else:
             raise TypeError(f"Given series descriptions {series_descriptions} doesn't have the right type. Allowed"
                             f" types are str, dict and None.")
+
+        if transforms is None:
+            self._transforms = []
+        else:
+            self._transforms = transforms
 
         self._current_index = 0
         self._patients_who_failed = []
@@ -236,7 +245,7 @@ class PatientsDataGenerator(Generator):
 
         self._current_index += 1
 
-        return patient_data_reader.get_patient_dataset()
+        return patient_data_reader.get_patient_dataset(transforms=self._transforms)
 
     def throw(self, typ: Exception = StopIteration, value=None, traceback=None) -> None:
         """

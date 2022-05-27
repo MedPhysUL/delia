@@ -3,6 +3,7 @@ import logging
 from dicom2hdf.data_generators.patients_data_generator import PatientsDataGenerator, PatientWhoFailed
 from dicom2hdf.data_model import PatientDataModel
 from dicom2hdf.datasets.patients_dataset import PatientsDataset
+from dicom2hdf.processing import transforms
 
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.WARNING)

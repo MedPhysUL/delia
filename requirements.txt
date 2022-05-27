@@ -6,3 +6,4 @@ pynrrd==0.4.2
 setuptools==58.5.3
 SimpleITK==2.1.1
 tqdm==4.62.3
+PyYAML==6.0

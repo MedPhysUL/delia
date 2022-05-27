@@ -8,7 +8,6 @@
     @Description:       This file contains the Segment class.
 """
 
-import numpy as np
 import SimpleITK as sitk
 
 
@@ -17,7 +16,7 @@ class Segment:
     A class used to represent a segment object.
     """
 
-    def __init__(self, name: str, simple_itk_label_map: np.ndarray):
+    def __init__(self, name: str, simple_itk_label_map: sitk.Image):
         """
         Constructor of the segment object.
 

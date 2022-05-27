@@ -10,11 +10,12 @@
 """
 
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Sequence
 
-from dicom2hdf.data_model import PatientDataModel
+from dicom2hdf.data_model import ImageDataModel, PatientDataModel, SegmentationDataModel
 from dicom2hdf.data_readers.image.dicom_reader import DicomReader
 from dicom2hdf.data_readers.patient_data.patient_data_query_context import PatientDataQueryContext
+from dicom2hdf.processing.transforms import BaseTransform
 
 _logger = logging.getLogger(__name__)
 
@@ -161,9 +162,42 @@ class PatientDataReader(DicomReader):
 
         self.failed_images.append(series_key)
 
-    def get_patient_dataset(self) -> PatientDataModel:
+    @staticmethod
+    def _apply_transforms(
+            transforms: Sequence[BaseTransform],
+            image: ImageDataModel,
+            segmentation: SegmentationDataModel
+    ):
+        """
+        Apply transforms to image and segmentation.
+
+        Parameters
+        ----------
+        transforms : Sequence[BaseTransform]
+            A sequence of transformations to apply to images and segmentations.
+        image : ImageDataModel
+            The patient's medical image data.
+        segmentation : SegmentationDataModel
+            Data from the segmentation of the patient's medical image.
+        """
+        for transform in transforms:
+            image.simple_itk_image = transform.forward(itk_image=image.simple_itk_image)
+
+            if segmentation:
+                for organ_name, label_map in segmentation.simple_itk_label_maps.items():
+                    segmentation.simple_itk_label_maps[organ_name] = transform.forward(
+                        itk_image=label_map,
+                        segmentation=True
+                    )
+
+    def get_patient_dataset(self, transforms: Optional[Sequence[BaseTransform]]) -> PatientDataModel:
         """
         Get the patient dataset.
+
+        Parameters
+        ----------
+        transforms : Optional[Sequence[BaseTransform]]
+            A sequence of transformations to apply to images and segmentations.
 
         Returns
         -------
@@ -183,9 +217,13 @@ class PatientDataReader(DicomReader):
         _logger.info(f"{len(patient_dataset.data)} images added to the patient dataset, namely: ")
 
         for image_and_segmentation_data in patient_dataset.data:
-            modality = image_and_segmentation_data.image.dicom_header.Modality
-            series_description = image_and_segmentation_data.image.dicom_header.SeriesDescription
+            image = image_and_segmentation_data.image
             segmentation = image_and_segmentation_data.segmentation
+
+            self._apply_transforms(image=image, segmentation=segmentation, transforms=transforms)
+
+            modality = image.dicom_header.Modality
+            series_description = image.dicom_header.SeriesDescription
             image_segmentation_available = True if segmentation else False
             segmented_organs = list(segmentation.simple_itk_label_maps.keys()) if segmentation else None
 

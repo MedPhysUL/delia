@@ -17,10 +17,11 @@ import os
 import h5py
 import json
 import SimpleITK as sitk
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from dicom2hdf.data_generators.patients_data_generator import PatientsDataGenerator, PatientWhoFailed
 from dicom2hdf.data_model import ImageAndSegmentationDataModel
+from dicom2hdf.processing.transforms import BaseTransform
 
 _logger = logging.getLogger(__name__)
 
@@ -145,6 +146,7 @@ class PatientsDataset:
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
             tags_to_use_as_attributes: Optional[List[Tuple[int, int]]] = None,
             add_sitk_image_metadata_as_attributes: bool = True,
+            transforms: Optional[Sequence[BaseTransform]] = None,
             overwrite_dataset: bool = False
     ) -> List[PatientWhoFailed]:
         """
@@ -166,6 +168,8 @@ class PatientsDataset:
             series descriptions.
         add_sitk_image_metadata_as_attributes : bool, default = True.
             Keep Simple ITK image information as attributes in the corresponding series.
+        transforms : Optional[Sequence[BaseTransform]]
+            A sequence of transformations to apply to images and segmentations.
         overwrite_dataset : bool, default = False.
             Overwrite existing dataset.
 
@@ -184,7 +188,8 @@ class PatientsDataset:
 
         patient_data_generator = PatientsDataGenerator(
             path_to_patients_folder=path_to_patients_folder,
-            series_descriptions=series_descriptions
+            series_descriptions=series_descriptions,
+            transforms=transforms
         )
 
         number_of_patients = len(patient_data_generator)
