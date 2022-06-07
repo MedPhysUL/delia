@@ -138,7 +138,13 @@ class PatientsDataset:
         """
         for tag in tags_to_use_as_attributes:
             dicom_data_element = patient_image_data.image.dicom_header[tag]
-            group.attrs.create(name=dicom_data_element.name, data=dicom_data_element.repval)
+
+            if type(dicom_data_element.value) == str:
+                data = dicom_data_element.value
+            else:
+                data = dicom_data_element.repval
+
+            group.attrs.create(name=dicom_data_element.name, data=data)
 
     def create_hdf5_dataset(
             self,
