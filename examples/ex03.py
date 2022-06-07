@@ -34,21 +34,22 @@ def get_updated_series_descriptions(
     """
     for patient in patients_who_failed:
         for image, image_series_descriptions in patient.failed_images.items():
-            while True:
-                new_series_description = input(
-                    f"\nNo available series for {image}. \nAvailable series are "
-                    f"{patient.available_series_descriptions}. \nName of the series description to add : ")
+            if image_series_descriptions not in series_descriptions:
+                while True:
+                    new_series_description = input(
+                        f"\nNo available series for {image}. \nAvailable series are "
+                        f"{patient.available_series_descriptions}. \nName of the series description to add : ")
 
-                print(f"Given series description name is {new_series_description}.")
+                    print(f"Given series description name is {new_series_description}.")
 
-                if new_series_description in patient.available_series_descriptions:
-                    print(f"Series description successfully added to the series descriptions json file.")
-                    break
-                else:
-                    print(f"Invalid series description! \n{new_series_description} not found in the patient's dicom "
-                          f"files. Please try again.")
+                    if new_series_description in patient.available_series_descriptions:
+                        print(f"Series description successfully added to the series descriptions json file.")
+                        break
+                    else:
+                        print(f"Invalid series description! \n{new_series_description} not found in the patient's "
+                              f"dicom files. Please try again.")
 
-            series_descriptions[image] += [new_series_description]
+                series_descriptions[image] += [new_series_description]
 
     return series_descriptions
 
