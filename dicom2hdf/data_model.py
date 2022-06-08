@@ -24,6 +24,8 @@ class SegmentationDataModel:
 
     Elements
     --------
+    modality : str
+        Segmentation modality (ex: SEG, RTSTRUCT).
     simple_itk_label_maps : Dict[str, sitk.Image]
         A dictionary that contains the name of the organs and their corresponding binary label map as a simpleITK
         image. Keys are organ names and values are binary label maps. Thus, the label maps dictionary is formatted
@@ -35,6 +37,7 @@ class SegmentationDataModel:
                 ...
             }
     """
+    modality: str = None
     simple_itk_label_maps: Dict[str, sitk.Image] = None
 
 
@@ -68,11 +71,11 @@ class ImageAndSegmentationDataModel:
     --------
     image : ImageDataModel
         The patient's medical image data.
-    segmentation : SegmentationDataModel
+    segmentation : Sequence[SegmentationDataModel]
         Data from the segmentation of the patient's medical image.
     """
     image: ImageDataModel
-    segmentation: SegmentationDataModel = None
+    segmentations: Sequence[SegmentationDataModel] = None
 
 
 @dataclass

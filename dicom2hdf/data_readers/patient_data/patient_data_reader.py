@@ -133,7 +133,7 @@ class PatientDataReader(DicomReader):
             Available series descriptions in the patient dicom files.
         """
         available_series_descriptions = [
-            dicom_header.SeriesDescription for dicom_header in self._images_dicom_headers
+            self._get_series_description(dicom_header) for dicom_header in self._images_dicom_headers
         ]
 
         return available_series_descriptions
@@ -170,7 +170,7 @@ class PatientDataReader(DicomReader):
     def _apply_transforms(
             transforms: Sequence[BaseTransform],
             image: ImageDataModel,
-            segmentation: SegmentationDataModel
+            segmentations: Sequence[SegmentationDataModel]
     ):
         """
         Apply transforms to image and segmentation.
@@ -181,18 +181,19 @@ class PatientDataReader(DicomReader):
             A sequence of transformations to apply to images and segmentations.
         image : ImageDataModel
             The patient's medical image data.
-        segmentation : SegmentationDataModel
+        segmentations : Sequence[SegmentationDataModel]
             Data from the segmentation of the patient's medical image.
         """
         for transform in transforms:
             image.simple_itk_image = transform.forward(itk_image=image.simple_itk_image)
 
-            if segmentation:
-                for organ_name, label_map in segmentation.simple_itk_label_maps.items():
-                    segmentation.simple_itk_label_maps[organ_name] = transform.forward(
-                        itk_image=label_map,
-                        segmentation=True
-                    )
+            if segmentations:
+                for segmentation_data in segmentations:
+                    for organ_name, label_map in segmentation_data.simple_itk_label_maps.items():
+                        segmentation_data.simple_itk_label_maps[organ_name] = transform.forward(
+                            itk_image=label_map,
+                            segmentation=True
+                        )
 
     def get_patient_dataset(self, transforms: Optional[Sequence[BaseTransform]]) -> PatientDataModel:
         """
@@ -223,14 +224,19 @@ class PatientDataReader(DicomReader):
 
         for image_and_segmentation_data in patient_dataset.data:
             image = image_and_segmentation_data.image
-            segmentation = image_and_segmentation_data.segmentation
+            segmentations = image_and_segmentation_data.segmentations
 
-            self._apply_transforms(image=image, segmentation=segmentation, transforms=transforms)
+            self._apply_transforms(image=image, segmentations=segmentations, transforms=transforms)
 
             modality = image.dicom_header.Modality
             series_description = image.dicom_header.SeriesDescription
-            image_segmentation_available = True if segmentation else False
-            segmented_organs = list(segmentation.simple_itk_label_maps.keys()) if segmentation else None
+            image_segmentation_available = True if segmentations else False
+
+            segmented_organs = set()
+            if segmentations:
+                for segmentation in segmentations:
+                    for organ in list(segmentation.simple_itk_label_maps.keys()):
+                        segmented_organs.add(organ)
 
             _logger.info(f"Series Description : {series_description}")
             _logger.info(f"  Modality : {modality}")

@@ -39,8 +39,20 @@ class SegmentationReader:
         self._image = image
         self._path_to_segmentation = path_to_segmentation
 
-        print(self._image.dicom_header.Modality)
-        print(self._path_to_segmentation)
+    @property
+    def __segmentation_context_manager(self) -> SegmentationContext:
+        """
+        Creates a SegmentationContext object.
+
+        Returns
+        -------
+        segmentation_context : SegmentationContext
+            Segmentation context manager.
+        """
+        return SegmentationContext(
+            image=self._image,
+            path_to_segmentation=self._path_to_segmentation
+        )
 
     @property
     def __segmentation(self) -> Segmentation:
@@ -52,12 +64,7 @@ class SegmentationReader:
         segmentation : Segmentation
             Segmentation.
         """
-        segmentation_context_manager = SegmentationContext(
-            image=self._image,
-            path_to_segmentation=self._path_to_segmentation,
-        )
-
-        return segmentation_context_manager.create_segmentation()
+        return self.__segmentation_context_manager.create_segmentation()
 
     def get_segmentation_data(self) -> SegmentationDataModel:
         """
@@ -68,6 +75,9 @@ class SegmentationReader:
         segmentation_data : SegmentationDataModel
             A named tuple grouping the segmentation data.
         """
-        segmentation_data = SegmentationDataModel(simple_itk_label_maps=self.__segmentation.simple_itk_label_maps)
+        segmentation_data = SegmentationDataModel(
+            modality=self.__segmentation_context_manager.segmentation_strategy.modality,
+            simple_itk_label_maps=self.__segmentation.simple_itk_label_maps
+        )
 
         return segmentation_data

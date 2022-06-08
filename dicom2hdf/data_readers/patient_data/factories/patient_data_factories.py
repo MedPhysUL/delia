@@ -117,6 +117,7 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
         data = []
         for image in self._images_data:
             image_added = False
+            segmentations = []
             for path_to_segmentation in self._paths_to_segmentations:
                 dicom_header = DicomReader.get_dicom_header(path_to_dicom=path_to_segmentation)
                 if image.dicom_header.SeriesInstanceUID == dicom_header.ReferencedSeriesSequence[0].SeriesInstanceUID:
@@ -125,13 +126,15 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
                         path_to_segmentation=path_to_segmentation
                     )
 
-                    image_and_segmentation_data = ImageAndSegmentationDataModel(
-                        image=image,
-                        segmentation=segmentation_reader.get_segmentation_data()
-                    )
+                    segmentations.append(segmentation_reader.get_segmentation_data())
 
-                    data.append(image_and_segmentation_data)
-                    image_added = True
+            if segmentations:
+                image_and_segmentation_data = ImageAndSegmentationDataModel(
+                    image=image,
+                    segmentations=segmentations
+                )
+                data.append(image_and_segmentation_data)
+                image_added = True
 
             if image_added is False and self._erase_unused_dicom_files:
                 self.erase_dicom_files(image)
@@ -282,6 +285,7 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
             image_added = False
             series_description = image.dicom_header.SeriesDescription
 
+            segmentations = []
             for path_to_segmentation in self._paths_to_segmentations:
                 seg_header = DicomReader.get_dicom_header(path_to_dicom=path_to_segmentation)
                 if hasattr(seg_header, "ReferencedSeriesSequence"):
@@ -291,18 +295,22 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
                     rt_referenced_study_sequence = referenced_frame_of_reference_sequence[0].RTReferencedStudySequence
                     rt_referenced_series_sequence = rt_referenced_study_sequence[0].RTReferencedSeriesSequence
                     reference_uid = rt_referenced_series_sequence[0].SeriesInstanceUID
+
                 if image.dicom_header.SeriesInstanceUID == reference_uid:
                     segmentation_reader = SegmentationReader(
                         image=image,
                         path_to_segmentation=path_to_segmentation
                     )
 
-                    image_and_segmentation_data = ImageAndSegmentationDataModel(
-                        image=image,
-                        segmentation=segmentation_reader.get_segmentation_data()
-                    )
-                    data.append(image_and_segmentation_data)
-                    image_added = True
+                    segmentations.append(segmentation_reader.get_segmentation_data())
+
+            if segmentations:
+                image_and_segmentation_data = ImageAndSegmentationDataModel(
+                    image=image,
+                    segmentations=segmentations
+                )
+                data.append(image_and_segmentation_data)
+                image_added = True
 
             if image_added is False and series_description in self.flatten_series_descriptions:
                 image_data = ImageAndSegmentationDataModel(image=image)

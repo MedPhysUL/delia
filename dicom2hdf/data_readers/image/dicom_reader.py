@@ -30,6 +30,8 @@ class DicomReader:
     A class used to read dicom files contained in a given folder.
     """
 
+    UNKNOWN = "Unknown"
+
     class SeriesData(NamedTuple):
         """
         Series description namedtuple to simplify management of values.
@@ -86,6 +88,26 @@ class DicomReader:
 
         return loaded_dicom
 
+    @staticmethod
+    def _get_series_description(dicom_header: pydicom.FileDataset) -> str:
+        """
+        Get Series Description of given DICOM header.
+
+        Parameters
+        ----------
+        dicom_header : pydicom.dataset.FileDataset
+            Loaded DICOM dataset.
+
+        Returns
+        -------
+        series_description : str
+            Series Description.
+        """
+        if hasattr(dicom_header, "SeriesDescription"):
+            return dicom_header.SeriesDescription
+        else:
+            return DicomReader.UNKNOWN
+
     def __get_paths_to_dicoms_from_series(self, path_to_dicom_folder: str) -> Dict[str, List[str]]:
         """
         Get all series IDs from a patient's dicom folder.
@@ -112,9 +134,14 @@ class DicomReader:
         paths_to_dicoms_from_series = defaultdict(list)
         for series_id, result in paths_and_headers_for_each_series.items():
             if len(result) != 1:
-                paths_to_dicoms_from_series[series_id] = [
-                    i[0] for i in sorted(result, key=lambda s: s[1].SliceLocation)
-                ]
+                if hasattr(result[1][1], "SliceLocation"):
+                    paths_to_dicoms_from_series[series_id] = [
+                        i[0] for i in sorted(result, key=lambda s: s[1].SliceLocation)
+                    ]
+                else:
+                    paths_to_dicoms_from_series[series_id] = [
+                        i[0] for i in result
+                    ]
             else:
                 paths_to_dicoms_from_series[series_id] = [result[0][0]]
 
@@ -137,7 +164,7 @@ class DicomReader:
             all_patient_ids.add(loaded_dicom_header.PatientID)
 
             series_data = self.SeriesData(
-                series_description=loaded_dicom_header.SeriesDescription,
+                series_description=self._get_series_description(loaded_dicom_header),
                 paths_to_dicoms_from_series=paths,
                 dicom_header=loaded_dicom_header
             )
@@ -236,6 +263,8 @@ class DicomReader:
 
             if remove_segmentations and (series_data.dicom_header.Modality in
                                          SegmentationStrategies.get_available_modalities()):
+                pass
+            elif series_data.series_description == DicomReader.UNKNOWN:
                 pass
             else:
                 try:

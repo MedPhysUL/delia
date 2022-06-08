@@ -267,13 +267,16 @@ class PatientsDataset:
                     data=json.dumps(patient_image_data.image.dicom_header.to_json_dict())
                 )
 
-                if patient_image_data.segmentation:
-                    for organ, simple_itk_label_map in patient_image_data.segmentation.simple_itk_label_maps.items():
-                        numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
-                        series_group.create_dataset(
-                            name=f"{organ}_label_map",
-                            data=self._transpose(numpy_array_label_map)
-                        )
+                if patient_image_data.segmentations:
+                    for segmentation_idx, segmentation in enumerate(patient_image_data.segmentations):
+                        segmentation_group = series_group.create_group(name=str(segmentation_idx))
+                        segmentation_group.attrs.create(name="Modality", data=segmentation.modality)
+                        for organ, simple_itk_label_map in segmentation.simple_itk_label_maps.items():
+                            numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
+                            segmentation_group.create_dataset(
+                                name=f"{organ}_label_map",
+                                data=self._transpose(numpy_array_label_map)
+                            )
 
             _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to dataset.")
 
