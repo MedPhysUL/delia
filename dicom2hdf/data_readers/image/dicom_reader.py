@@ -9,6 +9,8 @@
                         folder.
 """
 
+from collections import defaultdict
+from glob import glob
 import logging
 import os
 from typing import Dict, List, NamedTuple, Set
@@ -84,24 +86,7 @@ class DicomReader:
 
         return loaded_dicom
 
-    def __get_paths_to_dicom_folders(self) -> List[str]:
-        """
-        List of paths to the folders that contain the DICOM files.
-
-        Returns
-        -------
-        paths_to_dicom_folders : List[str]
-            List of paths to the folders that contain the DICOM files.
-        """
-        paths_to_dicom_folders = []
-        for path_to_folder, _, files in os.walk(self._path_to_patient_folder):
-            if files:
-                paths_to_dicom_folders.append(path_to_folder)
-
-        return paths_to_dicom_folders
-
-    @staticmethod
-    def __get_series_ids(path_to_dicom_folder: str) -> List[str]:
+    def __get_paths_to_dicoms_from_series(self, path_to_dicom_folder: str) -> Dict[str, List[str]]:
         """
         Get all series IDs from a patient's dicom folder.
 
@@ -112,16 +97,28 @@ class DicomReader:
 
         Returns
         -------
-        series_ids : List[str]
-            All series IDs contained in a patient folder.
+        paths_to_dicoms_from_series : Dict[str, List[str]]
+            Dictionary of lists of paths to dicoms from each series.
         """
-        series_reader = sitk.ImageSeriesReader()
-        series_ids = series_reader.GetGDCMSeriesIDs(path_to_dicom_folder)
+        paths = [
+            y for x in os.walk(path_to_dicom_folder) for y in glob(os.path.join(x[0], '*')) if os.path.isfile(y) is True
+        ]
 
-        if not series_ids:
-            raise FileNotFoundError(f"Given directory {path_to_dicom_folder} does not contain a DICOM series.")
+        paths_and_headers_for_each_series = defaultdict(list)
+        for path in paths:
+            dicom_header = self.get_dicom_header(path_to_dicom=path)
+            paths_and_headers_for_each_series[dicom_header.SeriesInstanceUID].append((path, dicom_header))
 
-        return series_ids
+        paths_to_dicoms_from_series = defaultdict(list)
+        for series_id, result in paths_and_headers_for_each_series.items():
+            if len(result) != 1:
+                paths_to_dicoms_from_series[series_id] = [
+                    i[0] for i in sorted(result, key=lambda s: s[1].SliceLocation)
+                ]
+            else:
+                paths_to_dicoms_from_series[series_id] = [result[0][0]]
+
+        return paths_to_dicoms_from_series
 
     def __get_series_data_dict(self) -> Dict[str, SeriesData]:
         """
@@ -134,32 +131,28 @@ class DicomReader:
         """
         series_data_dict: Dict[str, DicomReader.SeriesData] = {}
         all_patient_ids: Set[str] = set()
-        for path_to_dicom_folder in self.__get_paths_to_dicom_folders():
-            for idx, series_id in enumerate(self.__get_series_ids(path_to_dicom_folder)):
-                series_reader = sitk.ImageSeriesReader()
-                paths_to_dicoms_from_series = series_reader.GetGDCMSeriesFileNames(path_to_dicom_folder, series_id)
+        for series_id, paths in self.__get_paths_to_dicoms_from_series(self._path_to_patient_folder).items():
+            path_to_first_dicom_of_series = paths[0]
+            loaded_dicom_header = self.get_dicom_header(path_to_dicom=path_to_first_dicom_of_series)
+            all_patient_ids.add(loaded_dicom_header.PatientID)
 
-                path_to_first_dicom_of_series = paths_to_dicoms_from_series[0]
-                loaded_dicom_header = self.get_dicom_header(path_to_dicom=path_to_first_dicom_of_series)
-                all_patient_ids.add(loaded_dicom_header.PatientID)
+            series_data = self.SeriesData(
+                series_description=loaded_dicom_header.SeriesDescription,
+                paths_to_dicoms_from_series=paths,
+                dicom_header=loaded_dicom_header
+            )
+            series_data_dict[series_id] = series_data
 
-                series_data = self.SeriesData(
-                    series_description=loaded_dicom_header.SeriesDescription,
-                    paths_to_dicoms_from_series=paths_to_dicoms_from_series,
-                    dicom_header=loaded_dicom_header
-                )
-                series_data_dict[series_id] = series_data
+        if len(all_patient_ids) != 1:
+            raise AssertionError(f"All DICOM files in the same folder must belong to the same patient. This is not "
+                                 f"the case for the patient whose data is currently being downloaded since the "
+                                 f"identifiers {all_patient_ids} are found in their folder.")
 
-            if len(all_patient_ids) != 1:
-                raise AssertionError(f"All DICOM files in the same folder must belong to the same patient. This is not the "
-                                     f"case for the patient whose data is currently being downloaded since the identifiers "
-                                     f"{all_patient_ids} are found in their folder.")
-
-            for series_id, series_data in series_data_dict.items():
-                if series_data.dicom_header.Modality in SegmentationStrategies.get_available_modalities():
-                    self._segmentations_series_data_dict[series_id] = series_data
-                else:
-                    self._images_series_data_dict[series_id] = series_data
+        for series_id, series_data in series_data_dict.items():
+            if series_data.dicom_header.Modality in SegmentationStrategies.get_available_modalities():
+                self._segmentations_series_data_dict[series_id] = series_data
+            else:
+                self._images_series_data_dict[series_id] = series_data
 
         return series_data_dict
 
@@ -241,25 +234,25 @@ class DicomReader:
                 _logger.info(f"Series description found in the patient's images folder :")
             _logger.info(f"  Series description {idx + 1}: {series_data.series_description}")
 
-            try:
-                image = self.__get_3d_sitk_image_from_dicom_series(
-                    paths_to_dicoms_from_series=series_data.paths_to_dicoms_from_series
-                )
+            if remove_segmentations and (series_data.dicom_header.Modality in
+                                         SegmentationStrategies.get_available_modalities()):
+                pass
+            else:
+                try:
+                    image = self.__get_3d_sitk_image_from_dicom_series(
+                        paths_to_dicoms_from_series=series_data.paths_to_dicoms_from_series
+                    )
 
-                image_data = ImageDataModel(
-                    dicom_header=series_data.dicom_header,
-                    simple_itk_image=image,
-                    paths_to_dicoms=series_data.paths_to_dicoms_from_series
-                )
+                    image_data = ImageDataModel(
+                        dicom_header=series_data.dicom_header,
+                        simple_itk_image=image,
+                        paths_to_dicoms=series_data.paths_to_dicoms_from_series
+                    )
 
-                if not remove_segmentations:
                     images_data.append(image_data)
-                elif remove_segmentations:
-                    if series_data.dicom_header.Modality not in SegmentationStrategies.get_available_modalities():
-                        images_data.append(image_data)
 
-            except RuntimeError as e:
-                _logger.error(f"      RuntimeError : {e}. Simple ITK raised an error while loading the series named "
-                              f"{series_data.series_description}. This series is therefore ignored.")
+                except RuntimeError as e:
+                    _logger.error(f"      RuntimeError : {e}. Simple ITK raised an error while loading the series "
+                                  f"named {series_data.series_description}. This series is therefore ignored.")
 
         return images_data

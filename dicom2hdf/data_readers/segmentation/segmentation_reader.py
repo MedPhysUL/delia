@@ -11,7 +11,7 @@
 
 from .segmentation_context import SegmentationContext
 from .factories.segmentation import Segmentation
-from ...data_model import SegmentationDataModel
+from ...data_model import ImageDataModel, SegmentationDataModel
 
 
 class SegmentationReader:
@@ -22,6 +22,7 @@ class SegmentationReader:
 
     def __init__(
             self,
+            image: ImageDataModel,
             path_to_segmentation: str,
     ):
         """
@@ -29,10 +30,17 @@ class SegmentationReader:
 
         Parameters
         ----------
+        image : ImageDataModel
+            A named tuple grouping the patient's dicom header, its medical image as a simpleITK image and a sequence of
+            the paths to each dicom contained in the series.
         path_to_segmentation : str
             The path to the segmentation file.
         """
+        self._image = image
         self._path_to_segmentation = path_to_segmentation
+
+        print(self._image.dicom_header.Modality)
+        print(self._path_to_segmentation)
 
     @property
     def __segmentation(self) -> Segmentation:
@@ -45,6 +53,7 @@ class SegmentationReader:
             Segmentation.
         """
         segmentation_context_manager = SegmentationContext(
+            image=self._image,
             path_to_segmentation=self._path_to_segmentation,
         )
 

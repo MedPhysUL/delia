@@ -12,7 +12,7 @@
 import enum
 from typing import List, NamedTuple, Callable
 
-from .factories.dicom_segmentation_factories import DicomSEGSegmentationFactory
+from .factories.dicom_segmentation_factories import (DicomSEGSegmentationFactory, RTStructSegmentationFactory)
 
 
 class SegmentationStrategy(NamedTuple):
@@ -27,6 +27,12 @@ class SegmentationStrategies(enum.Enum):
         name="dicom_seg",
         modality="SEG",
         factory=DicomSEGSegmentationFactory
+    )
+
+    RT_STRUCT = SegmentationStrategy(
+        name="rt_struct",
+        modality="RTSTRUCT",
+        factory=RTStructSegmentationFactory
     )
 
     def __init__(self, *args):

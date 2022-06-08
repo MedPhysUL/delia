@@ -13,11 +13,12 @@
 
 import logging
 import os
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import h5py
 import json
+import numpy as np
 import SimpleITK as sitk
-from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from dicom2hdf.data_generators.patients_data_generator import PatientsDataGenerator, PatientWhoFailed
 from dicom2hdf.data_model import ImageAndSegmentationDataModel
@@ -146,6 +147,45 @@ class PatientsDataset:
 
             group.attrs.create(name=dicom_data_element.name, data=data)
 
+    @staticmethod
+    def _is_shape_valid(shape: np.shape) -> bool:
+        """
+        Check if the given shape is in the right format for the hdf5 dataset.
+
+        Parameters
+        ----------
+        shape : np.shape
+            An numpy array's shape.
+
+        Returns
+        -------
+        valid : bool
+            Whether the shape is valid or not.
+        """
+        if shape[1] == shape[2] and shape[0] != shape[1] and shape[0] != shape[2]:
+            return False
+        else:
+            return True
+
+    def _transpose(self, array: np.ndarray) -> np.ndarray:
+        """
+        Transpose an array if its shape is not valid for the hdf5 dataset format.
+
+        Parameters
+        ----------
+        array : np.ndarray
+            An numpy array.
+
+        Returns
+        -------
+        transposed_array : np.ndarray
+            The original array or the transposed array depending on its input shape.
+        """
+        if self._is_shape_valid(array.shape):
+            return array
+        else:
+            return array.transpose((1, 2, 0))
+
     def create_hdf5_dataset(
             self,
             path_to_patients_folder: str,
@@ -209,7 +249,6 @@ class PatientsDataset:
 
             for image_idx, patient_image_data in enumerate(patient_dataset.data):
                 image_array = sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image)
-                transposed_image_array = image_array.transpose(1, 2, 0)
 
                 series_group = patient_group.create_group(name=str(image_idx))
 
@@ -220,7 +259,7 @@ class PatientsDataset:
 
                 series_group.create_dataset(
                     name="image",
-                    data=transposed_image_array
+                    data=self._transpose(image_array)
                 )
 
                 series_group.create_dataset(
@@ -231,10 +270,9 @@ class PatientsDataset:
                 if patient_image_data.segmentation:
                     for organ, simple_itk_label_map in patient_image_data.segmentation.simple_itk_label_maps.items():
                         numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
-                        transposed_numpy_array_label_map = numpy_array_label_map.transpose(1, 2, 0)
                         series_group.create_dataset(
                             name=f"{organ}_label_map",
-                            data=transposed_numpy_array_label_map
+                            data=self._transpose(numpy_array_label_map)
                         )
 
             _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to dataset.")

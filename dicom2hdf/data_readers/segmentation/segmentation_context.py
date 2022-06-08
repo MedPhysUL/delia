@@ -14,6 +14,7 @@ import pydicom
 
 from .segmentation_strategy import SegmentationStrategy, SegmentationStrategies
 from .factories.segmentation import Segmentation
+from ...data_model import ImageDataModel
 
 
 class SegmentationContext:
@@ -25,6 +26,7 @@ class SegmentationContext:
 
     def __init__(
             self,
+            image: ImageDataModel,
             path_to_segmentation: str
     ):
         """
@@ -32,9 +34,13 @@ class SegmentationContext:
 
         Parameters
         ----------
+        image : ImageDataModel
+            A named tuple grouping the patient's dicom header, its medical image as a simpleITK image and a sequence of
+            the paths to each dicom contained in the series.
         path_to_segmentation : str
             The path to the segmentation file.
         """
+        self._image = image
         self._path_to_segmentation = path_to_segmentation
 
     @property
@@ -106,7 +112,10 @@ class SegmentationContext:
         _segmentation_factory_instance : SegmentationStrategy.factory
             Factory class instance used to get the label maps and the segmentation metadata from a segmentation file.
         """
-        return self.segmentation_strategy.factory(path_to_segmentation=self.path_to_segmentation)
+        return self.segmentation_strategy.factory(
+            image=self._image,
+            path_to_segmentation=self.path_to_segmentation
+        )
 
     def create_segmentation(self) -> Segmentation:
         """

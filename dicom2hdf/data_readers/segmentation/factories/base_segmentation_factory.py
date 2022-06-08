@@ -13,6 +13,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+from ....data_model import ImageDataModel
 from .segment import Segment
 from .segmentation import Segmentation
 
@@ -25,6 +26,7 @@ class BaseSegmentationFactory(ABC):
 
     def __init__(
             self,
+            image: ImageDataModel,
             path_to_segmentation: str,
     ):
         """
@@ -32,9 +34,13 @@ class BaseSegmentationFactory(ABC):
 
         Parameters
         ----------
+        image : ImageDataModel
+            A named tuple grouping the patient's dicom header, its medical image as a simpleITK image and a sequence of
+            the paths to each dicom contained in the series.
         path_to_segmentation : str
             The path to the segmentation file.
         """
+        self._image = image
         self._path_to_segmentation = path_to_segmentation
 
     @property

@@ -12,11 +12,15 @@
 from abc import abstractmethod
 from typing import List
 
+import numpy as np
 import pydicom
 import pydicom_seg
+from rt_utils import RTStruct
+import SimpleITK as sitk
 
-from .segment import Segment
 from .base_segmentation_factory import BaseSegmentationFactory
+from ....data_model import ImageDataModel
+from .segment import Segment
 
 
 class BaseDicomSegmentationFactory(BaseSegmentationFactory):
@@ -28,6 +32,7 @@ class BaseDicomSegmentationFactory(BaseSegmentationFactory):
 
     def __init__(
             self,
+            image: ImageDataModel,
             path_to_segmentation: str
     ):
         """
@@ -35,10 +40,16 @@ class BaseDicomSegmentationFactory(BaseSegmentationFactory):
 
         Parameters
         ----------
+        image : ImageDataModel
+            A named tuple grouping the patient's dicom header, its medical image as a simpleITK image and a sequence of
+            the paths to each dicom contained in the series.
         path_to_segmentation : str
             The path to the segmentation file.
         """
-        super().__init__(path_to_segmentation=path_to_segmentation)
+        super().__init__(
+            image=image,
+            path_to_segmentation=path_to_segmentation
+        )
 
         self._dicom: pydicom.FileDataset = pydicom.dcmread(path_to_segmentation)
 
@@ -62,6 +73,7 @@ class DicomSEGSegmentationFactory(BaseDicomSegmentationFactory):
 
     def __init__(
             self,
+            image: ImageDataModel,
             path_to_segmentation: str
     ):
         """
@@ -69,10 +81,16 @@ class DicomSEGSegmentationFactory(BaseDicomSegmentationFactory):
 
         Parameters
         ----------
+        image : ImageDataModel
+            A named tuple grouping the patient's dicom header, its medical image as a simpleITK image and a sequence of
+            the paths to each dicom contained in the series.
         path_to_segmentation : str
             The path to the segmentation file.
         """
-        super().__init__(path_to_segmentation=path_to_segmentation)
+        super().__init__(
+            image=image,
+            path_to_segmentation=path_to_segmentation
+        )
 
     @property
     def _reader(self) -> pydicom_seg.SegmentReader:
@@ -106,6 +124,75 @@ class DicomSEGSegmentationFactory(BaseDicomSegmentationFactory):
                 organ_name = dicom_header.SegmentDescription
 
             simple_itk_label_map = result.segment_image(segment_number)
+
+            segments.append(Segment(name=organ_name, simple_itk_label_map=simple_itk_label_map))
+
+        return segments
+
+
+class RTStructSegmentationFactory(BaseDicomSegmentationFactory):
+    """
+    Class that defined the methods that are used to get the segments for the RT Struct type of segmentation.
+    """
+
+    def __init__(
+            self,
+            image: ImageDataModel,
+            path_to_segmentation: str
+    ):
+        """
+        Used to load the segmentation data from the path to segmentation.
+
+        Parameters
+        ----------
+        image : ImageDataModel
+            A named tuple grouping the patient's dicom header, its medical image as a simpleITK image and a sequence of
+            the paths to each dicom contained in the series.
+        path_to_segmentation : str
+            The path to the segmentation file.
+        """
+        super().__init__(
+            image=image,
+            path_to_segmentation=path_to_segmentation
+        )
+
+    @property
+    def _reader(self) -> RTStruct:
+        """
+        Reader property.
+
+        Returns
+        -------
+        reader : RTStruct
+            RT Struct reader.
+        """
+        return RTStruct(
+            series_data=[pydicom.dcmread(path) for path in self._image.paths_to_dicoms],
+            ds=pydicom.dcmread(self._path_to_segmentation)
+        )
+
+    @property
+    def segments(self) -> List[Segment]:
+        """
+        Segments property.
+
+        Returns
+        -------
+        segments : List[Segment]
+            List of all the segments.
+        """
+        segment_names = self._reader.get_roi_names()
+        segments = []
+
+        for organ_name in segment_names:
+            array = self._reader.get_roi_mask_by_name(organ_name)
+            array = np.multiply(array, 1)
+            array = array.transpose(2, 0, 1)
+
+            simple_itk_label_map = sitk.GetImageFromArray(array)
+            simple_itk_label_map.SetOrigin(self._image.simple_itk_image.GetOrigin())
+            simple_itk_label_map.SetSpacing(self._image.simple_itk_image.GetSpacing())
+            simple_itk_label_map.SetDirection(self._image.simple_itk_image.GetDirection())
 
             segments.append(Segment(name=organ_name, simple_itk_label_map=simple_itk_label_map))
 
