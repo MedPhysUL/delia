@@ -1,5 +1,5 @@
 h5py==3.4.0
-numpy==1.21.2
+numpy==1.22.0
 pydicom==2.2.2
 pydicom-seg==0.4.0
 pynrrd==0.4.2
