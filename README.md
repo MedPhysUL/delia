@@ -1,5 +1,5 @@
 # Medical data formatting module
-This package provides a set of utilities for extracting data contained in DICOM files into an HDF5 dataset containing patients' medical images as well as binary label maps obtained from the segmentation of these images (if available). The HDF5 dataset is then easier to use to perform tasks on the medical data, such as machine learning tasks. It is a higher-level library that builds on the excellent lower-level [pydicom](https://pydicom.github.io/pydicom/stable/) library.
+This package provides a set of utilities for extracting data contained in DICOM files into an HDF5 database containing patients' medical images as well as binary label maps obtained from the segmentation of these images (if available). The HDF5 database is then easier to use to perform tasks on the medical data, such as machine learning tasks. It is a higher-level library that builds on the excellent lower-level [pydicom](https://pydicom.github.io/pydicom/stable/) library.
 
 Anyone who is willing to contribute is welcome to do so.
 
@@ -7,7 +7,7 @@ Anyone who is willing to contribute is welcome to do so.
 
 **Digital Imaging and Communications in Medicine** ([**DICOM**](https://www.dicomstandard.org/)) is *the* international standard for medical images and related information. The working group [DICOM WG-23](https://www.dicomstandard.org/activity/wgs/wg-23/) on Artificial Intelligence / Application Hosting is currently working to identify or develop the DICOM mechanisms to support AI workflows, concentrating on the clinical context. Moreover, their future *roadmap and objectives* includes working on the concern that current DICOM mechanisms might not be adequate to cover some use cases, particularly bulk analysis of large repository data, e.g. for training deep learning neural networks. **However, no tool has been developed to achieve this goal at present.**
 
-The **purpose** of this module is therefore to provide the necessary tools to facilitate the use of medical images in an AI workflow.  This goal is accomplished by using the [HDF file format](https://www.hdfgroup.org/) to create a dataset containing patients' medical images as well as binary label maps obtained from the segmentation of these images (if available).
+The **purpose** of this module is therefore to provide the necessary tools to facilitate the use of medical images in an AI workflow.  This goal is accomplished by using the [HDF file format](https://www.hdfgroup.org/) to create a database containing patients' medical images as well as binary label maps obtained from the segmentation of these images (if available).
 
 ## Installation
 
@@ -31,13 +31,13 @@ There are 3 main concepts in this code :
 
 1. `PatientDataModel` : It is the primary `dicom2hdf` data structure. It is a named tuple gathering the image and segmentation data available in a patient record. 
 2. `PatientsDataGenerator` : A  [Generator](https://docs.python.org/3/library/collections.abc.html#collections.abc.Generator) that allows to iterate over several patient folders and create a `PatientDataModel` object for each of them.
-3. `PatientsDataset` : An object that is used to create/interact with an HDF5 file (a dataset!). The `PatientsDataGenerator` object is used to populate this dataset. 
+3. `PatientsDatabase` : An object that is used to create/interact with an HDF5 file (a database!). The `PatientsDataGenerator` object is used to populate this database. 
 
 ### A deeper look into the `PatientsDataGenerator` object
 
-The `PatientsDataGenerator` has two important variables:  a `path_to_patients_folder` (which dictates the path to the folder that contains all patient records) and a `series_descriptions` (which dictates the images that needs to be extracted from the patient records). For each patient/folder available in the `path_to_patients_folder`, all DICOM files in their folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume and its segmentation (if available) are automatically added to the `PatientDataModel`. Note that if no `series_descriptions` dictionary is given (`series_descriptions = None`), then all images (and associated segmentations) will be added to the dataset. 
+The `PatientsDataGenerator` has two important variables:  a `path_to_patients_folder` (which dictates the path to the folder that contains all patient records) and a `series_descriptions` (which dictates the images that needs to be extracted from the patient records). For each patient/folder available in the `path_to_patients_folder`, all DICOM files in their folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume and its segmentation (if available) are automatically added to the `PatientDataModel`. Note that if no `series_descriptions` dictionary is given (`series_descriptions = None`), then all images (and associated segmentations) will be added to the database. 
 
-The `PatientsDataGenerator` can therefore be used to iteratively perform tasks on each of the patients, such as displaying certain images, transforming images into numpy arrays, or creating an HDF5 dataset using the `PatientsDataset`. It is this last task that is highlighted in this package, but it must be understood that the data extraction is performed in a very general manner by the `PatientsDataGenerator` and is therefore not limited to this single application. For example, someone could easily develop a `Numpydataset` whose creation would be ensured by the `PatientsDataGenerator`, similar to the current `PatientsDataset` based on the HDF5 format.
+The `PatientsDataGenerator` can therefore be used to iteratively perform tasks on each of the patients, such as displaying certain images, transforming images into numpy arrays, or creating an HDF5 database using the `PatientsDatabase`. It is this last task that is highlighted in this package, but it must be understood that the data extraction is performed in a very general manner by the `PatientsDataGenerator` and is therefore not limited to this single application. For example, someone could easily develop a `Numpydatabase` whose creation would be ensured by the `PatientsDataGenerator`, similar to the current `PatientsDatabase` based on the HDF5 format.
 
 ## Organize your data
 
@@ -51,7 +51,7 @@ If your segmentation files are in a research file format (`.nrrd`, `.nii`, etc.)
 
 ### Series descriptions (Optional)
 
-*This dictionary is **not** mandatory for the code to work and therefore its default value is `None`. Note that if no `series_descriptions` dictionary is given, i.e. `series_descriptions = None`, then all images (and associated segmentations) will be added to the dataset.*
+*This dictionary is **not** mandatory for the code to work and therefore its default value is `None`. Note that if no `series_descriptions` dictionary is given, i.e. `series_descriptions = None`, then all images (and associated segmentations) will be added to the database.*
 
 The series descriptions are specified as a **dictionary** that contains the series descriptions of the images that needs to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of series descriptions. The images associated with these series descriptions do not need to have a corresponding segmentation volume. If none of the descriptions match the series in a patient's files, a warning is raised and the patient is added to the list of patients for whom the pipeline has failed.
 
@@ -126,31 +126,31 @@ The easiest way to import the package is to use :
 from dicom2hdf import *
 ```
 
-This will import the useful classes `PatientsDataset` and `PatientsDataGenerator`. These two classes represent two different ways of using the package. The following examples will present both procedures.
+This will import the useful classes `PatientsDatabase` and `PatientsDataGenerator`. These two classes represent two different ways of using the package. The following examples will present both procedures.
 
 ## Use the package
 
-### Example using the `PatientsDataset` class
+### Example using the `PatientsDatabase` class
 
-This file can then be executed to obtain an hdf5 dataset.
+This file can then be executed to obtain an hdf5 database.
 
 ```python
-from dicom2hdf import PatientsDataset
+from dicom2hdf import PatientsDatabase
 
-patients_dataset = PatientsDataset(
-    path_to_dataset="data/patient_dataset.h5",
+patients_database = PatientsDatabase(
+    path_to_dataset="data/patient_database.h5",
 )
 
-patients_dataset.create_hdf5_dataset(
+patients_database.create_database(
     path_to_patients_folder="data/Patients",
     tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
     series_descriptions="data/series_descriptions.json",
-    overwrite_dataset=True
+    overwrite_database=True
 )
 
 ```
 
-The created HDF5 dataset will then look something like :
+The created HDF5 database will then look something like :
 
 ![patient_dataset](https://github.com/MaxenceLarose/dicom2hdf/raw/main/images/patient_dataset.png)
 

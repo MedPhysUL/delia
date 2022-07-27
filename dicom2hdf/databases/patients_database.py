@@ -1,14 +1,14 @@
 """
-    @file:              patient_dataset.py
+    @file:              patients_database.py
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 03/2022
+    @Last modification: 07/2022
 
-    @Description:       This file contains the PatientDataset class that is used to interact with an hdf5 file dataset.
-                        The main purpose of this class is to create an hdf5 file dataset from multiple patients dicom
-                        files and their segmentation. This class also allows the user to interact with an existing hdf5
-                        file dataset through queries.
+    @Description:       This file contains the PatientDatabase class that is used to interact with an hdf5 file
+                        database. The main purpose of this class is to create an hdf5 file database from multiple
+                        patients dicom files and their segmentation. This class also allows the user to interact with
+                        an existing hdf5 file database through queries.
 """
 
 import logging
@@ -27,74 +27,78 @@ from dicom2hdf.processing.transforms import BaseTransform
 _logger = logging.getLogger(__name__)
 
 
-class PatientsDataset:
+class PatientsDatabase:
     """
-    A class that is used to interact with a patients dataset. The main purpose of this class is to create an hdf5 file
-    dataset from multiple patients dicom files and their segmentation. This class also allows the user to interact with
-    an existing hdf5 file dataset through queries.
+    A class that is used to interact with a patients database. The main purpose of this class is to create an hdf5 file
+    database from multiple patients dicom files and their segmentation. This class also allows the user to interact with
+    an existing hdf5 file database through queries.
     """
+
+    DICOM_HEADER = "Dicom_header"
+    IMAGE = "Image"
+    MODALITY = "Modality"
 
     def __init__(
             self,
-            path_to_dataset: str,
+            path_to_database: str,
     ):
         """
-        Used to initialize the path to the dataset.
+        Used to initialize the path to the database.
 
         Parameters
         ----------
-        path_to_dataset : str
-            Path to dataset.
+        path_to_database : str
+            Path to database.
         """
-        self.path_to_dataset = path_to_dataset
+        self.path_to_database = path_to_database
 
     @property
-    def path_to_dataset(self) -> str:
+    def path_to_database(self) -> str:
         """
-        Path to dataset.
+        Path to database.
 
         Returns
         -------
-        path_to_dataset : str
-            Path to dataset containing modality and organ names.
+        path_to_database : str
+            Path to database containing modality and organ names.
         """
-        return self._path_to_dataset
+        return self._path_to_database
 
-    @path_to_dataset.setter
-    def path_to_dataset(self, path_to_dataset: str) -> None:
+    @path_to_database.setter
+    def path_to_database(self, path_to_database: str) -> None:
         """
-        Path to dataset.
+        Path to database.
 
         Parameters
         ----------
-        path_to_dataset : str
-            Path to dataset.
+        path_to_database : str
+            Path to database.
         """
-        if path_to_dataset.endswith(".h5"):
-            self._path_to_dataset = path_to_dataset
+        if path_to_database.endswith(".h5"):
+            self._path_to_database = path_to_database
         else:
-            self._path_to_dataset = f"{path_to_dataset}.h5"
+            self._path_to_database = f"{path_to_database}.h5"
 
-    def _check_authorization_of_dataset_creation(
+    def _check_authorization_of_database_creation(
             self,
-            overwrite_dataset: bool
+            overwrite_database: bool
     ) -> None:
         """
-        Check if dataset's creation is allowed.
+        Check if database's creation is allowed.
 
         Parameters
         ----------
-        overwrite_dataset : bool
-            Overwrite existing dataset.
+        overwrite_database : bool
+            Overwrite existing database.
         """
-        if os.path.exists(self.path_to_dataset):
-            if not overwrite_dataset:
-                raise FileExistsError("The dataset already exists. You may overwrite it using "
-                                      "overwrite_dataset = True.")
+        if os.path.exists(self.path_to_database):
+            if not overwrite_database:
+                raise FileExistsError("The database already exists. You may overwrite it using "
+                                      "overwrite_database = True.")
             else:
-                _logger.info(f"Overwriting HDF5 dataset with path : {self.path_to_dataset}")
+                _logger.info(f"Overwriting HDF5 database with path : {self.path_to_database}")
         else:
-            _logger.info(f"Writing HDF5 dataset with path : {self.path_to_dataset}")
+            _logger.info(f"Writing HDF5 database with path : {self.path_to_database}")
 
     @staticmethod
     def _add_sitk_image_attributes_to_hdf5_group(
@@ -135,7 +139,7 @@ class PatientsDataset:
         group : h5py.Group
             An hdf5 group.
         tags_to_use_as_attributes : List[Tuple[int, int]]
-            List of DICOM tags to add as series attributes in the HDF5 dataset.
+            List of DICOM tags to add as series attributes in the HDF5 database.
         """
         for tag in tags_to_use_as_attributes:
             dicom_data_element = patient_image_data.image.dicom_header[tag]
@@ -150,7 +154,7 @@ class PatientsDataset:
     @staticmethod
     def _is_shape_valid(shape: np.shape) -> bool:
         """
-        Check if the given shape is in the right format for the hdf5 dataset.
+        Check if the given shape is in the right format for the hdf5 database.
 
         Parameters
         ----------
@@ -169,7 +173,7 @@ class PatientsDataset:
 
     def _transpose(self, array: np.ndarray) -> np.ndarray:
         """
-        Transpose an array if its shape is not valid for the hdf5 dataset format.
+        Transpose an array if its shape is not valid for the hdf5 database format.
 
         Parameters
         ----------
@@ -186,7 +190,7 @@ class PatientsDataset:
         else:
             return array.transpose((1, 2, 0))
 
-    def create_hdf5_dataset(
+    def create_database(
             self,
             path_to_patients_folder: str,
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
@@ -194,19 +198,19 @@ class PatientsDataset:
             add_sitk_image_metadata_as_attributes: bool = True,
             transforms: Optional[Sequence[BaseTransform]] = None,
             erase_unused_dicom_files: bool = False,
-            overwrite_dataset: bool = False
+            overwrite_database: bool = False
     ) -> List[PatientWhoFailed]:
         """
-        Create an hdf5 file dataset from multiple patients dicom files and their segmentation and get patient's images
-        from this dataset. The goal is to create an object from which it is easier to obtain patient images and their
-        segmentation than separated dicom files and segmentation files.
+        Create an hdf5 file database from multiple patients dicom files and their segmentation. The goal is to create
+        an object from which it is easier to obtain patient images and their segmentation than separated dicom files
+        and segmentation files.
 
         Parameters
         ----------
         path_to_patients_folder : str
             The path to the folder that contains all the patients' folders.
         tags_to_use_as_attributes : List[Tuple[int, int]]
-            List of DICOM tags to add as series attributes in the HDF5 dataset.
+            List of DICOM tags to add as series attributes in the HDF5 database.
         series_descriptions : Optional[Union[str, Dict[str, List[str]]]], default = None.
             A dictionary that contains the series descriptions of the images that needs to be extracted from the
             patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
@@ -219,21 +223,21 @@ class PatientsDataset:
             A sequence of transformations to apply to images and segmentations.
         erase_unused_dicom_files: bool, default = False
             Whether to delete unused DICOM files or not. Use with caution.
-        overwrite_dataset : bool, default = False.
-            Overwrite existing dataset.
+        overwrite_database : bool, default = False.
+            Overwrite existing database.
 
         Returns
         -------
         patients_who_failed : List[PatientWhoFailed]
-            List of patients with one or more images not added to the HDF5 dataset due to the absence of the series in
+            List of patients with one or more images not added to the HDF5 database due to the absence of the series in
             the patient record.
         """
-        self._check_authorization_of_dataset_creation(overwrite_dataset=overwrite_dataset)
+        self._check_authorization_of_database_creation(overwrite_database=overwrite_database)
 
         if tags_to_use_as_attributes is None:
             tags_to_use_as_attributes = []
 
-        hf = h5py.File(self.path_to_dataset, "w")
+        hf = h5py.File(self.path_to_database, "w")
 
         patient_data_generator = PatientsDataGenerator(
             path_to_patients_folder=path_to_patients_folder,
@@ -258,19 +262,19 @@ class PatientsDataset:
                     self._add_sitk_image_attributes_to_hdf5_group(patient_image_data, series_group)
 
                 series_group.create_dataset(
-                    name="image",
+                    name=self.IMAGE,
                     data=self._transpose(image_array)
                 )
 
                 series_group.create_dataset(
-                    name="dicom_header",
+                    name=self.DICOM_HEADER,
                     data=json.dumps(patient_image_data.image.dicom_header.to_json_dict())
                 )
 
                 if patient_image_data.segmentations:
                     for segmentation_idx, segmentation in enumerate(patient_image_data.segmentations):
                         segmentation_group = series_group.create_group(name=str(segmentation_idx))
-                        segmentation_group.attrs.create(name="Modality", data=segmentation.modality)
+                        segmentation_group.attrs.create(name=self.MODALITY, data=segmentation.modality)
                         for organ, simple_itk_label_map in segmentation.simple_itk_label_maps.items():
                             numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
                             segmentation_group.create_dataset(
@@ -278,7 +282,7 @@ class PatientsDataset:
                                 data=self._transpose(numpy_array_label_map)
                             )
 
-            _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to dataset.")
+            _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to database.")
 
         patient_data_generator.close()
 
