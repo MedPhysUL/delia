@@ -141,7 +141,7 @@ patients_database = PatientsDatabase(
     path_to_dataset="data/patient_database.h5",
 )
 
-patients_database.create_database(
+patients_database.create(
     path_to_patients_folder="data/Patients",
     tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
     series_descriptions="data/series_descriptions.json",

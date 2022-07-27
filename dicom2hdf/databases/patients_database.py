@@ -190,7 +190,7 @@ class PatientsDatabase:
         else:
             return array.transpose((1, 2, 0))
 
-    def create_database(
+    def create(
             self,
             path_to_patients_folder: str,
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,

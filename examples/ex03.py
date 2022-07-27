@@ -62,7 +62,7 @@ if __name__ == "__main__":
     database = PatientsDatabase(
         path_to_database="data/patients_database.h5",
     )
-    patients_who_failed = database.create_database(
+    patients_who_failed = database.create(
         path_to_patients_folder="data/Patients",
         series_descriptions="data/incorrect_series_descriptions.json",
         overwrite_database=True
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     #                                           Create complete database                                          #
     # ----------------------------------------------------------------------------------------------------------- #
-    patients_who_failed = database.create_database(
+    patients_who_failed = database.create(
         path_to_patients_folder="data/Patients",
         tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         series_descriptions=updated_series_descriptions,
