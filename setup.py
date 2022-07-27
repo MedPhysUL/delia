@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="dicom2hdf",
-    version="0.2.1",
+    version="0.2.2",
     author="Maxence Larose",
     author_email="maxence.larose.1@ulaval.ca",
     description="Medical data formatting and pre-processing module whose main objective"\
