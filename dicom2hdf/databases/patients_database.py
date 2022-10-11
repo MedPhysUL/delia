@@ -279,7 +279,8 @@ class PatientsDatabase:
                             numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
                             segmentation_group.create_dataset(
                                 name=f"{organ}_label_map",
-                                data=self._transpose(numpy_array_label_map)
+                                data=self._transpose(numpy_array_label_map),
+                                dtype=np.int8
                             )
 
             _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to database.")
