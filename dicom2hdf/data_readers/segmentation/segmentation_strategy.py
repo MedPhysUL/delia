@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 01/2022
+    @Last modification: 10/2022
 
     @Description:       This file contains the class SegmentationStrategies that enumerates the available categories of
                         segmentation files.
@@ -48,9 +48,8 @@ class SegmentationStrategies(enum.Enum):
             second_member_modality_value = cls(self.value).value.modality
 
             raise ValueError(f"Aliases not allowed in the SegmentationStrategies Enum Class. The value assigned to the"
-                             f" {first_member_name} attribute is {first_member_modality_value} and the value assigned "
-                             f"to the {second_member_name} attribute is"
-                             f" as the one assigned to the {second_member_name} attribute, since it is also "
+                             f" {first_member_name} attribute is {first_member_modality_value} and it is the same as "
+                             f"the one assigned to the {second_member_name} attribute, since it is also "
                              f"{second_member_modality_value}.")
 
     @classmethod
