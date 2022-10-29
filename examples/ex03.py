@@ -34,7 +34,7 @@ def get_updated_series_descriptions(
     """
     for patient in patients_who_failed:
         for image, image_series_descriptions in patient.failed_images.items():
-            if image_series_descriptions not in series_descriptions:
+            if not any([series in series_descriptions[image] for series in patient.available_series_descriptions]):
                 while True:
                     new_series_description = input(
                         f"\nNo available series for {image}. \nAvailable series are "
