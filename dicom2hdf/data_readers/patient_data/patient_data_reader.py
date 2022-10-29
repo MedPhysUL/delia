@@ -197,6 +197,8 @@ class PatientDataReader(DicomReader):
                 temp_dict = {}
                 for organ_name, label_map in segmentation_data.simple_itk_label_maps.items():
                     temp_dict[organ_name] = label_map
+                    
+                segmentation_data.simple_itk_label_maps = apply_transform(transform=transforms, data=temp_dict)
 
     def get_patient_dataset(self, transforms: Optional[Union[Compose, PhysicalSpaceTransform]]) -> PatientDataModel:
         """
