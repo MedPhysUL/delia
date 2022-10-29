@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 01/2022
+    @Last modification: 10/2022
 
     @Description:       This file contains several named tuples that are used to standardize the structure of objects
                         containing data.
@@ -14,6 +14,8 @@ from typing import Dict, List, Sequence
 
 import pydicom
 import SimpleITK as sitk
+
+from dicom2hdf.transforms.history import TransformsHistory
 
 
 @dataclass
@@ -92,7 +94,9 @@ class PatientDataModel:
                 ImageAndSegmentationDataModel
                 ...
             ]
+            "transforms_history" : TransformsHistory
         )
     """
     patient_id: str
     data: List[ImageAndSegmentationDataModel]
+    transforms_history: TransformsHistory = None

@@ -7,7 +7,8 @@
 import env_examples  # Modifies path, DO NOT REMOVE
 
 from dicom2hdf import PatientsDatabase
-from dicom2hdf import transforms
+from dicom2hdf.transforms import ResampleImageD, ResampleSegmentationD
+from monai.transforms import Compose
 
 
 if __name__ == "__main__":
@@ -28,7 +29,12 @@ if __name__ == "__main__":
         path_to_patients_folder="data/Patients",
         tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         series_descriptions="data/series_descriptions.json",
-        transforms=[transforms.Resample()],
+        physical_space_transforms=Compose(
+            [
+                ResampleImageD(keys=["CT"], out_spacing=(1.5, 1.5, 1.5)),
+                ResampleSegmentationD(keys=["Heart"], out_spacing=(1.5, 1.5, 1.5))
+            ]
+        ),
         overwrite_database=True
     )
 

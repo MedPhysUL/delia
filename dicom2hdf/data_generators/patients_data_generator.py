@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 03/2022
+    @Last modification: 10/2022
 
     @Description:       This file contains the PatientsDataGenerator class which is used to iterate on multiple
                         patients' dicom files and segmentation files using the PatientDataReader to obtain all patients'
@@ -15,11 +15,13 @@ from copy import deepcopy
 import json
 import logging
 import os
-from typing import Dict, List, NamedTuple, Optional, Sequence, Union
+from typing import Dict, List, NamedTuple, Optional, Union
+
+from monai.transforms import Compose
 
 from dicom2hdf.data_readers.patient_data.patient_data_reader import PatientDataReader
 from dicom2hdf.data_model import PatientDataModel
-from dicom2hdf.processing.transforms import BaseTransform
+from dicom2hdf.transforms.transforms import PhysicalSpaceTransform
 
 _logger = logging.getLogger(__name__)
 
@@ -40,7 +42,7 @@ class PatientsDataGenerator(Generator):
             self,
             path_to_patients_folder: str,
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
-            transforms: Optional[Sequence[BaseTransform]] = None,
+            transforms: Optional[Union[Compose, PhysicalSpaceTransform]] = None,
             erase_unused_dicom_files: bool = False
     ) -> None:
         """
@@ -57,10 +59,11 @@ class PatientsDataGenerator(Generator):
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. Note that it can be specified as a path to a json dictionary that contains the
             series descriptions.
-        transforms : Optional[Sequence[BaseTransform]]
-            A sequence of transformations to apply to images and segmentations.
+        transforms : Optional[Union[Compose, PhysicalSpaceTransform]]
+            A sequence of transformations to apply to images and segmentations in the physical space, i.e on the
+            SimpleITK image. Keys are assumed to be modality names for images and organ names for segmentations.
         erase_unused_dicom_files: bool = False
-            Whether to delete unused DICOM files or not. Use with caution.
+            Whether to delete unused DICOM files or not. Use with EXTREME caution!
         """
         self._path_to_patients_folder = path_to_patients_folder
         self._erase_unused_dicom_files = erase_unused_dicom_files
@@ -78,8 +81,14 @@ class PatientsDataGenerator(Generator):
                             f" types are str, dict and None.")
 
         if transforms is None:
-            self._transforms = []
-        else:
+            self._transforms = Compose([])
+        if isinstance(transforms, PhysicalSpaceTransform):
+            self._transforms = transforms
+        elif isinstance(transforms, Compose):
+            for t in transforms.transforms:
+                if not isinstance(t, PhysicalSpaceTransform):
+                    raise AssertionError("The given transforms must inherit from "
+                                         "'dicom2hdf.processing.transforms.PhysicalSpaceTransform'.")
             self._transforms = transforms
 
         self._current_index = 0
@@ -91,7 +100,7 @@ class PatientsDataGenerator(Generator):
         Total number of patients.
 
         Returns
-        _______
+        -------
         length: int
             Total number of patients.
         """

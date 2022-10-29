@@ -24,11 +24,11 @@ setuptools.setup(
     ],
     install_requires=[
         "h5py",
+        "monai"
         "numpy",
         "pydicom",
         "pydicom-seg",
-        "SimpleITK",
-        "tqdm",
-        "rt_utils"
+        "rt_utils",
+        "SimpleITK"
     ],
 )

@@ -3,7 +3,7 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 07/2022
+    @Last modification: 10/2022
 
     @Description:       This file contains the PatientDatabase class that is used to interact with an hdf5 file
                         database. The main purpose of this class is to create an hdf5 file database from multiple
@@ -13,16 +13,17 @@
 
 import logging
 import os
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import h5py
 import json
 import numpy as np
+from monai.transforms import Compose, MapTransform
 import SimpleITK as sitk
 
 from dicom2hdf.data_generators.patients_data_generator import PatientsDataGenerator, PatientWhoFailed
 from dicom2hdf.data_model import ImageAndSegmentationDataModel
-from dicom2hdf.processing.transforms import BaseTransform
+from dicom2hdf.transforms.transforms import PhysicalSpaceTransform
 
 _logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ class PatientsDatabase:
     DICOM_HEADER = "Dicom_header"
     IMAGE = "Image"
     MODALITY = "Modality"
+    TRANSFORMS = "Transforms"
 
     def __init__(
             self,
@@ -196,7 +198,8 @@ class PatientsDatabase:
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
             tags_to_use_as_attributes: Optional[List[Tuple[int, int]]] = None,
             add_sitk_image_metadata_as_attributes: bool = True,
-            transforms: Optional[Sequence[BaseTransform]] = None,
+            physical_space_transforms: Optional[Union[Compose, PhysicalSpaceTransform]] = None,
+            array_space_transforms: Optional[Union[Compose, MapTransform]] = None,
             erase_unused_dicom_files: bool = False,
             overwrite_database: bool = False
     ) -> List[PatientWhoFailed]:
@@ -219,10 +222,15 @@ class PatientsDatabase:
             series descriptions.
         add_sitk_image_metadata_as_attributes : bool, default = True.
             Keep Simple ITK image information as attributes in the corresponding series.
-        transforms : Optional[Sequence[BaseTransform]]
-            A sequence of transformations to apply to images and segmentations.
+        physical_space_transforms : Optional[Union[Compose, PhysicalSpaceTransform]]
+            A sequence of transformations to apply to images and segmentations in the physical space, i.e on the
+            SimpleITK image. Keys are assumed to be modality names for images and organ names for segmentations.
+        array_space_transforms : Optional[Union[Compose, MapTransform]]
+            A sequence of transformations to apply to images and segmentations in the array space, i.e on the numpy
+            array that represents the image. Keys are assumed to be modality names for images and organ names for
+            segmentations.
         erase_unused_dicom_files: bool, default = False
-            Whether to delete unused DICOM files or not. Use with caution.
+            Whether to delete unused DICOM files or not. Use with EXTREME caution!
         overwrite_database : bool, default = False.
             Overwrite existing database.
 
@@ -242,7 +250,7 @@ class PatientsDatabase:
         patient_data_generator = PatientsDataGenerator(
             path_to_patients_folder=path_to_patients_folder,
             series_descriptions=series_descriptions,
-            transforms=transforms,
+            transforms=physical_space_transforms,
             erase_unused_dicom_files=erase_unused_dicom_files
         )
 
@@ -278,10 +286,15 @@ class PatientsDatabase:
                         for organ, simple_itk_label_map in segmentation.simple_itk_label_maps.items():
                             numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
                             segmentation_group.create_dataset(
-                                name=f"{organ}_label_map",
+                                name=organ,
                                 data=self._transpose(numpy_array_label_map),
                                 dtype=np.int8
                             )
+
+            patient_group.attrs.create(
+                name=self.TRANSFORMS,
+                data=json.dumps(patient_dataset.transforms_history.history)
+            )
 
             _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to database.")
 

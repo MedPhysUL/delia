@@ -3,19 +3,22 @@
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
-    @Last modification: 03/2022
+    @Last modification: 10/2022
 
     @Description:       This file contains the PatientDataReader class which is used to read dicom files AND
                         segmentation files.
 """
 
 import logging
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Union
+
+from monai.transforms import apply_transform, Compose
 
 from dicom2hdf.data_model import ImageDataModel, PatientDataModel, SegmentationDataModel
 from dicom2hdf.data_readers.image.dicom_reader import DicomReader
 from dicom2hdf.data_readers.patient_data.patient_data_query_context import PatientDataQueryContext
-from dicom2hdf.processing.transforms import BaseTransform
+from dicom2hdf.transforms.transforms import PhysicalSpaceTransform
+from dicom2hdf.transforms.history import TransformsHistory
 
 _logger = logging.getLogger(__name__)
 
@@ -168,41 +171,42 @@ class PatientDataReader(DicomReader):
 
     @staticmethod
     def _apply_transforms(
-            transforms: Sequence[BaseTransform],
+            transforms: Optional[Union[Compose, PhysicalSpaceTransform]],
             image: ImageDataModel,
-            segmentations: Sequence[SegmentationDataModel]
+            segmentations: Optional[Sequence[SegmentationDataModel]] = None
     ):
         """
         Apply transforms to image and segmentation.
 
         Parameters
         ----------
-        transforms : Sequence[BaseTransform]
-            A sequence of transformations to apply to images and segmentations.
+        transforms : Optional[Union[Compose, PhysicalSpaceTransform]]
+            A sequence of transformations to apply to images and segmentations in the physical space, i.e on the
+            SimpleITK image. Keys are assumed to be modality names for images and organ names for segmentations.
         image : ImageDataModel
             The patient's medical image data.
-        segmentations : Sequence[SegmentationDataModel]
+        segmentations : Optional[Sequence[SegmentationDataModel]]
             Data from the segmentation of the patient's medical image.
         """
-        for transform in transforms:
-            image.simple_itk_image = transform.forward(itk_image=image.simple_itk_image)
+        image_modality = image.dicom_header.Modality
+        temp_dict = {image_modality: image.simple_itk_image}
+        image.simple_itk_image = apply_transform(transform=transforms, data=temp_dict)[image_modality]
 
-            if segmentations:
-                for segmentation_data in segmentations:
-                    for organ_name, label_map in segmentation_data.simple_itk_label_maps.items():
-                        segmentation_data.simple_itk_label_maps[organ_name] = transform.forward(
-                            itk_image=label_map,
-                            segmentation=True
-                        )
+        if segmentations:
+            for segmentation_data in segmentations:
+                temp_dict = {}
+                for organ_name, label_map in segmentation_data.simple_itk_label_maps.items():
+                    temp_dict[organ_name] = label_map
 
-    def get_patient_dataset(self, transforms: Optional[Sequence[BaseTransform]]) -> PatientDataModel:
+    def get_patient_dataset(self, transforms: Optional[Union[Compose, PhysicalSpaceTransform]]) -> PatientDataModel:
         """
         Get the patient dataset.
 
         Parameters
         ----------
-        transforms : Optional[Sequence[BaseTransform]]
-            A sequence of transformations to apply to images and segmentations.
+        transforms : Optional[Union[Compose, PhysicalSpaceTransform]]
+            A sequence of transformations to apply to images and segmentations in the physical space, i.e on the
+            SimpleITK image. Keys are assumed to be modality names for images and organ names for segmentations.
 
         Returns
         -------
@@ -244,5 +248,7 @@ class PatientDataReader(DicomReader):
 
             if image_segmentation_available:
                 _logger.info(f"  Segmented organs : {segmented_organs}")
+
+        patient_dataset.transforms_history = TransformsHistory(transforms)
 
         return patient_dataset

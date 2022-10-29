@@ -1,4 +1,5 @@
 h5py==3.4.0
+monai==1.0.1
 numpy==1.22.0
 pydicom==2.2.2
 pydicom-seg==0.4.0
