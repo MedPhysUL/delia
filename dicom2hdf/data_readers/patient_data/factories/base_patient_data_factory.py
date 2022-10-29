@@ -13,6 +13,8 @@ from abc import ABC, abstractmethod
 from os import remove
 from typing import Dict, List, Optional
 
+import pydicom
+
 from dicom2hdf.data_model import ImageDataModel, PatientDataModel
 from dicom2hdf.data_readers.image.dicom_reader import DicomReader
 
@@ -68,9 +70,38 @@ class BasePatientDataFactory(ABC):
         return str(patient_id)
 
     @staticmethod
+    def get_segmentation_reference_uid(segmentation_header: pydicom.dataset.FileDataset) -> pydicom.DataElement:
+        """
+        Get the reference UID of the medical image on which the given segmentation/contouring was performed.
+
+        Parameters
+        ----------
+        segmentation_header : pydicom.dataset.FileDataset
+            Loaded DICOM dataset.
+
+        Returns
+        -------
+        reference_uid : pydicom.DataElement
+            Reference UID of the medical image on which the contouring was performed.
+        """
+        if hasattr(segmentation_header, "ReferencedSeriesSequence"):
+            return segmentation_header.ReferencedSeriesSequence[0].SeriesInstanceUID
+        elif hasattr(segmentation_header, "ReferencedFrameOfReferenceSequence"):
+            referenced_frame_of_reference_sequence = segmentation_header.ReferencedFrameOfReferenceSequence
+            rt_referenced_study_sequence = referenced_frame_of_reference_sequence[0].RTReferencedStudySequence
+            rt_referenced_series_sequence = rt_referenced_study_sequence[0].RTReferencedSeriesSequence
+            return rt_referenced_series_sequence[0].SeriesInstanceUID
+        else:
+            raise AssertionError(
+                "The segmentation DICOM header must contain either the 'ReferencedSeriesSequence' attribute or "
+                "the 'ReferencedFrameOfReferenceSequence' attribute to associate the segmentation with the "
+                "corresponding medical image."
+            )
+
+    @staticmethod
     def erase_dicom_files(image: ImageDataModel):
         """
-        Erase the dicom files associated to a given image.
+        Erases the dicom files associated to a given image.
 
         Parameters
         ----------

@@ -119,8 +119,10 @@ class SegmentationPatientDataFactory(BasePatientDataFactory):
             image_added = False
             segmentations = []
             for path_to_segmentation in self._paths_to_segmentations:
-                dicom_header = DicomReader.get_dicom_header(path_to_dicom=path_to_segmentation)
-                if image.dicom_header.SeriesInstanceUID == dicom_header.ReferencedSeriesSequence[0].SeriesInstanceUID:
+                seg_header = DicomReader.get_dicom_header(path_to_dicom=path_to_segmentation)
+                reference_uid = self.get_segmentation_reference_uid(seg_header)
+
+                if image.dicom_header.SeriesInstanceUID == reference_uid:
                     segmentation_reader = SegmentationReader(
                         image=image,
                         path_to_segmentation=path_to_segmentation
@@ -288,13 +290,7 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
             segmentations = []
             for path_to_segmentation in self._paths_to_segmentations:
                 seg_header = DicomReader.get_dicom_header(path_to_dicom=path_to_segmentation)
-                if hasattr(seg_header, "ReferencedSeriesSequence"):
-                    reference_uid = seg_header.ReferencedSeriesSequence[0].SeriesInstanceUID
-                else:
-                    referenced_frame_of_reference_sequence = seg_header.ReferencedFrameOfReferenceSequence
-                    rt_referenced_study_sequence = referenced_frame_of_reference_sequence[0].RTReferencedStudySequence
-                    rt_referenced_series_sequence = rt_referenced_study_sequence[0].RTReferencedSeriesSequence
-                    reference_uid = rt_referenced_series_sequence[0].SeriesInstanceUID
+                reference_uid = self.get_segmentation_reference_uid(seg_header)
 
                 if image.dicom_header.SeriesInstanceUID == reference_uid:
                     segmentation_reader = SegmentationReader(
