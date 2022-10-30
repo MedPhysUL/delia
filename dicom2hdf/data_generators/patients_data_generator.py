@@ -42,7 +42,7 @@ class PatientsDataGenerator(Generator):
             self,
             path_to_patients_folder: str,
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
-            transforms: Optional[Union[Compose, PhysicalSpaceTransform]] = None,
+            transforms: Union[Compose, PhysicalSpaceTransform] = Compose([]),
             erase_unused_dicom_files: bool = False
     ) -> None:
         """
@@ -59,7 +59,7 @@ class PatientsDataGenerator(Generator):
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. Note that it can be specified as a path to a json dictionary that contains the
             series descriptions.
-        transforms : Optional[Union[Compose, PhysicalSpaceTransform]]
+        transforms : Union[Compose, PhysicalSpaceTransform]
             A sequence of transformations to apply to images and segmentations in the physical space, i.e on the
             SimpleITK image. Keys are assumed to be modality names for images and organ names for segmentations.
         erase_unused_dicom_files: bool = False
@@ -90,6 +90,9 @@ class PatientsDataGenerator(Generator):
                     raise AssertionError("The given transforms must inherit from "
                                          "'dicom2hdf.processing.transforms.PhysicalSpaceTransform'.")
             self._transforms = transforms
+        else:
+            raise AssertionError("'physical_space_transforms' must either be of type 'Compose' or "
+                                 "'PhysicalSpaceTransform'.")
 
         self._current_index = 0
         self._patients_who_failed = []

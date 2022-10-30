@@ -171,7 +171,7 @@ class PatientDataReader(DicomReader):
 
     @staticmethod
     def _apply_transforms(
-            transforms: Optional[Union[Compose, PhysicalSpaceTransform]],
+            transforms: Union[Compose, PhysicalSpaceTransform],
             image: ImageDataModel,
             segmentations: Optional[Sequence[SegmentationDataModel]] = None
     ):
@@ -200,13 +200,13 @@ class PatientDataReader(DicomReader):
                     
                 segmentation_data.simple_itk_label_maps = apply_transform(transform=transforms, data=temp_dict)
 
-    def get_patient_dataset(self, transforms: Optional[Union[Compose, PhysicalSpaceTransform]]) -> PatientDataModel:
+    def get_patient_dataset(self, transforms: Union[Compose, PhysicalSpaceTransform]) -> PatientDataModel:
         """
         Get the patient dataset.
 
         Parameters
         ----------
-        transforms : Optional[Union[Compose, PhysicalSpaceTransform]]
+        transforms : Union[Compose, PhysicalSpaceTransform]
             A sequence of transformations to apply to images and segmentations in the physical space, i.e on the
             SimpleITK image. Keys are assumed to be modality names for images and organ names for segmentations.
 
