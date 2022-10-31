@@ -21,12 +21,28 @@ class TransformsHistory:
     """
 
     def __init__(self, transforms: Optional[Union[Compose, MapTransform]] = None):
+        """
+        Initialize history.
+
+        Parameters
+        ----------
+        transforms : Optional[Union[Compose, MapTransform]]
+            Transforms.
+        """
         self.history = []
 
         if transforms:
             self.append(transforms)
 
     def append(self, transforms: Union[Compose, MapTransform]) -> None:
+        """
+        Append transforms to history.
+
+        Parameters
+        ----------
+        transforms : Optional[Union[Compose, MapTransform]]
+            Transforms.
+        """
         if isinstance(transforms, MapTransform):
             self.history.append(transforms.__dict__)
         elif isinstance(transforms, Compose):
@@ -34,3 +50,23 @@ class TransformsHistory:
                 self.history.append(dict({"name": transform.__class__.__name__}, **vars(transform)))
         else:
             raise AssertionError("'transforms' must be Union[Compose, MapTransform].")
+
+    @staticmethod
+    def serialize(transforms: Union[Compose, MapTransform]) -> Union[dict, str]:
+        """
+        Serialize given transforms.
+
+        Parameters
+        ----------
+        transforms : Optional[Union[Compose, MapTransform]]
+            Transforms.
+
+        Returns
+        -------
+        serialized_transforms : Union[dict, str]
+            Serialized transforms.
+        """
+        try:
+            return vars(transforms)
+        except (AttributeError, TypeError):
+            return "<not serializable>"
