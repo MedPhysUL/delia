@@ -31,6 +31,6 @@ class TransformsHistory:
             self.history.append(transforms.__dict__)
         elif isinstance(transforms, Compose):
             for transform in transforms.__dict__["transforms"]:
-                self.history.append(dict({"name": transform.__class__.__name__}, **transform.__dict__))
+                self.history.append(dict({"name": transform.__class__.__name__}, **vars(transform)))
         else:
             raise AssertionError("'transforms' must be Union[Compose, MapTransform].")
