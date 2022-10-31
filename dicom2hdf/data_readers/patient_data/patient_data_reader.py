@@ -10,15 +10,16 @@
 """
 
 import logging
-from typing import Dict, List, Optional, Sequence, Union
+from typing import Dict, List, Optional, Union
 
-from monai.transforms import apply_transform, Compose
+from monai.transforms import Compose
 
-from dicom2hdf.data_model import ImageDataModel, PatientDataModel, SegmentationDataModel
+from dicom2hdf.data_model import PatientDataModel
 from dicom2hdf.data_readers.image.dicom_reader import DicomReader
 from dicom2hdf.data_readers.patient_data.patient_data_query_context import PatientDataQueryContext
-from dicom2hdf.transforms.transforms import PhysicalSpaceTransform
 from dicom2hdf.transforms.history import TransformsHistory
+from dicom2hdf.transforms.transforms import Dicom2hdfTransform
+from dicom2hdf.transforms.utils import apply_transforms
 
 _logger = logging.getLogger(__name__)
 
@@ -169,44 +170,13 @@ class PatientDataReader(DicomReader):
 
         self.failed_images.append(series_key)
 
-    @staticmethod
-    def _apply_transforms(
-            transforms: Union[Compose, PhysicalSpaceTransform],
-            image: ImageDataModel,
-            segmentations: Optional[Sequence[SegmentationDataModel]] = None
-    ):
-        """
-        Apply transforms to image and segmentation.
-
-        Parameters
-        ----------
-        transforms : Optional[Union[Compose, PhysicalSpaceTransform]]
-            A sequence of transformations to apply to images and segmentations in the physical space, i.e on the
-            SimpleITK image. Keys are assumed to be modality names for images and organ names for segmentations.
-        image : ImageDataModel
-            The patient's medical image data.
-        segmentations : Optional[Sequence[SegmentationDataModel]]
-            Data from the segmentation of the patient's medical image.
-        """
-        image_modality = image.dicom_header.Modality
-        temp_dict = {image_modality: image.simple_itk_image}
-        image.simple_itk_image = apply_transform(transform=transforms, data=temp_dict)[image_modality]
-
-        if segmentations:
-            for segmentation_data in segmentations:
-                temp_dict = {}
-                for organ_name, label_map in segmentation_data.simple_itk_label_maps.items():
-                    temp_dict[organ_name] = label_map
-                    
-                segmentation_data.simple_itk_label_maps = apply_transform(transform=transforms, data=temp_dict)
-
-    def get_patient_dataset(self, transforms: Union[Compose, PhysicalSpaceTransform]) -> PatientDataModel:
+    def get_patient_dataset(self, transforms: Union[Compose, Dicom2hdfTransform]) -> PatientDataModel:
         """
         Get the patient dataset.
 
         Parameters
         ----------
-        transforms : Union[Compose, PhysicalSpaceTransform]
+        transforms : Union[Compose, Dicom2hdfTransform]
             A sequence of transformations to apply to images and segmentations in the physical space, i.e on the
             SimpleITK image. Keys are assumed to be modality names for images and organ names for segmentations.
 
@@ -232,7 +202,7 @@ class PatientDataReader(DicomReader):
             image = image_and_segmentation_data.image
             segmentations = image_and_segmentation_data.segmentations
 
-            self._apply_transforms(image=image, segmentations=segmentations, transforms=transforms)
+            apply_transforms(image=image, segmentations=segmentations, transforms=transforms)
 
             modality = image.dicom_header.Modality
             series_description = image.dicom_header.SeriesDescription

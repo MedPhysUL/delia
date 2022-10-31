@@ -7,8 +7,14 @@
 import env_examples  # Modifies path, DO NOT REMOVE
 
 from dicom2hdf import PatientsDatabase
-from dicom2hdf.transforms import ResampleImageD, ResampleSegmentationD
-from monai.transforms import Compose
+from dicom2hdf.transforms import ResampleD
+from monai.transforms import (
+    CenterSpatialCropD,
+    Compose,
+    EnsureChannelFirstD,
+    ScaleIntensityD,
+    ThresholdIntensityD
+)
 
 
 if __name__ == "__main__":
@@ -29,10 +35,18 @@ if __name__ == "__main__":
         path_to_patients_folder="data/Patients",
         tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         series_descriptions="data/series_descriptions.json",
-        physical_space_transforms=Compose(
+        dicom2hdf_transforms=Compose(
             [
-                ResampleImageD(keys=["CT"], out_spacing=(1.5, 1.5, 1.5)),
-                ResampleSegmentationD(keys=["Heart"], out_spacing=(1.5, 1.5, 1.5))
+                ResampleD(keys=["CT", "Heart"], out_spacing=(1.5, 1.5, 1.5))
+            ]
+        ),
+        monai_transforms=Compose(
+            [
+                EnsureChannelFirstD(keys=['CT', 'Heart']),
+                CenterSpatialCropD(keys=['CT', 'Heart'], roi_size=(1000, 160, 160)),
+                ThresholdIntensityD(keys=['CT'], threshold=-250, above=True, cval=-250),
+                ThresholdIntensityD(keys=['CT'], threshold=500, above=False, cval=500),
+                ScaleIntensityD(keys=['CT'], minv=0, maxv=1)
             ]
         ),
         overwrite_database=True

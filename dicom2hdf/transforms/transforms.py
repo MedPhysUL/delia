@@ -5,26 +5,33 @@
     @Creation Date:     10/2022
     @Last modification: 10/2022
 
-    @Description:       This file contains the BaseTransform abstract class which is used to define transforms that can
-                        be applied to images and segmentations.
+    @Description:       This file contains the Dicom2hdfTransform abstract class which is used to define transforms
+                        that can be applied to images and segmentations.
 """
 
 from abc import abstractmethod
+from enum import IntEnum
 from typing import Collection, Dict, Hashable, Mapping, Tuple, Union
 
 import SimpleITK as sitk
-from monai.transforms.transform import MapTransform
+from monai.transforms import MapTransform
 import numpy as np
 
 KeysCollection = Union[Collection[Hashable], Hashable]
 
 
-class PhysicalSpaceTransform(MapTransform):
+class Mode(IntEnum):
+    NONE = -1
+    IMAGE = 0
+    SEGMENTATION = 1
+
+
+class Dicom2hdfTransform(MapTransform):
     """
     Base transform abstract class.
     """
 
-    def __init__(self, keys: KeysCollection, allow_missing_keys: bool = True) -> None:
+    def __init__(self, keys: KeysCollection) -> None:
         """
         Initialize transform keys.
 
@@ -33,10 +40,36 @@ class PhysicalSpaceTransform(MapTransform):
         keys : KeysCollection
             Keys of the corresponding items to be transformed. Keys are assumed to be modality names for images and
             organ names for segmentations.
-        allow_missing_keys : bool
-            Don't raise exception if key is missing.
         """
-        super().__init__(keys=keys, allow_missing_keys=allow_missing_keys)
+        super().__init__(keys=keys, allow_missing_keys=True)
+        self._mode = Mode.NONE
+
+    @property
+    def mode(self) -> Mode:
+        """
+        The transform mode, i.e. whether the single ITK images on which to apply the transformation are images OR
+        segmentations.
+
+        Returns
+        -------
+        mode : Mode
+            Transform mode.
+        """
+        return self._mode
+
+    @mode.setter
+    def mode(self, mode: Mode):
+        """
+        The transform mode, i.e. whether the single ITK images on which to apply the transformation are images OR
+        segmentations.
+
+        Parameters
+        ----------
+        mode : Mode
+            The transform mode, i.e. whether the single ITK images on which to apply the transformation are images OR
+            segmentations.
+        """
+        self._mode = mode
 
     @abstractmethod
     def __call__(self, data: Mapping[Hashable, sitk.Image]) -> Dict[Hashable, sitk.Image]:
@@ -56,7 +89,7 @@ class PhysicalSpaceTransform(MapTransform):
         raise NotImplementedError
 
 
-class ResampleD(PhysicalSpaceTransform):
+class ResampleD(Dicom2hdfTransform):
     """
     Resample an itk_image to new out_spacing.
     """
@@ -64,9 +97,7 @@ class ResampleD(PhysicalSpaceTransform):
     def __init__(
             self,
             keys: KeysCollection,
-            segmentation: bool,
-            out_spacing: Tuple[float, float, float] = (1.0, 1.0, 1.0),
-            allow_missing_keys: bool = True
+            out_spacing: Tuple[float, float, float] = (1.0, 1.0, 1.0)
     ):
         """
         Initialize output spacing.
@@ -74,18 +105,13 @@ class ResampleD(PhysicalSpaceTransform):
         Parameters
         ----------
         keys : KeysCollection
-            Keys of the corresponding items to be transformed.
-        segmentation : bool
-            Whether the simple ITK images are segmentations or not. This parameter will change the interpolator used
-            during resampling.
+            Keys of the corresponding items to be transformed. Keys are assumed to be modality names for images and
+            organ names for contours/segmentations.
         out_spacing : Tuple[int, int, int], default = (1.0, 1.0, 1.0)
             The desired spacing in the physical space. Default = (1.0 mm, 1.0 mm, 1.0 mm).
-        allow_missing_keys : bool
-            Don't raise exception if key is missing.
         """
-        super().__init__(keys=keys, allow_missing_keys=allow_missing_keys)
+        super().__init__(keys=keys)
         self._out_spacing = out_spacing
-        self._segmentation = segmentation
 
     def __call__(self, data: Mapping[Hashable, sitk.Image]) -> Dict[Hashable, sitk.Image]:
         """
@@ -123,65 +149,17 @@ class ResampleD(PhysicalSpaceTransform):
             resample.SetTransform(sitk.Transform())
             resample.SetDefaultPixelValue(original_itk_image.GetPixelIDValue())
 
-            if self._segmentation:
+            if self._mode == Mode.NONE:
+                raise AssertionError("Transform mode must be set before __call__.")
+            elif self._mode == Mode.IMAGE:
+                resample.SetInterpolator(sitk.sitkLinear)
+            elif self._mode == Mode.SEGMENTATION:
                 resample.SetInterpolator(sitk.sitkNearestNeighbor)
             else:
-                resample.SetInterpolator(sitk.sitkLinear)
+                raise ValueError("Unknown transform mode.")
 
             resampled_image = resample.Execute(original_itk_image)
 
             d[key] = resampled_image
 
         return d
-
-
-class ResampleImageD(ResampleD):
-    """
-    Resample an itk_image to new out_spacing.
-    """
-
-    def __init__(
-            self,
-            keys: KeysCollection,
-            out_spacing: Tuple[float, float, float] = (1.0, 1.0, 1.0),
-            allow_missing_keys: bool = True
-    ):
-        """
-        Initialize output spacing.
-
-        Parameters
-        ----------
-        keys : KeysCollection
-            Keys of the corresponding items to be transformed. Keys are assumed to be modality names.
-        out_spacing : Tuple[int, int, int], default = (1.0, 1.0, 1.0)
-            The desired spacing in the physical space. Default = (1.0 mm, 1.0 mm, 1.0 mm).
-        allow_missing_keys : bool
-            Don't raise exception if key is missing.
-        """
-        super().__init__(keys=keys, segmentation=False, allow_missing_keys=allow_missing_keys, out_spacing=out_spacing)
-
-
-class ResampleSegmentationD(ResampleD):
-    """
-    Resample an itk_image representing a segmentation to a new out_spacing.
-    """
-
-    def __init__(
-            self,
-            keys: KeysCollection,
-            out_spacing: Tuple[float, float, float] = (1.0, 1.0, 1.0),
-            allow_missing_keys: bool = True
-    ):
-        """
-        Initialize output spacing.
-
-        Parameters
-        ----------
-        keys : KeysCollection
-            Keys of the corresponding items to be transformed. Keys are assumed to be organ names.
-        out_spacing : Tuple[int, int, int], default = (1.0, 1.0, 1.0)
-            The desired spacing in the physical space. Default = (1.0 mm, 1.0 mm, 1.0 mm).
-        allow_missing_keys : bool
-            Don't raise exception if key is missing.
-        """
-        super().__init__(keys=keys, segmentation=True, allow_missing_keys=allow_missing_keys, out_spacing=out_spacing)

@@ -21,7 +21,7 @@ from monai.transforms import Compose
 
 from dicom2hdf.data_readers.patient_data.patient_data_reader import PatientDataReader
 from dicom2hdf.data_model import PatientDataModel
-from dicom2hdf.transforms.transforms import PhysicalSpaceTransform
+from dicom2hdf.transforms.transforms import Dicom2hdfTransform
 
 _logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class PatientsDataGenerator(Generator):
             self,
             path_to_patients_folder: str,
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
-            transforms: Union[Compose, PhysicalSpaceTransform] = Compose([]),
+            transforms: Union[Compose, Dicom2hdfTransform] = Compose([]),
             erase_unused_dicom_files: bool = False
     ) -> None:
         """
@@ -59,7 +59,7 @@ class PatientsDataGenerator(Generator):
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. Note that it can be specified as a path to a json dictionary that contains the
             series descriptions.
-        transforms : Union[Compose, PhysicalSpaceTransform]
+        transforms : Union[Compose, Dicom2hdfTransform]
             A sequence of transformations to apply to images and segmentations in the physical space, i.e on the
             SimpleITK image. Keys are assumed to be modality names for images and organ names for segmentations.
         erase_unused_dicom_files: bool = False
@@ -82,17 +82,16 @@ class PatientsDataGenerator(Generator):
 
         if transforms is None:
             self._transforms = Compose([])
-        if isinstance(transforms, PhysicalSpaceTransform):
-            self._transforms = transforms
         elif isinstance(transforms, Compose):
             for t in transforms.transforms:
-                if not isinstance(t, PhysicalSpaceTransform):
-                    raise AssertionError("The given transforms must inherit from "
-                                         "'dicom2hdf.processing.transforms.PhysicalSpaceTransform'.")
+                if not isinstance(t, Dicom2hdfTransform):
+                    raise AssertionError("The given transforms must inherit from 'Dicom2hdfTransform'.")
+            self._transforms = transforms
+        elif isinstance(transforms, Dicom2hdfTransform):
             self._transforms = transforms
         else:
             raise AssertionError("'physical_space_transforms' must either be of type 'Compose' or "
-                                 "'PhysicalSpaceTransform'.")
+                                 "'Dicom2hdfTransform'.")
 
         self._current_index = 0
         self._patients_who_failed = []

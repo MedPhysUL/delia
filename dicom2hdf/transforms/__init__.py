@@ -1,1 +1,2 @@
-from .transforms import ResampleD, ResampleImageD, ResampleSegmentationD
+from .transforms import ResampleD
+from monai.transforms import Compose

@@ -7,8 +7,7 @@
 import env_examples  # Modifies path, DO NOT REMOVE
 
 from dicom2hdf import PatientsDataGenerator
-from dicom2hdf.transforms import ResampleImageD, ResampleSegmentationD
-from monai.transforms import Compose
+from dicom2hdf.transforms import Compose, ResampleD
 import SimpleITK as sitk
 
 
@@ -21,8 +20,7 @@ if __name__ == "__main__":
         series_descriptions="data/series_descriptions.json",
         transforms=Compose(
             [
-                ResampleImageD(keys=["CT"], out_spacing=(1.5, 1.5, 1.5)),
-                ResampleSegmentationD(keys=["Heart"], out_spacing=(1.5, 1.5, 1.5))
+                ResampleD(keys=["CT", "Heart"], out_spacing=(1.5, 1.5, 1.5))
             ]
         )
     )
