@@ -26,8 +26,10 @@ setuptools.setup(
         "h5py",
         "monai"
         "numpy",
+        "pandas",
         "pydicom",
         "pydicom-seg",
+        "pyradiomics"
         "rt_utils",
         "SimpleITK"
     ],
