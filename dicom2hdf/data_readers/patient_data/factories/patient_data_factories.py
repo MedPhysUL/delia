@@ -184,18 +184,6 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
             series_descriptions=series_descriptions,
             erase_unused_dicom_files=erase_unused_dicom_files
         )
-        
-    @property
-    def flatten_series_descriptions(self) -> List[str]:
-        """
-        Flatten series descriptions.
-
-        Returns
-        -------
-        flatten_series_description : List[str]
-            Series descriptions as a list instead of a dictionary.
-        """
-        return [val for lst in self._series_descriptions.values() for val in lst]
 
     def create_patient_data(self) -> PatientDataModel:
         """
@@ -209,10 +197,13 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
         data = []
         for image_idx, image in enumerate(self._images_data):
             image_added = False
-            if image.dicom_header.SeriesDescription in self.flatten_series_descriptions:
-                image_data = ImageAndSegmentationDataModel(image=image)
-                data.append(image_data)
-                image_added = True
+            for series_key, list_of_series_descriptions in self._series_descriptions.items():
+                if image.dicom_header.SeriesDescription in list_of_series_descriptions:
+                    image_data = ImageAndSegmentationDataModel(image=image)
+                    image_data.image.series_key = series_key
+                    data.append(image_data)
+                    image_added = True
+                    break
 
             if image_added is False and self._erase_unused_dicom_files:
                 self.erase_dicom_files(image)
@@ -261,18 +252,6 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
             erase_unused_dicom_files=erase_unused_dicom_files
         )
 
-    @property
-    def flatten_series_descriptions(self) -> List[str]:
-        """
-        Flatten series descriptions.
-
-        Returns
-        -------
-        flatten_series_description : List[str]
-            Series descriptions as a list instead of a dictionary.
-        """
-        return [val for lst in self._series_descriptions.values() for val in lst]
-        
     def create_patient_data(self) -> PatientDataModel:
         """
         Creates a tuple containing all the patient's data.
@@ -308,10 +287,19 @@ class SegAndSeriesPatientDataFactory(BasePatientDataFactory):
                 data.append(image_and_segmentation_data)
                 image_added = True
 
-            if image_added is False and series_description in self.flatten_series_descriptions:
-                image_data = ImageAndSegmentationDataModel(image=image)
-                data.append(image_data)
-                image_added = True
+            if image_added is True:
+                for series_key, list_of_series_descriptions in self._series_descriptions.items():
+                    if series_description in list_of_series_descriptions:
+                        data[-1].image.series_key = series_key
+                        break
+            elif image_added is False:
+                for series_key, list_of_series_descriptions in self._series_descriptions.items():
+                    if series_description in list_of_series_descriptions:
+                        image_data = ImageAndSegmentationDataModel(image=image)
+                        image_data.image.series_key = series_key
+                        data.append(image_data)
+                        image_added = True
+                        break
 
             if image_added is False and self._erase_unused_dicom_files:
                 self.erase_dicom_files(image)

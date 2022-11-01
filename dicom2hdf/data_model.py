@@ -57,10 +57,13 @@ class ImageDataModel:
         Segmentation as a SimpleITK image.
     paths_to_dicoms : Sequence[str]
         A list of the paths to each dicom contained in the series.
+    series_key : str
+        Arbitrary name given to the image we want to extract.
     """
     dicom_header: pydicom.dataset.FileDataset
-    simple_itk_image: sitk.Image
     paths_to_dicoms: Sequence[str]
+    simple_itk_image: sitk.Image
+    series_key: str = None
 
 
 @dataclass
