@@ -20,6 +20,7 @@ import json
 import numpy as np
 from monai.data import MetaTensor
 from monai.transforms import apply_transform, Compose
+from monai.transforms import MapTransform as MonaiMapTransform
 from monai.transforms import Transform as MonaiTransform
 from monai.utils import convert_to_numpy
 import SimpleITK as sitk
@@ -177,9 +178,10 @@ class PatientsDatabase:
             return True
 
     @staticmethod
-    def _get_altered_monai_transforms(
-            transforms: Union[Compose, MonaiTransform]
-    ) -> Union[Compose, MonaiTransform]:
+    def _set_allow_missing_keys_attribute(
+            transforms: Union[Compose, MonaiTransform],
+            allow_missing_keys: bool
+    ) -> None:
         """
         Validate monai transforms type (array space transforms) and set allow_missing_keys attributes to True.
 
@@ -189,24 +191,20 @@ class PatientsDatabase:
             A sequence of transformations to apply to images and segmentations in the array space, i.e on the numpy
             array that represents the image. Keys are assumed to be modality names for images and organ names for
             segmentations.
-
-        Returns
-        -------
-        transforms : Union[Compose, MonaiTransform]
-            A sequence of transformations to apply to images and segmentations in the array space, i.e on the numpy
-            array that represents the image.
+        allow_missing_keys : bool
+            Iterate across keys and optionally extra iterables. If key is missing, exception is raised if
+            `allow_missing_keys==False`. If `allow_missing_keys==True`, key is skipped.
         """
         if isinstance(transforms, Compose):
             for t in transforms.transforms:
-                if not isinstance(t, MonaiTransform):
-                    raise AssertionError("The given transforms must inherit from 'Transform'.")
-                t.allow_missing_keys = True
-            return transforms
-        elif isinstance(transforms, MonaiTransform):
+                if isinstance(t, MonaiMapTransform):
+                    t.allow_missing_keys = True
+                elif not isinstance(t, MonaiTransform):
+                    raise AssertionError("The given transforms must inherit from 'MonaiTransform'.")
+        elif isinstance(transforms, MonaiMapTransform):
             transforms.allow_missing_keys = True
-            return transforms
-        else:
-            raise AssertionError("'array_space_transforms' must either be of type 'Compose' or 'Transform'.")
+        elif not isinstance(transforms, MonaiTransform):
+            raise AssertionError("'array_space_transforms' must either be of type 'Compose' or 'MonaiTransform'.")
 
     @staticmethod
     def _convert_to_numpy(array: Union[MetaTensor, np.ndarray]) -> np.ndarray:
@@ -296,7 +294,7 @@ class PatientsDatabase:
             the patient record.
         """
         self._check_authorization_of_database_creation(overwrite_database=overwrite_database)
-        monai_transforms = self._get_altered_monai_transforms(transforms=monai_transforms)
+        self._set_allow_missing_keys_attribute(transforms=monai_transforms, allow_missing_keys=True)
 
         if tags_to_use_as_attributes is None:
             tags_to_use_as_attributes = []
