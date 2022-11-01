@@ -20,7 +20,7 @@ if __name__ == "__main__":
         series_descriptions="data/series_descriptions.json",
         transforms=Compose(
             [
-                ResampleD(keys=["CT", "Heart"], out_spacing=(1.5, 1.5, 1.5))
+                ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5))
             ]
         )
     )
@@ -34,4 +34,14 @@ if __name__ == "__main__":
             numpy_array_image = sitk.GetArrayFromImage(simple_itk_image)
 
             """Perform any tasks on images on-the-fly."""
-            print(numpy_array_image.shape)
+            print("MODALITY:", dicom_header.Modality)
+            print("NAME:", patient_image_data.image.series_key)
+            print("SHAPE:", numpy_array_image.shape)
+
+            segmentations = patient_image_data.segmentations
+            if segmentations:
+                for segmentation in segmentations:
+                    for organ, sitk_label_map in segmentation.simple_itk_label_maps.items():
+                        numpy_array_image = sitk.GetArrayFromImage(sitk_label_map)
+                        print("ORGAN:", organ)
+                        print("SHAPE:", numpy_array_image.shape)

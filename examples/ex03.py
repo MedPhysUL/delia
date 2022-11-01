@@ -35,18 +35,13 @@ if __name__ == "__main__":
         path_to_patients_folder="data/Patients",
         tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         series_descriptions="data/series_descriptions.json",
-        dicom2hdf_transforms=Compose(
+        transforms=Compose(
             [
-                ResampleD(keys=["CT", "Heart"], out_spacing=(1.5, 1.5, 1.5))
-            ]
-        ),
-        monai_transforms=Compose(
-            [
-                EnsureChannelFirstD(keys=['CT', 'Heart']),
-                CenterSpatialCropD(keys=['CT', 'Heart'], roi_size=(1000, 160, 160)),
-                ThresholdIntensityD(keys=['CT'], threshold=-250, above=True, cval=-250),
-                ThresholdIntensityD(keys=['CT'], threshold=500, above=False, cval=500),
-                ScaleIntensityD(keys=['CT'], minv=0, maxv=1)
+                ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
+                CenterSpatialCropD(keys=["CT_THORAX", 'Heart'], roi_size=(1000, 160, 160)),
+                ThresholdIntensityD(keys=["CT_THORAX"], threshold=-250, above=True, cval=-250),
+                ThresholdIntensityD(keys=["CT_THORAX"], threshold=500, above=False, cval=500),
+                ScaleIntensityD(keys=["CT_THORAX"], minv=0, maxv=1)
             ]
         ),
         overwrite_database=True

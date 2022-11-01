@@ -18,11 +18,8 @@ from typing import Dict, List, Optional, Tuple, Union
 import h5py
 import json
 import numpy as np
-from monai.data import MetaTensor
-from monai.transforms import apply_transform, Compose
+from monai.transforms import Compose
 from monai.transforms import MapTransform as MonaiMapTransform
-from monai.transforms import Transform as MonaiTransform
-from monai.utils import convert_to_numpy
 import SimpleITK as sitk
 
 from dicom2hdf.data_generators.patients_data_generator import PatientsDataGenerator, PatientWhoFailed
@@ -177,55 +174,6 @@ class PatientsDatabase:
         else:
             return True
 
-    @staticmethod
-    def _set_allow_missing_keys_attribute(
-            transforms: Union[Compose, MonaiTransform],
-            allow_missing_keys: bool
-    ) -> None:
-        """
-        Validate monai transforms type (array space transforms) and set allow_missing_keys attributes to True.
-
-        Parameters
-        ----------
-        transforms : Union[Compose, MonaiTransform]
-            A sequence of transformations to apply to images and segmentations in the array space, i.e on the numpy
-            array that represents the image. Keys are assumed to be modality names for images and organ names for
-            segmentations.
-        allow_missing_keys : bool
-            Iterate across keys and optionally extra iterables. If key is missing, exception is raised if
-            `allow_missing_keys==False`. If `allow_missing_keys==True`, key is skipped.
-        """
-        if isinstance(transforms, Compose):
-            for t in transforms.transforms:
-                if isinstance(t, MonaiMapTransform):
-                    t.allow_missing_keys = True
-                elif not isinstance(t, MonaiTransform):
-                    raise AssertionError("The given transforms must inherit from 'MonaiTransform'.")
-        elif isinstance(transforms, MonaiMapTransform):
-            transforms.allow_missing_keys = True
-        elif not isinstance(transforms, MonaiTransform):
-            raise AssertionError("'array_space_transforms' must either be of type 'Compose' or 'MonaiTransform'.")
-
-    @staticmethod
-    def _convert_to_numpy(array: Union[MetaTensor, np.ndarray]) -> np.ndarray:
-        """
-        Converts given image tensor or array to numpy array.
-
-        Parameters
-        ----------
-        array : Union[MetaTensor, np.ndarray]
-            Image tensor or array.
-
-        Returns
-        -------
-        array : np.ndarray
-            Image numpy array.
-        """
-        if isinstance(array, MetaTensor):
-            return convert_to_numpy(array[0, :])
-        else:
-            return array
-
     def _transpose(self, array: np.ndarray) -> np.ndarray:
         """
         Transpose an array if its shape is not valid for the hdf5 database format.
@@ -251,8 +199,7 @@ class PatientsDatabase:
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
             tags_to_use_as_attributes: Optional[List[Tuple[int, int]]] = None,
             add_sitk_image_metadata_as_attributes: bool = True,
-            dicom2hdf_transforms: Union[Compose, Dicom2hdfTransform] = Compose([]),
-            monai_transforms: Union[Compose, MonaiTransform] = Compose([]),
+            transforms: Union[Compose, Dicom2hdfTransform, MonaiMapTransform] = Compose([]),
             erase_unused_dicom_files: bool = False,
             overwrite_database: bool = False
     ) -> List[PatientWhoFailed]:
@@ -275,13 +222,12 @@ class PatientsDatabase:
             series descriptions.
         add_sitk_image_metadata_as_attributes : bool, default = True.
             Keep Simple ITK image information as attributes in the corresponding series.
-        dicom2hdf_transforms : Union[Compose, PhysicalSpaceTransform]
-            A sequence of transformations to apply to images and segmentations in the physical space, i.e on the
-            SimpleITK image. Keys are assumed to be modality names for images and organ names for segmentations.
-        monai_transforms : Union[Compose, MonaiTransform]
-            A sequence of transformations to apply to images and segmentations in the array space, i.e on the numpy
-            array that represents the image. Keys are assumed to be modality names for images and organ names for
-            segmentations.
+        transforms : Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
+            A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
+            physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
+            the numpy array that represents the image. The keys for images are assumed to be the arbitrary series key
+            set in 'series_descriptions'. For segmentation, keys are organ names. Note that if 'series_descriptions' is
+            None, the keys for images are assumed to be modalities.
         erase_unused_dicom_files: bool, default = False
             Whether to delete unused DICOM files or not. Use with EXTREME caution!
         overwrite_database : bool, default = False.
@@ -294,7 +240,6 @@ class PatientsDatabase:
             the patient record.
         """
         self._check_authorization_of_database_creation(overwrite_database=overwrite_database)
-        self._set_allow_missing_keys_attribute(transforms=monai_transforms, allow_missing_keys=True)
 
         if tags_to_use_as_attributes is None:
             tags_to_use_as_attributes = []
@@ -304,7 +249,7 @@ class PatientsDatabase:
         patient_data_generator = PatientsDataGenerator(
             path_to_patients_folder=path_to_patients_folder,
             series_descriptions=series_descriptions,
-            transforms=dicom2hdf_transforms,
+            transforms=transforms,
             erase_unused_dicom_files=erase_unused_dicom_files
         )
 
@@ -329,16 +274,9 @@ class PatientsDatabase:
                 image_array = sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image)
                 modality = patient_image_data.image.dicom_header.Modality
 
-                transformed_img_dict = apply_transform(
-                    data={modality: image_array},
-                    transform=monai_transforms
-                )
-                transformed_img_array = transformed_img_dict[modality]
-                transformed_img_array = self._convert_to_numpy(transformed_img_array)
-
                 series_group.create_dataset(
                     name=self.IMAGE,
-                    data=self._transpose(transformed_img_array)
+                    data=self._transpose(image_array)
                 )
 
                 if patient_image_data.segmentations:
@@ -346,27 +284,14 @@ class PatientsDatabase:
                         segmentation_group = series_group.create_group(name=str(segmentation_idx))
                         segmentation_group.attrs.create(name=self.MODALITY, data=segmentation.modality)
 
-                        temp_dict = {modality: image_array}
                         for organ, simple_itk_label_map in segmentation.simple_itk_label_maps.items():
                             numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
-                            temp_dict[organ] = numpy_array_label_map
-
-                        transformed_seg_dict = apply_transform(
-                            data=temp_dict,
-                            transform=monai_transforms
-                        )
-
-                        for organ, simple_itk_label_map in segmentation.simple_itk_label_maps.items():
-                            transformed_seg_array = transformed_seg_dict[organ]
-                            transformed_seg_array = self._convert_to_numpy(transformed_seg_array)
 
                             segmentation_group.create_dataset(
                                 name=organ,
-                                data=self._transpose(transformed_seg_array),
+                                data=self._transpose(numpy_array_label_map),
                                 dtype=np.int8
                             )
-
-            patient_dataset.transforms_history.append(monai_transforms)
 
             for idx, transform in enumerate(patient_dataset.transforms_history.history):
                 patient_group.attrs.create(

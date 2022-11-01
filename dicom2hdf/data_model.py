@@ -59,11 +59,14 @@ class ImageDataModel:
         A list of the paths to each dicom contained in the series.
     series_key : str
         Arbitrary name given to the image we want to extract.
+    _transforms_key : str
+        key used for the temporary dictionary created when applying transforms.
     """
     dicom_header: pydicom.dataset.FileDataset
     paths_to_dicoms: Sequence[str]
     simple_itk_image: sitk.Image
     series_key: str = None
+    transforms_key: str = None
 
 
 @dataclass

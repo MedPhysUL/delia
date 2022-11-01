@@ -13,13 +13,14 @@ import logging
 from typing import Dict, List, Optional, Union
 
 from monai.transforms import Compose
+from monai.transforms import MapTransform as MonaiMapTransform
 
 from dicom2hdf.data_model import PatientDataModel
 from dicom2hdf.data_readers.image.dicom_reader import DicomReader
 from dicom2hdf.data_readers.patient_data.patient_data_query_context import PatientDataQueryContext
+from dicom2hdf.transforms.applications import apply_transforms
 from dicom2hdf.transforms.history import TransformsHistory
 from dicom2hdf.transforms.transforms import Dicom2hdfTransform
-from dicom2hdf.transforms.utils import apply_transforms
 
 _logger = logging.getLogger(__name__)
 
@@ -170,15 +171,21 @@ class PatientDataReader(DicomReader):
 
         self.failed_images.append(series_key)
 
-    def get_patient_dataset(self, transforms: Union[Compose, Dicom2hdfTransform]) -> PatientDataModel:
+    def get_patient_dataset(
+            self,
+            transforms: Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
+    ) -> PatientDataModel:
         """
         Get the patient dataset.
 
         Parameters
         ----------
-        transforms : Union[Compose, Dicom2hdfTransform]
-            A sequence of transformations to apply to images and segmentations in the physical space, i.e on the
-            SimpleITK image. Keys are assumed to be modality names for images and organ names for segmentations.
+        transforms : Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
+            A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
+            physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
+            the numpy array that represents the image. The keys for images are assumed to be the arbitrary series key
+            set in 'series_descriptions'. For segmentation, keys are organ names. Note that if 'series_descriptions' is
+            None, the keys for images are assumed to be modalities.
 
         Returns
         -------
@@ -194,6 +201,8 @@ class PatientDataReader(DicomReader):
         )
         patient_dataset = patient_data_context.create_patient_data()
 
+        apply_transforms(patient_dataset=patient_dataset, transforms=transforms)
+
         _logger.debug(f"Chosen patient data query strategy : "
                       f"'{patient_data_context.patient_data_query_strategy.name}'.")
         _logger.info(f"{len(patient_dataset.data)} images added to the patient dataset, namely: ")
@@ -201,8 +210,6 @@ class PatientDataReader(DicomReader):
         for image_and_segmentation_data in patient_dataset.data:
             image = image_and_segmentation_data.image
             segmentations = image_and_segmentation_data.segmentations
-
-            apply_transforms(image=image, segmentations=segmentations, transforms=transforms)
 
             modality = image.dicom_header.Modality
             series_description = image.dicom_header.SeriesDescription
