@@ -11,9 +11,10 @@
 
 from abc import abstractmethod
 from enum import IntEnum
-from typing import Collection, Dict, Hashable, Mapping, Tuple, Union
+from typing import Collection, Dict, Hashable, NamedTuple, Tuple, Union
 
 import SimpleITK as sitk
+import pydicom
 from monai.transforms import MapTransform
 import numpy as np
 
@@ -24,6 +25,21 @@ class Mode(IntEnum):
     NONE = -1
     IMAGE = 0
     SEGMENTATION = 1
+
+
+class ImageData(NamedTuple):
+    """
+    A named tuple the medical image as a simpleITK image and its dicom header.
+
+    Elements
+    --------
+    simple_itk_image : Image
+        Segmentation as a SimpleITK image.
+    dicom_header : FileDataset
+        Dicom header dataset.
+    """
+    simple_itk_image: sitk.Image
+    dicom_header: pydicom.dataset.FileDataset = None
 
 
 class Dicom2hdfTransform(MapTransform):
@@ -72,14 +88,14 @@ class Dicom2hdfTransform(MapTransform):
         self._mode = mode
 
     @abstractmethod
-    def __call__(self, data: Mapping[Hashable, sitk.Image]) -> Dict[Hashable, sitk.Image]:
+    def __call__(self, data: Dict[str, ImageData]) -> Dict[Hashable, sitk.Image]:
         """
         Apply the transformation.
 
         Parameters
         ----------
-        data : Mapping[Hashable, sitk.Image]
-            A Python dictionary that contains SimpleITK images.
+        data : Dict[str, ImageData]
+            A Python dictionary that contains ImageData.
 
         Returns
         -------
@@ -113,14 +129,14 @@ class ResampleD(Dicom2hdfTransform):
         super().__init__(keys=keys)
         self._out_spacing = out_spacing
 
-    def __call__(self, data: Mapping[Hashable, sitk.Image]) -> Dict[Hashable, sitk.Image]:
+    def __call__(self, data: Dict[str, ImageData]) -> Dict[Hashable, sitk.Image]:
         """
         Resample an itk_image to new out_spacing.
 
         Parameters
         ----------
-        data : Mapping[Hashable, sitk.Image]
-            A Python dictionary that contains SimpleITK images.
+        data : Dict[str, ImageData]
+            A Python dictionary that contains ImageData.
 
         Returns
         -------
@@ -130,7 +146,7 @@ class ResampleD(Dicom2hdfTransform):
         d = dict(data)
 
         for key in self.key_iterator(d):
-            original_itk_image = d[key]
+            original_itk_image = d[key].simple_itk_image
 
             original_spacing = original_itk_image.GetSpacing()
             original_size = original_itk_image.GetSize()

@@ -18,7 +18,7 @@ from monai.transforms import MapTransform as MonaiMapTransform
 import SimpleITK as sitk
 
 from dicom2hdf.data_model import PatientDataModel
-from dicom2hdf.transforms.transforms import Dicom2hdfTransform, Mode
+from dicom2hdf.transforms.transforms import Dicom2hdfTransform, ImageData, Mode
 from dicom2hdf.transforms.tools import convert_to_numpy, set_transforms_keys
 
 
@@ -89,7 +89,13 @@ def _apply_transform_on_images(
         segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
         assumed to be modalities.
     """
-    images = {data.image.transforms_key: data.image.simple_itk_image for data in patient_dataset.data}
+    images = {
+        data.image.transforms_key: ImageData(
+            simple_itk_image=data.image.simple_itk_image,
+            dicom_header=data.image.dicom_header
+        )
+        for data in patient_dataset.data
+    }
 
     transformed_images_dict = _apply_transform(transform=transform, data=images, mode=Mode.IMAGE)
     for data in patient_dataset.data:
@@ -116,7 +122,13 @@ def _apply_transform_on_segmentations(
         segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
         assumed to be modalities.
     """
-    images = {data.image.transforms_key: data.image.simple_itk_image for data in patient_dataset.data}
+    images = {
+        data.image.transforms_key: ImageData(
+            simple_itk_image=data.image.simple_itk_image,
+            dicom_header=data.image.dicom_header
+        )
+        for data in patient_dataset.data
+    }
 
     for image_and_segmentation_data in patient_dataset.data:
         segmentations = image_and_segmentation_data.segmentations
@@ -125,7 +137,7 @@ def _apply_transform_on_segmentations(
             for segmentation_data in segmentations:
                 temp_dict = deepcopy(images)
                 for organ_name, label_map in segmentation_data.simple_itk_label_maps.items():
-                    temp_dict[organ_name] = label_map
+                    temp_dict[organ_name] = ImageData(simple_itk_image=label_map)
 
                 transformed_dict = _apply_transform(transform=transform, data=temp_dict, mode=Mode.SEGMENTATION)
 
@@ -136,7 +148,7 @@ def _apply_transform_on_segmentations(
 
 
 def _apply_transform(
-        data: Dict[str, sitk.Image],
+        data: Dict[str, ImageData],
         transform: Union[Dicom2hdfTransform, MonaiMapTransform],
         mode: Mode
 ) -> Dict[Hashable, sitk.Image]:
@@ -145,8 +157,8 @@ def _apply_transform(
 
     Parameters
     ----------
-    data : Dict[Hashable, sitk.Image]
-        A dictionary of SimpleITK images to be transformed.
+    data : Dict[str, ImageData]
+        A Python dictionary that contains ImageData to be transformed.
     transform : Union[Dicom2hdfTransform, MonaiMapTransform]
         A transformation to apply. Dicom2hdfTransform are applied in the physical space, i.e on the SimpleITK image,
         while MonaiMapTransform are applied in the array space, i.e on the numpy array that represents the image. The
@@ -164,11 +176,12 @@ def _apply_transform(
     if isinstance(transform, Dicom2hdfTransform):
         return _apply_dicom2hdf_transform(transform=transform, data=data, mode=mode)
     elif isinstance(transform, MonaiMapTransform):
+        data = {k: v.simple_itk_image for k, v in data.items()}
         return _apply_monai_transforms(transform=transform, data=data)
 
 
 def _apply_dicom2hdf_transform(
-        data: Dict[str, sitk.Image],
+        data: Dict[str, ImageData],
         transform: Dicom2hdfTransform,
         mode: Mode
 ) -> Dict[Hashable, sitk.Image]:
@@ -177,8 +190,8 @@ def _apply_dicom2hdf_transform(
 
     Parameters
     ----------
-    data : Dict[str, sitk.Image]
-        A dictionary of SimpleITK images to be transformed.
+    data : Dict[str, ImageData]
+        A Python dictionary that contains ImageData to be transformed.
     transform : Dicom2hdfTransform
         A transformation to apply to images and segmentations in the physical space, i.e on the SimpleITK image. Keys
         are assumed to be modality names for images and organ names for segmentations.
@@ -194,6 +207,10 @@ def _apply_dicom2hdf_transform(
 
     transformed_data = monai_apply_transform(transform=transform, data=data)
     transform.mode = Mode.NONE.value
+
+    for k, v in transformed_data.items():
+        if isinstance(v, ImageData):
+            transformed_data[k] = v.simple_itk_image
 
     return transformed_data
 
