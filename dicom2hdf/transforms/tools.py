@@ -17,7 +17,15 @@ import numpy as np
 from dicom2hdf.data_model import PatientDataModel
 
 
-def set_transforms_keys(patient_dataset: PatientDataModel):
+def set_transforms_keys(patient_dataset: PatientDataModel) -> None:
+    """
+    Sets transforms keys.
+    
+    Parameters
+    ----------
+    patient_dataset : PatientDataModel
+        Patient dataset.
+    """
     keys = []
     for image_and_segmentation_data in patient_dataset.data:
         series_key = image_and_segmentation_data.image.series_key
