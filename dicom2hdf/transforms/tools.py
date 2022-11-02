@@ -20,7 +20,7 @@ from dicom2hdf.data_model import PatientDataModel
 def set_transforms_keys(patient_dataset: PatientDataModel) -> None:
     """
     Sets transforms keys.
-    
+
     Parameters
     ----------
     patient_dataset : PatientDataModel

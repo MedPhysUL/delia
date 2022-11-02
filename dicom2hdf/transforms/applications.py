@@ -173,7 +173,7 @@ def _apply_dicom2hdf_transform(
         mode: Mode
 ) -> Dict[Hashable, sitk.Image]:
     """
-    Apply transforms.
+    Apply a Dicom2hdfTransform.
 
     Parameters
     ----------
@@ -203,7 +203,7 @@ def _apply_monai_transforms(
         transform: MonaiMapTransform
 ) -> Dict[Hashable, sitk.Image]:
     """
-    Apply transforms to image and segmentation.
+    Apply a MonaiMapTransform.
 
     Parameters
     ----------
