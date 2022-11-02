@@ -87,7 +87,7 @@ class ImageAndSegmentationDataModel:
     """
     image: ImageDataModel
     segmentations: Sequence[SegmentationDataModel] = None
-    
+
 
 @dataclass
 class PatientDataModel:
