@@ -7,7 +7,10 @@
 import env_examples  # Modifies path, DO NOT REMOVE
 
 from dicom2hdf import PatientsDatabase
-from dicom2hdf.transforms import ResampleD
+from dicom2hdf.transforms import (
+    PETtoSUVD,
+    ResampleD
+)
 from monai.transforms import (
     CenterSpatialCropD,
     Compose,
@@ -36,11 +39,12 @@ if __name__ == "__main__":
         series_descriptions="data/series_descriptions.json",
         transforms=Compose(
             [
-                ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
-                CenterSpatialCropD(keys=["CT_THORAX", 'Heart'], roi_size=(1000, 160, 160)),
+                ResampleD(keys=["CT_THORAX", "TEP", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
+                CenterSpatialCropD(keys=["CT_THORAX", "TEP", "Heart"], roi_size=(1000, 160, 160)),
                 ThresholdIntensityD(keys=["CT_THORAX"], threshold=-250, above=True, cval=-250),
                 ThresholdIntensityD(keys=["CT_THORAX"], threshold=500, above=False, cval=500),
-                ScaleIntensityD(keys=["CT_THORAX"], minv=0, maxv=1)
+                ScaleIntensityD(keys=["CT_THORAX"], minv=0, maxv=1),
+                PETtoSUVD(keys=["TEP"])
             ]
         ),
         overwrite_database=True

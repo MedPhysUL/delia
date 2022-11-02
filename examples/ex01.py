@@ -7,7 +7,7 @@
 import env_examples  # Modifies path, DO NOT REMOVE
 
 from dicom2hdf import PatientsDataGenerator
-from dicom2hdf.transforms import Compose, ResampleD
+from dicom2hdf.transforms import Compose, PETtoSUVD, ResampleD
 import SimpleITK as sitk
 
 
@@ -20,7 +20,8 @@ if __name__ == "__main__":
         series_descriptions="data/series_descriptions.json",
         transforms=Compose(
             [
-                ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5))
+                ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
+                PETtoSUVD(keys=["TEP"])
             ]
         )
     )
@@ -37,6 +38,7 @@ if __name__ == "__main__":
             print("MODALITY:", dicom_header.Modality)
             print("NAME:", patient_image_data.image.series_key)
             print("SHAPE:", numpy_array_image.shape)
+            print("MEAN VALUE", numpy_array_image.mean())
 
             segmentations = patient_image_data.segmentations
             if segmentations:
