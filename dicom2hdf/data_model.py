@@ -68,7 +68,8 @@ class ImageDataModel:
     series_key: str = None
     transforms_key: str = None
         
-    def get_numpy_array(self):
+    @property
+    def numpy_array(self):
         return sitk.GetArrayFromImage(self.simple_itk_image)
 
 
