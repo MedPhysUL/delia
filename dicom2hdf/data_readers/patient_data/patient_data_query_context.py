@@ -52,20 +52,15 @@ class PatientDataQueryContext:
     @property
     def patient_data_query_strategy(self) -> PatientDataQueryStrategy:
         """
-        Patient data query strategy corresponding to the given paths to segmentations and series descriptions
-        configuration.
+        Patient data query strategy corresponding to the given series descriptions configuration.
 
         Returns
         -------
         patient_data_query_strategy : PatientDataQueryStrategy
             Patient data query strategy.
         """
-        if self._paths_to_segmentations and self._series_descriptions:
-            return PatientDataQueryStrategies.SEGMENTATION_AND_SERIES_DESCRIPTION.value
-        elif not self._paths_to_segmentations and self._series_descriptions:
+        if self._series_descriptions:
             return PatientDataQueryStrategies.SERIES_DESCRIPTION.value
-        elif self._paths_to_segmentations and not self._series_descriptions:
-            return PatientDataQueryStrategies.SEGMENTATION.value
         else:
             return PatientDataQueryStrategies.DEFAULT.value
 

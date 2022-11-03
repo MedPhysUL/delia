@@ -12,8 +12,7 @@
 from enum import Enum
 from typing import NamedTuple, Callable
 
-from .factories.patient_data_factories import DefaultPatientDataFactory, SegmentationPatientDataFactory, \
-    SeriesDescriptionPatientDataFactory, SegAndSeriesPatientDataFactory
+from .factories.patient_data_factories import DefaultPatientDataFactory, SeriesDescriptionPatientDataFactory
 
 
 class PatientDataQueryStrategy(NamedTuple):
@@ -28,17 +27,8 @@ class PatientDataQueryStrategies(Enum):
         factory=DefaultPatientDataFactory
     )
 
-    SEGMENTATION = PatientDataQueryStrategy(
-        name="Segmentation",
-        factory=SegmentationPatientDataFactory
-    )
-
     SERIES_DESCRIPTION = PatientDataQueryStrategy(
         name="Series description",
         factory=SeriesDescriptionPatientDataFactory
     )
 
-    SEGMENTATION_AND_SERIES_DESCRIPTION = PatientDataQueryStrategy(
-        name="Segmentation and series description",
-        factory=SegAndSeriesPatientDataFactory
-    )
