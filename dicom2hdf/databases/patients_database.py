@@ -199,7 +199,7 @@ class PatientsDatabase:
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
             tags_to_use_as_attributes: Optional[List[Tuple[int, int]]] = None,
             add_sitk_image_metadata_as_attributes: bool = True,
-            transforms: Union[Compose, Dicom2hdfTransform, MonaiMapTransform] = Compose([]),
+            transforms: Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]] = None,
             erase_unused_dicom_files: bool = False,
             overwrite_database: bool = False
     ) -> List[PatientWhoFailed]:
@@ -222,7 +222,7 @@ class PatientsDatabase:
             series descriptions.
         add_sitk_image_metadata_as_attributes : bool, default = True.
             Keep Simple ITK image information as attributes in the corresponding series.
-        transforms : Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
+        transforms : Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]]
             A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
             physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
             the numpy array that represents the image. The keys for images are assumed to be the arbitrary series key

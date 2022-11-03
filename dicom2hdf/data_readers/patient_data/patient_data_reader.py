@@ -173,14 +173,14 @@ class PatientDataReader(DicomReader):
 
     def get_patient_dataset(
             self,
-            transforms: Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
+            transforms: Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]] = None
     ) -> PatientDataModel:
         """
         Get the patient dataset.
 
         Parameters
         ----------
-        transforms : Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
+        transforms : Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]]
             A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
             physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
             the numpy array that represents the image. The keys for images are assumed to be the arbitrary series key
@@ -201,7 +201,8 @@ class PatientDataReader(DicomReader):
         )
         patient_dataset = patient_data_context.create_patient_data()
 
-        apply_transforms(patient_dataset=patient_dataset, transforms=transforms)
+        if transforms:
+            apply_transforms(patient_dataset=patient_dataset, transforms=transforms)
 
         _logger.debug(f"Chosen patient data query strategy : "
                       f"'{patient_data_context.patient_data_query_strategy.name}'.")

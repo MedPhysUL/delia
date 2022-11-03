@@ -43,7 +43,7 @@ class PatientsDataGenerator(Generator):
             self,
             path_to_patients_folder: str,
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
-            transforms: Union[Compose, Dicom2hdfTransform, MonaiMapTransform] = Compose([]),
+            transforms: Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]] = None,
             erase_unused_dicom_files: bool = False
     ) -> None:
         """
@@ -60,7 +60,7 @@ class PatientsDataGenerator(Generator):
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. Note that it can be specified as a path to a json dictionary that contains the
             series descriptions.
-        transforms : Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
+        transforms : Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]]
             A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
             physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the
             numpy array that represents the image. The keys for images are assumed to be the arbitrary series key set
@@ -204,7 +204,7 @@ class PatientsDataGenerator(Generator):
     @staticmethod
     def _validate_transforms(
             transforms: Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
-    ) -> Union[Compose, Dicom2hdfTransform, MonaiMapTransform]:
+    ) -> Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]]:
         """
         Validate monai transforms type (array space transforms) and set allow_missing_keys attributes to True.
 
@@ -219,7 +219,7 @@ class PatientsDataGenerator(Generator):
 
         Returns
         -------
-        transforms : Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
+        transforms : Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]]
             A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
             physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
             the numpy array that represents the image. The keys for images are assumed to be the arbitrary series key
@@ -227,7 +227,7 @@ class PatientsDataGenerator(Generator):
             None, the keys for images are assumed to be modalities.
         """
         if transforms is None:
-            return Compose([])
+            return transforms
         elif isinstance(transforms, Compose):
             for t in transforms.transforms:
                 if not isinstance(t, (Dicom2hdfTransform, MonaiMapTransform)):
