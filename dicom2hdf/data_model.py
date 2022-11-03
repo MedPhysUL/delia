@@ -54,7 +54,7 @@ class ImageDataModel:
     dicom_header : FileDataset
         Dicom header dataset.
     simple_itk_image : Image
-        Segmentation as a SimpleITK image.
+        Dicom data volume as a SimpleITK image.
     paths_to_dicoms : Sequence[str]
         A list of the paths to each dicom contained in the series.
     series_key : str
@@ -67,6 +67,10 @@ class ImageDataModel:
     simple_itk_image: sitk.Image
     series_key: str = None
     transforms_key: str = None
+        
+    @property
+    def numpy_array(self):
+        return sitk.GetArrayFromImage(self.simple_itk_image)
 
 
 @dataclass
