@@ -6,7 +6,7 @@
 
 import env_examples  # Modifies path, DO NOT REMOVE
 
-from dicom2hdf import PatientsDatabase
+from dicom2hdf import PatientsDatabase, PatientsDataGenerator
 from dicom2hdf.transforms import (
     PETtoSUVD,
     ResampleD
@@ -29,13 +29,8 @@ if __name__ == "__main__":
     #     Create database (some images of some patients might fail to be added to the database due to the         #
     #                         absence of the series descriptions in the patient record)                           #
     # ----------------------------------------------------------------------------------------------------------- #
-    database = PatientsDatabase(
-        path_to_database="data/patients_database.h5",
-    )
-
-    database.create(
+    patients_data_generator = PatientsDataGenerator(
         path_to_patients_folder="data/Patients",
-        tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         series_descriptions="data/series_descriptions.json",
         transforms=Compose(
             [
@@ -46,6 +41,13 @@ if __name__ == "__main__":
                 ScaleIntensityD(keys=["CT_THORAX"], minv=0, maxv=1),
                 PETtoSUVD(keys=["TEP"])
             ]
-        ),
+        )
+    )
+
+    database = PatientsDatabase(path_to_database="data/patients_database.h5")
+
+    database.create(
+        patients_data_generator=patients_data_generator,
+        tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         overwrite_database=True
     )

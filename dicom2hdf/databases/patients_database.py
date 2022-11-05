@@ -195,12 +195,9 @@ class PatientsDatabase:
 
     def create(
             self,
-            path_to_patients_folder: str,
-            series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
+            patients_data_generator: PatientsDataGenerator,
             tags_to_use_as_attributes: Optional[List[Tuple[int, int]]] = None,
             add_sitk_image_metadata_as_attributes: bool = True,
-            transforms: Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]] = None,
-            erase_unused_dicom_files: bool = False,
             overwrite_database: bool = False
     ) -> List[PatientWhoFailed]:
         """
@@ -210,26 +207,13 @@ class PatientsDatabase:
 
         Parameters
         ----------
-        path_to_patients_folder : str
-            The path to the folder that contains all the patients' folders.
+        patients_data_generator : PatientsDataGenerator
+            An object used to iterate on multiple patients' dicom files and segmentation files using the
+            PatientDataReader to obtain all patients' data.
         tags_to_use_as_attributes : List[Tuple[int, int]]
             List of DICOM tags to add as series attributes in the HDF5 database.
-        series_descriptions : Optional[Union[str, Dict[str, List[str]]]], default = None.
-            A dictionary that contains the series descriptions of the images that needs to be extracted from the
-            patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions. The images associated with these series descriptions do not need to have a
-            corresponding segmentation. Note that it can be specified as a path to a json dictionary that contains the
-            series descriptions.
         add_sitk_image_metadata_as_attributes : bool, default = True.
             Keep Simple ITK image information as attributes in the corresponding series.
-        transforms : Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]]
-            A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
-            physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
-            the numpy array that represents the image. The keys for images are assumed to be the arbitrary series key
-            set in 'series_descriptions'. For segmentation, keys are organ names. Note that if 'series_descriptions' is
-            None, the keys for images are assumed to be modalities.
-        erase_unused_dicom_files: bool, default = False
-            Whether to delete unused DICOM files or not. Use with EXTREME caution!
         overwrite_database : bool, default = False.
             Overwrite existing database.
 
@@ -246,15 +230,8 @@ class PatientsDatabase:
 
         hf = h5py.File(self.path_to_database, "w")
 
-        patient_data_generator = PatientsDataGenerator(
-            path_to_patients_folder=path_to_patients_folder,
-            series_descriptions=series_descriptions,
-            transforms=transforms,
-            erase_unused_dicom_files=erase_unused_dicom_files
-        )
-
-        number_of_patients = len(patient_data_generator)
-        for patient_idx, patient_dataset in enumerate(patient_data_generator):
+        number_of_patients = len(patients_data_generator)
+        for patient_idx, patient_dataset in enumerate(patients_data_generator):
             patient_id = patient_dataset.patient_id
             patient_group = hf.create_group(name=patient_id)
 
@@ -272,7 +249,6 @@ class PatientsDatabase:
                 )
 
                 image_array = sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image)
-                modality = patient_image_data.image.dicom_header.Modality
 
                 series_group.create_dataset(
                     name=self.IMAGE,
@@ -304,6 +280,6 @@ class PatientsDatabase:
 
             _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to database.")
 
-        patient_data_generator.close()
+        patients_data_generator.close()
 
-        return patient_data_generator.patients_who_failed
+        return patients_data_generator.patients_who_failed
