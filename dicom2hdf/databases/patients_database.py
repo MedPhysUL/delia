@@ -13,7 +13,7 @@
 
 import logging
 import os
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import h5py
 import json
@@ -78,6 +78,28 @@ class PatientsDatabase:
             self._path_to_database = path_to_database
         else:
             self._path_to_database = f"{path_to_database}.h5"
+
+    def __getitem__(self, patient_id: Union[List[str], str]) -> Union[List[h5py.Group], h5py.Group]:
+        """
+        Get a patient group given the patient ID.
+
+        Parameters
+        ----------
+        patient_id : str
+            Patient ID.
+        """
+        if os.path.exists(self.path_to_database):
+            file = h5py.File(self.path_to_database, mode="r")
+
+            if isinstance(patient_id, str):
+                return file[patient_id]
+            elif isinstance(patient_id, list):
+                return [file[uid] for uid in patient_id]
+            else:
+                raise AssertionError(f"Patient ID should be a list of patient ids (List[str]) or a single patient id "
+                                     f"(str). Received {type(patient_id)}.")
+        else:
+            raise AssertionError(f"Database with path {self.path_to_database} doesn't exist. Use 'create'.")
 
     def _check_authorization_of_database_creation(
             self,
