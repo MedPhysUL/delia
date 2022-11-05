@@ -51,3 +51,5 @@ if __name__ == "__main__":
         tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         overwrite_database=True
     )
+
+    print("R01-005 patient :", database["R01-005"])
