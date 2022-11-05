@@ -13,18 +13,15 @@
 
 import logging
 import os
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import h5py
 import json
 import numpy as np
-from monai.transforms import Compose
-from monai.transforms import MapTransform as MonaiMapTransform
 import SimpleITK as sitk
 
 from dicom2hdf.data_generators.patients_data_generator import PatientsDataGenerator, PatientWhoFailed
 from dicom2hdf.data_model import ImageAndSegmentationDataModel
-from dicom2hdf.transforms.transforms import Dicom2hdfTransform
 
 _logger = logging.getLogger(__name__)
 
