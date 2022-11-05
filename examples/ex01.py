@@ -13,7 +13,7 @@ import SimpleITK as sitk
 
 if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
-    #                                    Perform on-thy-fly tasks on images                                       #
+    #                                      Create patients data generator                                         #
     # ----------------------------------------------------------------------------------------------------------- #
     patients_data_generator = PatientsDataGenerator(
         path_to_patients_folder="data/Patients",
@@ -26,6 +26,9 @@ if __name__ == "__main__":
         )
     )
 
+    # ----------------------------------------------------------------------------------------------------------- #
+    #                                    Perform on-thy-fly tasks on images                                       #
+    # ----------------------------------------------------------------------------------------------------------- #
     for patient_data in patients_data_generator:
         print(f"Patient ID: {patient_data.patient_id}")
 

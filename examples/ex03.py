@@ -26,8 +26,7 @@ if __name__ == "__main__":
     env_examples.configure_logging("logging_conf.yaml")
 
     # ----------------------------------------------------------------------------------------------------------- #
-    #     Create database (some images of some patients might fail to be added to the database due to the         #
-    #                         absence of the series descriptions in the patient record)                           #
+    #                                      Create patients data generator                                         #
     # ----------------------------------------------------------------------------------------------------------- #
     patients_data_generator = PatientsDataGenerator(
         path_to_patients_folder="data/Patients",
@@ -44,6 +43,9 @@ if __name__ == "__main__":
         )
     )
 
+    # ----------------------------------------------------------------------------------------------------------- #
+    #                                                Create database                                              #
+    # ----------------------------------------------------------------------------------------------------------- #
     database = PatientsDatabase(path_to_database="data/patients_database.h5")
 
     database.create(
