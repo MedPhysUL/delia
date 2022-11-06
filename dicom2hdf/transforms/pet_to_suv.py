@@ -45,8 +45,9 @@ class PETtoSUVd(Dicom2hdfTransform):
         Parameters
         ----------
         keys : KeysCollection
-            Keys of the corresponding items to be transformed. Keys are assumed to be modality names for images and
-            organ names for contours/segmentations.
+            Keys of the corresponding items to be transformed. Image keys are assumed to be arbitrary series keys
+            defined in 'series_descriptions'. For the segmentations, the keys are organ names. Note that if
+            'series_descriptions' is None, the image keys are assumed to be modality names.
         """
         super().__init__(keys=keys)
 

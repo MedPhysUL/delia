@@ -183,9 +183,9 @@ class PatientDataReader(DicomReader):
         transforms : Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]]
             A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
             physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
-            the numpy array that represents the image. The keys for images are assumed to be the arbitrary series key
-            set in 'series_descriptions'. For segmentation, keys are organ names. Note that if 'series_descriptions' is
-            None, the keys for images are assumed to be modalities.
+            the numpy array that represents the image. The image keys are assumed to be the keys of arbitrary series
+            defined in 'series_descriptions'. For segmentation, keys are organ names. Note that if
+            'series_descriptions' is None, the keys for images are assumed to be modalities.
 
         Returns
         -------

@@ -118,9 +118,9 @@ def _apply_transform_on_segmentations(
     transform : Union[Dicom2hdfTransform, MonaiMapTransform]
         A transformation to apply on segmentations. Dicom2hdfTransform are applied in the physical space, i.e on the
         SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that represents
-        the image. The keys for images are assumed to be the arbitrary series key set in 'series_descriptions'. For
-        segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
-        assumed to be modalities.
+        the image. Image keys are assumed to be arbitrary series keys defined in 'series_descriptions'. For the
+        segmentations, the keys are organ names. Note that if 'series_descriptions' is None, the image keys are
+        assumed to be modality names.
     """
     images = {
         data.image.transforms_key: ImageData(
