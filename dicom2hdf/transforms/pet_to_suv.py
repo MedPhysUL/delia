@@ -46,7 +46,7 @@ class PETtoSUVd(Dicom2hdfTransform):
         ----------
         keys : KeysCollection
             Keys of the corresponding items to be transformed. Image keys are assumed to be arbitrary series keys
-            defined in 'series_descriptions'. For the segmentations, the keys are organ names. Note that if
+            defined in 'series_descriptions'. For the label maps, the keys are organ names. Note that if
             'series_descriptions' is None, the image keys are assumed to be modality names.
         """
         super().__init__(keys=keys)

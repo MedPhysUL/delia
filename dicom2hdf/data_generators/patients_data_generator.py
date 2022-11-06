@@ -64,7 +64,7 @@ class PatientsDataGenerator(Generator):
             A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
             physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
             the numpy array that represents the image. Image keys are assumed to be arbitrary series keys defined in
-            'series_descriptions'. For the segmentations, the keys are organ names. Note that if 'series_descriptions'
+            'series_descriptions'. For the label maps, the keys are organ names. Note that if 'series_descriptions'
             is None, the image keys are assumed to be modality names.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with EXTREME caution!
