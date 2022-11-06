@@ -10,8 +10,9 @@
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Sequence
+from typing import Dict, Optional, List, Sequence
 
+import numpy as np
 import pydicom
 import SimpleITK as sitk
 
@@ -39,8 +40,15 @@ class SegmentationDataModel:
                 ...
             }
     """
-    modality: str = None
-    simple_itk_label_maps: Dict[str, sitk.Image] = None
+    modality: Optional[str] = None
+    simple_itk_label_maps: Optional[Dict[str, sitk.Image]] = None
+
+    @property
+    def numpy_array_label_maps(self) -> Optional[Dict[str, np.ndarray]]:
+        if self.simple_itk_label_maps:
+            return {k: sitk.GetArrayFromImage(v) for k, v in self.simple_itk_label_maps.items()}
+        else:
+            return None
 
 
 @dataclass
@@ -65,11 +73,11 @@ class ImageDataModel:
     dicom_header: pydicom.dataset.FileDataset
     paths_to_dicoms: Sequence[str]
     simple_itk_image: sitk.Image
-    series_key: str = None
-    transforms_key: str = None
+    series_key: Optional[str] = None
+    transforms_key: Optional[str] = None
         
     @property
-    def numpy_array(self):
+    def numpy_array(self) -> np.ndarray:
         return sitk.GetArrayFromImage(self.simple_itk_image)
 
 
@@ -87,7 +95,7 @@ class ImageAndSegmentationDataModel:
         Data from the segmentation of the patient's medical image.
     """
     image: ImageDataModel
-    segmentations: Sequence[SegmentationDataModel] = None
+    segmentations: Optional[Sequence[SegmentationDataModel]] = None
 
 
 @dataclass
@@ -109,4 +117,4 @@ class PatientDataModel:
     """
     patient_id: str
     data: List[ImageAndSegmentationDataModel]
-    transforms_history: TransformsHistory = None
+    transforms_history: Optional[TransformsHistory] = None
