@@ -16,7 +16,7 @@ if __name__ == "__main__":
     #                                      Create patients data generator                                         #
     # ----------------------------------------------------------------------------------------------------------- #
     patients_data_generator = PatientsDataGenerator(
-        path_to_patients_folder="data/Patients",
+        path_to_patients_folder="data/patients",
         series_descriptions="data/series_descriptions.json",
         transforms=Compose(
             [
@@ -38,10 +38,10 @@ if __name__ == "__main__":
             numpy_array_image = sitk.GetArrayFromImage(simple_itk_image)
 
             """Perform any tasks on images on-the-fly."""
-            print("MODALITY:", dicom_header.Modality)
-            print("NAME:", patient_image_data.image.series_key)
-            print("SHAPE:", numpy_array_image.shape)
-            print("MEAN VALUE", numpy_array_image.mean())
+            print("\nMODALITY:", dicom_header.Modality)
+            print("IMAGE NAME:", patient_image_data.image.series_key)
+            print("IMAGE SHAPE:", numpy_array_image.shape)
+            print("IMAGE MEAN VALUE:", numpy_array_image.mean())
 
             segmentations = patient_image_data.segmentations
             if segmentations:
@@ -49,4 +49,4 @@ if __name__ == "__main__":
                     for organ, sitk_label_map in segmentation.simple_itk_label_maps.items():
                         numpy_array_image = sitk.GetArrayFromImage(sitk_label_map)
                         print("ORGAN:", organ)
-                        print("SHAPE:", numpy_array_image.shape)
+                        print("LABEL MAP SHAPE:", numpy_array_image.shape)

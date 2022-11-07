@@ -29,7 +29,7 @@ if __name__ == "__main__":
     #                                      Create patients data generator                                         #
     # ----------------------------------------------------------------------------------------------------------- #
     patients_data_generator = PatientsDataGenerator(
-        path_to_patients_folder="data/Patients",
+        path_to_patients_folder="data/patients",
         series_descriptions="data/series_descriptions.json",
         transforms=Compose(
             [

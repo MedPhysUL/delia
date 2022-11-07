@@ -60,7 +60,7 @@ if __name__ == "__main__":
     #                         absence of the series descriptions in the patient record)                           #
     # ----------------------------------------------------------------------------------------------------------- #
     patients_data_generator = PatientsDataGenerator(
-        path_to_patients_folder="data/Patients",
+        path_to_patients_folder="data/patients",
         series_descriptions="data/incorrect_series_descriptions.json"
     )
 
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     #                                           Create complete database                                          #
     # ----------------------------------------------------------------------------------------------------------- #
     patients_data_generator = PatientsDataGenerator(
-        path_to_patients_folder="data/Patients",
+        path_to_patients_folder="data/patients",
         series_descriptions=updated_series_descriptions
     )
 
