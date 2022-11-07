@@ -89,7 +89,6 @@ class PatientsDataGenerator(Generator):
 
         self._current_index = 0
         self._patients_who_failed = []
-        _logger.info(f"Downloading all patients (Total : {self.__len__()})")
 
     def __len__(self) -> int:
         """
@@ -258,6 +257,13 @@ class PatientsDataGenerator(Generator):
         with open(path, 'w', encoding='utf-8') as json_file:
             json.dump(self.series_descriptions, json_file, ensure_ascii=False, indent=4)
 
+    def reset(self) -> None:
+        """
+        Resets the generator.
+        """
+        self._current_index = 0
+        self._patients_who_failed = []
+
     def send(self, _) -> PatientDataModel:
         """
         Resumes the execution and sends a value into the generator function. This method returns the next value yielded
@@ -270,10 +276,10 @@ class PatientsDataGenerator(Generator):
             A named tuple grouping the patient's data extracted from its dicom files and the patient's medical image
             segmentation data extracted from the segmentation files.
         """
-        if self._current_index == self.__len__():
+        if self._current_index == len(self):
             self.throw()
 
-        _logger.info(f"Downloading Patient {self._current_index + 1}")
+        _logger.info(f"Downloading Patient {self._current_index + 1}/{len(self)}")
         _logger.info(f"Path to patient folder : {self.paths_to_patients_folders[self._current_index]}")
 
         patient_data_reader = PatientDataReader(

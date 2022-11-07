@@ -300,5 +300,6 @@ class PatientsDatabase:
             _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to database.")
 
         patients_data_generator.close()
+        patients_data_generator.reset()
 
         return patients_data_generator.patients_who_failed
