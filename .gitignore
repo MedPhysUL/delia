@@ -136,3 +136,4 @@ pyproject.toml
 
 # Local data
 prostate/
+patients/
