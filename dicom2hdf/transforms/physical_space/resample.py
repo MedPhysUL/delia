@@ -13,10 +13,10 @@ from typing import Dict, Hashable, Tuple
 import SimpleITK as sitk
 import numpy as np
 
-from .transforms import Dicom2hdfTransform, ImageData, KeysCollection, Mode
+from dicom2hdf.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, KeysCollection, Mode
 
 
-class Resampled(Dicom2hdfTransform):
+class Resampled(PhysicalSpaceTransform):
     """
     Resample an itk_image to new out_spacing.
     """

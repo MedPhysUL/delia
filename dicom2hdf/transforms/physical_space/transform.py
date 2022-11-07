@@ -1,11 +1,11 @@
 """
-    @file:              transforms.py
+    @file:              transform.py
     @Author:            Maxence Larose
 
     @Creation Date:     10/2022
     @Last modification: 11/2022
 
-    @Description:       This file contains the Dicom2hdfTransform abstract class which is used to define transforms
+    @Description:       This file contains the PhysicalSpaceTransform abstract class which is used to define transforms
                         that can be applied to images and segmentations.
 """
 
@@ -41,9 +41,9 @@ class ImageData(NamedTuple):
     dicom_header: pydicom.dataset.FileDataset = None
 
 
-class Dicom2hdfTransform(MapTransform):
+class PhysicalSpaceTransform(MapTransform):
     """
-    Base transform abstract class.
+    PhysicalSpaceTransform abstract class.
     """
 
     def __init__(self, keys: KeysCollection) -> None:

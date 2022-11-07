@@ -16,7 +16,7 @@ import numpy as np
 import pydicom
 import SimpleITK as sitk
 
-from .transforms import Dicom2hdfTransform, ImageData, KeysCollection, Mode
+from dicom2hdf.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, KeysCollection, Mode
 
 _logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class DefaultParams:
     TOTAL_INJECTED_DOSE = 420_000_000  # [becquerels]
 
 
-class PETtoSUVd(Dicom2hdfTransform):
+class PETtoSUVd(PhysicalSpaceTransform):
     """
     Transform a PET image to Standardized uptake value (SUV) in g/ml..
     """

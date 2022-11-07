@@ -22,7 +22,8 @@ from monai.transforms import MapTransform as MonaiMapTransform
 
 from dicom2hdf.data_model import PatientDataModel
 from dicom2hdf.data_readers.patient_data.patient_data_reader import PatientDataReader
-from dicom2hdf.transforms.transforms import Dicom2hdfTransform
+from dicom2hdf.transforms.data.transform import DataTransform
+from dicom2hdf.transforms.physical_space.transform import PhysicalSpaceTransform
 
 _logger = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class PatientsDataGenerator(Generator):
             self,
             path_to_patients_folder: str,
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
-            transforms: Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]] = None,
+            transforms: Optional[Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]] = None,
             erase_unused_dicom_files: bool = False
     ) -> None:
         """
@@ -60,12 +61,13 @@ class PatientsDataGenerator(Generator):
             series descriptions. The images associated with these series descriptions do not need to have a
             corresponding segmentation. Note that it can be specified as a path to a json dictionary that contains the
             series descriptions.
-        transforms : Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]]
-            A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
-            physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
-            the numpy array that represents the image. Image keys are assumed to be arbitrary series keys defined in
-            'series_descriptions'. For the segmentations, the keys are organ names. Note that if 'series_descriptions'
-            is None, the image keys are assumed to be modality names.
+        transforms : Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]
+            A sequence of transformations to apply. PhysicalSpaceTransform are applied in the physical space, i.e on
+            the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that
+            represents the image. DataTransform transforms the data using other a patient's other images or
+            segmentations. The keys for images are assumed to be the arbitrary series key set in 'series_descriptions'.
+            For segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
+            assumed to be modalities.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with EXTREME caution!
         """
@@ -203,44 +205,46 @@ class PatientsDataGenerator(Generator):
 
     @staticmethod
     def _validate_transforms(
-            transforms: Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
-    ) -> Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]]:
+            transforms: Union[Compose, DataTransform, PhysicalSpaceTransform, MonaiMapTransform]
+    ) -> Optional[Union[Compose, DataTransform, PhysicalSpaceTransform, MonaiMapTransform]]:
         """
-        Validate monai transforms type (array space transforms) and set allow_missing_keys attributes to True.
+        Validate transforms type and set allow_missing_keys attributes to True.
 
         Parameters
         ----------
-        transforms : Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
-            A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
-            physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
-            the numpy array that represents the image. The keys for images are assumed to be the arbitrary series key
-            set in 'series_descriptions'. For segmentation, keys are organ names. Note that if 'series_descriptions' is
-            None, the keys for images are assumed to be modalities.
+        transforms : Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]
+            A sequence of transformations to apply. PhysicalSpaceTransform are applied in the physical space, i.e on
+            the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that
+            represents the image. DataTransform transforms the data using other a patient's other images or
+            segmentations. The keys for images are assumed to be the arbitrary series key set in 'series_descriptions'.
+            For segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
+            assumed to be modalities.
 
         Returns
         -------
-        transforms : Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]]
-            A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
-            physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
-            the numpy array that represents the image. The keys for images are assumed to be the arbitrary series key
-            set in 'series_descriptions'. For segmentation, keys are organ names. Note that if 'series_descriptions' is
-            None, the keys for images are assumed to be modalities.
+        transforms : Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]
+            A sequence of transformations to apply. PhysicalSpaceTransform are applied in the physical space, i.e on
+            the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that
+            represents the image. DataTransform transforms the data using other a patient's other images or
+            segmentations. The keys for images are assumed to be the arbitrary series key set in 'series_descriptions'.
+            For segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
+            assumed to be modalities.
         """
         if transforms is None:
             return transforms
         elif isinstance(transforms, Compose):
             for t in transforms.transforms:
-                if not isinstance(t, (Dicom2hdfTransform, MonaiMapTransform)):
-                    raise AssertionError("The given transforms must inherit from 'Dicom2hdfTransform' or "
-                                         "MonaiMapTransform.")
+                if not isinstance(t, (DataTransform, PhysicalSpaceTransform, MonaiMapTransform)):
+                    raise AssertionError("The given transforms must inherit from 'DataTransform', "
+                                         "'PhysicalSpaceTransform' or 'MonaiMapTransform'.")
                 t.allow_missing_keys = True
             return transforms
-        elif isinstance(transforms, (Dicom2hdfTransform, MonaiMapTransform)):
+        elif isinstance(transforms, (DataTransform, PhysicalSpaceTransform, MonaiMapTransform)):
             transforms.allow_missing_keys = True
             return transforms
         else:
-            raise AssertionError("'transforms' must either be of type 'Compose', 'Dicom2hdfTransform' or "
-                                 "'MonaiMapTransform'.")
+            raise AssertionError("'transforms' must either be of type 'Compose', 'DataTransform',"
+                                 "'PhysicalSpaceTransform' or 'MonaiMapTransform'.")
 
     def save_series_descriptions_to_json(self, path: str) -> None:
         """

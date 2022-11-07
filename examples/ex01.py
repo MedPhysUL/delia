@@ -7,7 +7,7 @@
 import env_examples  # Modifies path, DO NOT REMOVE
 
 from dicom2hdf import PatientsDataGenerator
-from dicom2hdf.transforms import Compose, PETtoSUVD, ResampleD
+from dicom2hdf.transforms import Compose, CopySegmentationsD, PETtoSUVD, ResampleD
 import SimpleITK as sitk
 
 
@@ -21,7 +21,8 @@ if __name__ == "__main__":
         transforms=Compose(
             [
                 ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
-                PETtoSUVD(keys=["TEP"])
+                PETtoSUVD(keys=["TEP"]),
+                CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="TEP")
             ]
         )
     )

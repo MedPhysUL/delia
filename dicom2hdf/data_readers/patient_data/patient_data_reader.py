@@ -19,8 +19,9 @@ from dicom2hdf.data_model import PatientDataModel
 from dicom2hdf.data_readers.image.dicom_reader import DicomReader
 from dicom2hdf.data_readers.patient_data.patient_data_query_context import PatientDataQueryContext
 from dicom2hdf.transforms.applications import apply_transforms
-from dicom2hdf.transforms.history import TransformsHistory
-from dicom2hdf.transforms.transforms import Dicom2hdfTransform
+from dicom2hdf.transforms.data.transform import DataTransform
+from dicom2hdf.transforms_history import TransformsHistory
+from dicom2hdf.transforms.physical_space.transform import PhysicalSpaceTransform
 
 _logger = logging.getLogger(__name__)
 
@@ -173,19 +174,20 @@ class PatientDataReader(DicomReader):
 
     def get_patient_dataset(
             self,
-            transforms: Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]] = None
+            transforms: Optional[Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]] = None
     ) -> PatientDataModel:
         """
         Get the patient dataset.
 
         Parameters
         ----------
-        transforms : Optional[Union[Compose, Dicom2hdfTransform, MonaiMapTransform]]
-            A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
-            physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
-            the numpy array that represents the image. The image keys are assumed to be the keys of arbitrary series
-            defined in 'series_descriptions'. For the label maps, keys are organ names. Note that if
-            'series_descriptions' is None, the keys for images are assumed to be modalities.
+        transforms : Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]
+            A sequence of transformations to apply. PhysicalSpaceTransform are applied in the physical space, i.e on
+            the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that
+            represents the image. DataTransform transforms the data using other a patient's other images or
+            segmentations. The keys for images are assumed to be the arbitrary series key set in 'series_descriptions'.
+            For segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
+            assumed to be modalities.
 
         Returns
         -------

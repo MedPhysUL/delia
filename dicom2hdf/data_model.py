@@ -16,7 +16,7 @@ import numpy as np
 import pydicom
 import SimpleITK as sitk
 
-from dicom2hdf.transforms.history import TransformsHistory
+from dicom2hdf.transforms_history import TransformsHistory
 
 
 @dataclass

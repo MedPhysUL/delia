@@ -18,7 +18,8 @@ from monai.transforms import MapTransform as MonaiMapTransform
 import SimpleITK as sitk
 
 from dicom2hdf.data_model import PatientDataModel
-from dicom2hdf.transforms.transforms import Dicom2hdfTransform, ImageData, Mode
+from dicom2hdf.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, Mode
+from dicom2hdf.transforms.data.transform import DataTransform
 from dicom2hdf.transforms.tools import convert_to_numpy, set_transforms_keys
 
 
@@ -30,7 +31,7 @@ class _SitkImageInfo(NamedTuple):
 
 def apply_transforms(
         patient_dataset: PatientDataModel,
-        transforms: Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
+        transforms: Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]
 ) -> None:
     """
     Applies transforms on images and segmentations.
@@ -40,39 +41,73 @@ def apply_transforms(
     patient_dataset : PatientDataModel
         A named tuple grouping the patient's data extracted from its DICOM files and the patient's medical image
         segmentation data extracted from the segmentation files.
-    transforms : Union[Compose, Dicom2hdfTransform, MonaiMapTransform]
-        A sequence of transformations to apply to images and segmentations. Dicom2hdfTransform are applied in the
-        physical space, i.e on the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on
-        the numpy array that represents the image. The keys for images are assumed to be the arbitrary series key
-        set in 'series_descriptions'. For segmentation, keys are organ names. Note that if 'series_descriptions' is
-        None, the keys for images are assumed to be modalities.
+    transforms : Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]
+        A sequence of transformations to apply. PhysicalSpaceTransform are applied in the physical space, i.e on the
+        SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that represents
+        the image. DataTransform transforms the data using other a patient's other images or segmentations. The keys
+        for images are assumed to be the arbitrary series key set in 'series_descriptions'. For segmentation, keys are
+        organ names. Note that if 'series_descriptions' is None, the keys for images are assumed to be modalities.
     """
     set_transforms_keys(patient_dataset=patient_dataset)
 
     if isinstance(transforms, Compose):
         for t in transforms.transforms:
+            if isinstance(t, DataTransform):
+                _apply_data_transform(
+                    transform=t,
+                    patient_dataset=patient_dataset
+                )
+            elif isinstance(t, (PhysicalSpaceTransform, MonaiMapTransform)):
+                _apply_transform_on_segmentations(
+                    transform=t,
+                    patient_dataset=patient_dataset
+                )
+                _apply_transform_on_images(
+                    transform=t,
+                    patient_dataset=patient_dataset
+                )
+    else:
+        if isinstance(transforms, DataTransform):
+            _apply_data_transform(
+                transform=transforms,
+                patient_dataset=patient_dataset
+            )
+        elif isinstance(transforms, (PhysicalSpaceTransform, MonaiMapTransform)):
             _apply_transform_on_segmentations(
-                transform=t,
+                transform=transforms,
                 patient_dataset=patient_dataset
             )
             _apply_transform_on_images(
-                transform=t,
+                transform=transforms,
                 patient_dataset=patient_dataset
             )
-    else:
-        _apply_transform_on_segmentations(
-            transform=transforms,
-            patient_dataset=patient_dataset
-        )
-        _apply_transform_on_images(
-            transform=transforms,
-            patient_dataset=patient_dataset
-        )
+
+
+def _apply_data_transform(
+        patient_dataset: PatientDataModel,
+        transform: DataTransform
+) -> None:
+    """
+    Applies single transform on patient dataset.
+
+    Parameters
+    ----------
+    patient_dataset : PatientDataModel
+        A named tuple grouping the patient's data extracted from its DICOM files and the patient's medical image
+        segmentation data extracted from the segmentation files.
+    transform : DataTransform
+        A data transformation to apply.
+    """
+    data = {data.image.transforms_key: data for data in patient_dataset.data}
+
+    transformed_data = monai_apply_transform(transform=transform, data=data)
+
+    patient_dataset.data = list(transformed_data.values())
 
 
 def _apply_transform_on_images(
         patient_dataset: PatientDataModel,
-        transform: Union[Dicom2hdfTransform, MonaiMapTransform]
+        transform: Union[MonaiMapTransform, PhysicalSpaceTransform]
 ) -> None:
     """
     Applies single transform on images.
@@ -82,8 +117,8 @@ def _apply_transform_on_images(
     patient_dataset : PatientDataModel
         A named tuple grouping the patient's data extracted from its DICOM files and the patient's medical image
         segmentation data extracted from the segmentation files.
-    transform : Union[Dicom2hdfTransform, MonaiMapTransform]
-        A transformation to apply on images. Dicom2hdfTransform are applied in the physical space, i.e on the
+    transform : Union[MonaiMapTransform, PhysicalSpaceTransform]
+        A transformation to apply on images. PhysicalSpaceTransform are applied in the physical space, i.e on the
         SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that represents
         the image. The keys for images are assumed to be the arbitrary series key set in 'series_descriptions'. For
         segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
@@ -105,7 +140,7 @@ def _apply_transform_on_images(
 
 def _apply_transform_on_segmentations(
         patient_dataset: PatientDataModel,
-        transform: Union[Dicom2hdfTransform, MonaiMapTransform]
+        transform: Union[MonaiMapTransform, PhysicalSpaceTransform]
 ) -> None:
     """
     Applies single transform on segmentations.
@@ -115,8 +150,8 @@ def _apply_transform_on_segmentations(
     patient_dataset : PatientDataModel
         A named tuple grouping the patient's data extracted from its DICOM files and the patient's medical image
         segmentation data extracted from the segmentation files.
-    transform : Union[Dicom2hdfTransform, MonaiMapTransform]
-        A transformation to apply on segmentations. Dicom2hdfTransform are applied in the physical space, i.e on the
+    transform : Union[MonaiMapTransform, PhysicalSpaceTransform]
+        A transformation to apply on segmentations. PhysicalSpaceTransform are applied in the physical space, i.e on the
         SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that represents
         the image. Image keys are assumed to be arbitrary series keys defined in 'series_descriptions'. For the
         label maps, the keys are organ names. Note that if 'series_descriptions' is None, the image keys are
@@ -149,7 +184,7 @@ def _apply_transform_on_segmentations(
 
 def _apply_transform(
         data: Dict[str, ImageData],
-        transform: Union[Dicom2hdfTransform, MonaiMapTransform],
+        transform: Union[MonaiMapTransform, PhysicalSpaceTransform],
         mode: Mode
 ) -> Dict[Hashable, sitk.Image]:
     """
@@ -159,8 +194,8 @@ def _apply_transform(
     ----------
     data : Dict[str, ImageData]
         A Python dictionary that contains ImageData to be transformed.
-    transform : Union[Dicom2hdfTransform, MonaiMapTransform]
-        A transformation to apply. Dicom2hdfTransform are applied in the physical space, i.e on the SimpleITK image,
+    transform : Union[MonaiMapTransform, PhysicalSpaceTransform]
+        A transformation to apply. PhysicalSpaceTransform are applied in the physical space, i.e on the SimpleITK image,
         while MonaiMapTransform are applied in the array space, i.e on the numpy array that represents the image. The
         keys for images are assumed to be the arbitrary series key set in 'series_descriptions'. For segmentation,
         keys are organ names. Note that if 'series_descriptions' is None, the keys for images are assumed to be
@@ -173,7 +208,7 @@ def _apply_transform(
     transformed_data : Dict[Hashable, sitk.Image]
         A dictionary of transformed SimpleITK images.
     """
-    if isinstance(transform, Dicom2hdfTransform):
+    if isinstance(transform, PhysicalSpaceTransform):
         return _apply_dicom2hdf_transform(transform=transform, data=data, mode=mode)
     elif isinstance(transform, MonaiMapTransform):
         data = {k: v.simple_itk_image for k, v in data.items()}
@@ -182,17 +217,17 @@ def _apply_transform(
 
 def _apply_dicom2hdf_transform(
         data: Dict[str, ImageData],
-        transform: Dicom2hdfTransform,
+        transform: PhysicalSpaceTransform,
         mode: Mode
 ) -> Dict[Hashable, sitk.Image]:
     """
-    Apply a Dicom2hdfTransform.
+    Apply a PhysicalSpaceTransform.
 
     Parameters
     ----------
     data : Dict[str, ImageData]
         A Python dictionary that contains ImageData to be transformed.
-    transform : Dicom2hdfTransform
+    transform : PhysicalSpaceTransform
         A transformation to apply to images and segmentations in the physical space, i.e on the SimpleITK image. Keys
         are assumed to be modality names for images and organ names for segmentations.
     mode : Mode
