@@ -170,7 +170,11 @@ class DicomReader:
             )
             series_data_dict[series_id] = series_data
 
-        if len(all_patient_ids) != 1:
+        if len(all_patient_ids) == 0:
+            raise AssertionError(f"The patient folder must contain DICOM files. This is not the case for the patient "
+                                 f"whose data is currently being downloaded since no DICOM files are found in its "
+                                 f"folder.")
+        elif len(all_patient_ids) > 1:
             raise AssertionError(f"All DICOM files in the same folder must belong to the same patient. This is not "
                                  f"the case for the patient whose data is currently being downloaded since the "
                                  f"identifiers {all_patient_ids} are found in their folder.")

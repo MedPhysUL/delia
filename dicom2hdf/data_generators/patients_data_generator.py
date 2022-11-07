@@ -270,6 +270,7 @@ class PatientsDataGenerator(Generator):
             self.throw()
 
         _logger.info(f"Downloading Patient {self._current_index + 1}")
+        _logger.info(f"Path to patient folder : {self.paths_to_patients_folders[self._current_index]}")
 
         patient_data_reader = PatientDataReader(
             path_to_patient_folder=self.paths_to_patients_folders[self._current_index],
