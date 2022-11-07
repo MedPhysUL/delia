@@ -24,12 +24,12 @@ setuptools.setup(
     ],
     install_requires=[
         "h5py",
-        "monai"
+        "monai",
         "numpy",
         "pandas",
         "pydicom",
         "pydicom-seg",
-        "pyradiomics"
+        "pyradiomics",
         "rt_utils",
         "SimpleITK"
     ],
