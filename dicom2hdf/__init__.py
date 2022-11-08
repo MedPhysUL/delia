@@ -3,6 +3,7 @@ import logging
 from .databases import PatientsDatabase
 from .generators import PatientsDataGenerator, PatientWhoFailed
 from .radiomics import RadiomicsDataset, RadiomicsFeatureExtractor
+from .utils import PatientDataModel
 
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.WARNING)

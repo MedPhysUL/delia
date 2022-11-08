@@ -23,19 +23,20 @@ pip install dicom2hdf
 pip install git+https://github.com/MaxenceLarose/dicom2hdf
 ```
 
-## How it works 
+## How it works
 
 ### Main concepts
 
-There are 3 main concepts in this code :
+There are 4 main concepts :
 
 1. `PatientDataModel` : It is the primary `dicom2hdf` data structure. It is a named tuple gathering the image and segmentation data available in a patient record. 
 2. `PatientsDataGenerator` : A  [Generator](https://docs.python.org/3/library/collections.abc.html#collections.abc.Generator) that allows to iterate over several patient folders and create a `PatientDataModel` object for each of them.
-3. `PatientsDatabase` : An object that is used to create/interact with an HDF5 file (a database!). The `PatientsDataGenerator` object is used to populate this database. 
+3. `PatientsDatabase` : An object that is used to create/interact with an HDF5 file (a database!) containing all patients information (images + label maps). The `PatientsDataGenerator` object is used to populate this database. 
+3. `RadiomicsDataset` : An object that is used to create/interact with a csv file (a dataset!) containing radiomics features extracted from images. The `PatientsDataGenerator` object is used to populate this dataset. 
 
 ### A deeper look into the `PatientsDataGenerator` object
 
-The `PatientsDataGenerator` has two important variables:  a `path_to_patients_folder` (which dictates the path to the folder that contains all patient records) and a `series_descriptions` (which dictates the images that needs to be extracted from the patient records). For each patient/folder available in the `path_to_patients_folder`, all DICOM files in their folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume and its segmentation (if available) are automatically added to the `PatientDataModel`. Note that if no `series_descriptions` dictionary is given (`series_descriptions = None`), then all images (and associated segmentations) will be added to the database. 
+The `PatientsDataGenerator` has 3 important variables:  a `path_to_patients_folder` (which dictates the path to the folder that contains all patient records), a `series_descriptions` (which dictates the images that needs to be extracted from the patient records) and `transforms` that defines a sequence of transformations to apply on images or segmentations. For each patient/folder available in the `path_to_patients_folder`, all DICOM files in their folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume and its segmentation (if available) are automatically added to the `PatientDataModel`. Note that if no `series_descriptions` dictionary is given (`series_descriptions = None`), then all images (and associated segmentations) will be added to the database. 
 
 The `PatientsDataGenerator` can therefore be used to iteratively perform tasks on each of the patients, such as displaying certain images, transforming images into numpy arrays, or creating an HDF5 database using the `PatientsDatabase`. It is this last task that is highlighted in this package, but it must be understood that the data extraction is performed in a very general manner by the `PatientsDataGenerator` and is therefore not limited to this single application. For example, someone could easily develop a `Numpydatabase` whose creation would be ensured by the `PatientsDataGenerator`, similar to the current `PatientsDatabase` based on the HDF5 format.
 
@@ -120,13 +121,13 @@ It is important to configure the directory structure correctly to ensure that th
 
 ## Import the package
 
-The easiest way to import the package is to use :
+The easiest way to import the package is to explicitly use the objects sub-modules :
 
 ```python
-from dicom2hdf import *
+from dicom2hdf.databases import PatientsDatabase
+from dicom2hdf.generators import PatientsDataGenerator
+from dicom2hdf.radiomics import RadiomicsDataset, RadiomicsFeatureExtractor
 ```
-
-This will import the useful classes `PatientsDatabase` and `PatientsDataGenerator`. These two classes represent two different ways of using the package. The following examples will present both procedures.
 
 ## Use the package
 
@@ -135,18 +136,42 @@ This will import the useful classes `PatientsDatabase` and `PatientsDataGenerato
 This file can then be executed to obtain an hdf5 database.
 
 ```python
-from dicom2hdf import PatientsDatabase
-
-patients_database = PatientsDatabase(
-    path_to_dataset="data/patient_database.h5",
+from dicom2hdf.databases import PatientsDatabase
+from dicom2hdf.generators import PatientsDataGenerator
+from dicom2hdf.transforms import (
+    PETtoSUVD,
+    ResampleD
+)
+from monai.transforms import (
+    CenterSpatialCropD,
+    Compose,
+    ScaleIntensityD,
+    ThresholdIntensityD
 )
 
-patients_database.create(
-    path_to_patients_folder="data/Patients",
-    tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
+patients_data_generator = PatientsDataGenerator(
+    path_to_patients_folder="data/patients",
     series_descriptions="data/series_descriptions.json",
+    transforms=Compose(
+        [
+            ResampleD(keys=["CT_THORAX", "TEP", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
+            CenterSpatialCropD(keys=["CT_THORAX", "TEP", "Heart"], roi_size=(1000, 160, 160)),
+            ThresholdIntensityD(keys=["CT_THORAX"], threshold=-250, above=True, cval=-250),
+            ThresholdIntensityD(keys=["CT_THORAX"], threshold=500, above=False, cval=500),
+            ScaleIntensityD(keys=["CT_THORAX"], minv=0, maxv=1),
+            PETtoSUVD(keys=["TEP"])
+        ]
+    )
+)
+
+database = PatientsDatabase(path_to_database="data/patients_database.h5")
+
+database.create(
+    patients_data_generator=patients_data_generator,
+    tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
     overwrite_database=True
 )
+
 
 ```
 
@@ -159,16 +184,24 @@ The created HDF5 database will then look something like :
 This file can then be executed to perform on-the-fly tasks on images.
 
 ```python
-from dicom2hdf import PatientsDataGenerator
+from dicom2hdf.generators import PatientsDataGenerator
+from dicom2hdf.transforms import Compose, CopySegmentationsD, PETtoSUVD, ResampleD
 import SimpleITK as sitk
 
 patients_data_generator = PatientsDataGenerator(
-    path_to_patients_folder="data/Patients",
-    series_descriptions="data/series_descriptions.json"
+    path_to_patients_folder="data/patients",
+    series_descriptions="data/series_descriptions.json",
+    transforms=Compose(
+        [
+            ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
+            PETtoSUVD(keys=["TEP"]),
+            CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="TEP")
+        ]
+    )
 )
 
 for patient_dataset in patients_data_generator:
-    print(f"Patient ID: {patient_dataset.patient_id}")
+	print(f"Patient ID: {patient_data.patient_id}")
 
     for patient_image_data in patient_dataset.data:
         dicom_header = patient_image_data.image.dicom_header
