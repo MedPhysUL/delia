@@ -1,20 +1,15 @@
 """
-    @Title:             Logging + database creation.
+    @Title:             Radiomics extraction.
 
-    @Description:       Configure logging and create database.
+    @Description:       Extract radiomics from CT and PET images with a given 'Heart' contour.
 """
 
 import env_examples  # Modifies path, DO NOT REMOVE
 
-from dicom2hdf import PatientsDatabase
-from dicom2hdf.transforms import ResampleD
-from monai.transforms import (
-    CenterSpatialCropD,
-    Compose,
-    EnsureChannelFirstD,
-    ScaleIntensityD,
-    ThresholdIntensityD
-)
+from dicom2hdf import PatientsDataGenerator
+from dicom2hdf.radiomics import RadiomicsDataset
+from dicom2hdf.transforms import Compose, CopySegmentationsD, PETtoSUVD
+from radiomics.featureextractor import RadiomicsFeatureExtractor
 
 
 if __name__ == "__main__":
@@ -24,33 +19,48 @@ if __name__ == "__main__":
     env_examples.configure_logging("logging_conf.yaml")
 
     # ----------------------------------------------------------------------------------------------------------- #
-    #     Create database (some images of some patients might fail to be added to the database due to the         #
-    #                         absence of the series descriptions in the patient record)                           #
+    #                                      Create patients data generator                                         #
     # ----------------------------------------------------------------------------------------------------------- #
-    database = PatientsDatabase(
-        path_to_database="data/patients_database.h5",
+    patients_data_generator = PatientsDataGenerator(
+        path_to_patients_folder="data/patients",
+        series_descriptions="data/radiomics_series_descriptions.json",
+        transforms=Compose(
+            [
+                PETtoSUVD(keys=["TEP"]),
+                CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="TEP")
+            ]
+        )
     )
 
-    patients_who_failed = database.create(
-        path_to_patients_folder="data/Patients",
-        tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
-        series_descriptions="data/series_descriptions.json",
-        dicom2hdf_transforms=Compose(
-            [
-                ResampleD(keys=["CT", "Heart"], out_spacing=(1.5, 1.5, 1.5))
-            ]
-        ),
-        monai_transforms=Compose(
-            [
-                EnsureChannelFirstD(keys=['CT', 'Heart']),
-                CenterSpatialCropD(keys=['CT', 'Heart'], roi_size=(1000, 160, 160)),
-                ThresholdIntensityD(keys=['CT'], threshold=-250, above=True, cval=-250),
-                ThresholdIntensityD(keys=['CT'], threshold=500, above=False, cval=500),
-                ScaleIntensityD(keys=['CT'], minv=0, maxv=1)
-            ]
-        ),
-        overwrite_database=True
+    # ----------------------------------------------------------------------------------------------------------- #
+    #       Extract radiomics features of the CT image from the segmentation of the heart made on the CT image    #
+    # ----------------------------------------------------------------------------------------------------------- #
+
+    CT_radiomics_dataset = RadiomicsDataset(path_to_dataset="data/CT_radiomics")
+
+    CT_radiomics_dataset.extractor = RadiomicsFeatureExtractor(
+        path_to_params="features_extractor_params_CT.yaml",
+        geometryTolerance=1e-4
     )
 
-    # Print list of patients who failed
-    print(f"Patients who failed the pipeline : {patients_who_failed}")
+    CT_radiomics_dataset.create(
+        patients_data_generator=patients_data_generator,
+        organ="Heart",
+        image_name="CT_THORAX"
+    )
+
+    # ----------------------------------------------------------------------------------------------------------- #
+    #       Extract radiomics features of the PT image from the segmentation of the heart made on the CT image    #
+    # ----------------------------------------------------------------------------------------------------------- #
+    PT_radiomics_dataset = RadiomicsDataset(path_to_dataset="data/PT_radiomics")
+
+    PT_radiomics_dataset.extractor = RadiomicsFeatureExtractor(
+        path_to_params="features_extractor_params_PT.yaml",
+        geometryTolerance=1e-4
+    )
+
+    PT_radiomics_dataset.create(
+        patients_data_generator=patients_data_generator,
+        organ="Heart",
+        image_name="TEP"
+    )
