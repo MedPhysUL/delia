@@ -6,7 +6,7 @@
 
 import env_examples  # Modifies path, DO NOT REMOVE
 
-from dicom2hdf import PatientsDataGenerator
+from dicom2hdf.generators import PatientsDataGenerator
 from dicom2hdf.transforms import Compose, CopySegmentationsD, PETtoSUVD, ResampleD
 import SimpleITK as sitk
 

@@ -16,7 +16,7 @@ import numpy as np
 import pydicom
 import SimpleITK as sitk
 
-from dicom2hdf.transforms_history import TransformsHistory
+from .transforms_history import TransformsHistory
 
 
 @dataclass
@@ -75,7 +75,7 @@ class ImageDataModel:
     simple_itk_image: sitk.Image
     series_key: Optional[str] = None
     transforms_key: Optional[str] = None
-        
+
     @property
     def numpy_array(self) -> np.ndarray:
         return sitk.GetArrayFromImage(self.simple_itk_image)

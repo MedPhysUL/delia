@@ -1,5 +1,5 @@
 """
-    @file:              patient_data_generator.py
+    @file:              patients_data_generator.py
     @Author:            Maxence Larose
 
     @Creation Date:     10/2021
@@ -20,10 +20,10 @@ from typing import Dict, List, NamedTuple, Optional, Union
 from monai.transforms import Compose
 from monai.transforms import MapTransform as MonaiMapTransform
 
-from dicom2hdf.data_model import PatientDataModel
-from dicom2hdf.data_readers.patient_data.patient_data_reader import PatientDataReader
+from dicom2hdf.readers.patient_data.patient_data_reader import PatientDataReader
 from dicom2hdf.transforms.data.transform import DataTransform
 from dicom2hdf.transforms.physical_space.transform import PhysicalSpaceTransform
+from dicom2hdf.utils.data_model import PatientDataModel
 
 _logger = logging.getLogger(__name__)
 

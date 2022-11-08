@@ -10,7 +10,8 @@ import env_examples  # Modifies path, DO NOT REMOVE
 import json
 from typing import Dict, List, Union
 
-from dicom2hdf import PatientsDatabase, PatientsDataGenerator, PatientWhoFailed
+from dicom2hdf.databases import PatientsDatabase
+from dicom2hdf.generators import PatientsDataGenerator, PatientWhoFailed
 
 
 def get_updated_series_descriptions(

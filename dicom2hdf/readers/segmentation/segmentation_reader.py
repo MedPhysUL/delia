@@ -11,7 +11,7 @@
 
 from .segmentation_context import SegmentationContext
 from .factories.segmentation import Segmentation
-from ...data_model import ImageDataModel, SegmentationDataModel
+from ...utils.data_model import ImageDataModel, SegmentationDataModel
 
 
 class SegmentationReader:

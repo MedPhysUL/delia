@@ -13,7 +13,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from ....data_model import ImageDataModel
+from ....utils.data_model import ImageDataModel
 from .segment import Segment
 from .segmentation import Segmentation
 

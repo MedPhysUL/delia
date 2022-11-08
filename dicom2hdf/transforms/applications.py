@@ -17,10 +17,10 @@ from monai.transforms import Compose, EnsureChannelFirstD
 from monai.transforms import MapTransform as MonaiMapTransform
 import SimpleITK as sitk
 
-from dicom2hdf.data_model import PatientDataModel
 from dicom2hdf.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, Mode
 from dicom2hdf.transforms.data.transform import DataTransform
 from dicom2hdf.transforms.tools import convert_to_numpy, set_transforms_keys
+from dicom2hdf.utils.data_model import PatientDataModel
 
 
 class _SitkImageInfo(NamedTuple):

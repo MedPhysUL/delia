@@ -19,7 +19,7 @@ from rt_utils import RTStruct
 import SimpleITK as sitk
 
 from .base_segmentation_factory import BaseSegmentationFactory
-from ....data_model import ImageDataModel
+from ....utils.data_model import ImageDataModel
 from .segment import Segment
 
 

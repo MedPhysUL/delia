@@ -14,7 +14,7 @@ import pydicom
 
 from .segmentation_strategy import SegmentationStrategy, SegmentationStrategies
 from .factories.segmentation import Segmentation
-from ...data_model import ImageDataModel
+from ...utils.data_model import ImageDataModel
 
 
 class SegmentationContext:

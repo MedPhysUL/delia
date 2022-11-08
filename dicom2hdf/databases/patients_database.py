@@ -20,8 +20,8 @@ import json
 import numpy as np
 import SimpleITK as sitk
 
-from dicom2hdf.data_generators.patients_data_generator import PatientsDataGenerator, PatientWhoFailed
-from dicom2hdf.data_model import ImageAndSegmentationDataModel
+from dicom2hdf.generators.patients_data_generator import PatientsDataGenerator, PatientWhoFailed
+from dicom2hdf.utils.data_model import ImageAndSegmentationDataModel
 
 _logger = logging.getLogger(__name__)
 

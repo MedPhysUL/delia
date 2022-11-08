@@ -16,8 +16,8 @@ from typing import Dict, List, Optional
 import pandas as pd
 from radiomics.featureextractor import RadiomicsFeatureExtractor
 
-from dicom2hdf.data_readers.segmentation.segmentation_strategy import SegmentationStrategies
-from dicom2hdf import PatientsDataGenerator
+from dicom2hdf.generators import PatientsDataGenerator
+from dicom2hdf.readers.segmentation.segmentation_strategy import SegmentationStrategies
 
 _logger = logging.getLogger(__name__)
 

@@ -1,9 +1,8 @@
 import logging
 
-from dicom2hdf.data_generators.patients_data_generator import PatientsDataGenerator, PatientWhoFailed
-from dicom2hdf.data_model import PatientDataModel
-from dicom2hdf.databases.patients_database import PatientsDatabase
-from dicom2hdf.radiomics import RadiomicsDataset
+from .databases import PatientsDatabase
+from .generators import PatientsDataGenerator, PatientWhoFailed
+from .radiomics import RadiomicsDataset, RadiomicsFeatureExtractor
 
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.WARNING)

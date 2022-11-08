@@ -1,1 +1,1 @@
-from dicom2hdf.databases.patients_database import PatientsDatabase
+from .patients_database import PatientsDatabase

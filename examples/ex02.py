@@ -6,10 +6,9 @@
 
 import env_examples  # Modifies path, DO NOT REMOVE
 
-from dicom2hdf import PatientsDataGenerator
-from dicom2hdf.radiomics import RadiomicsDataset
+from dicom2hdf.generators import PatientsDataGenerator
+from dicom2hdf.radiomics import RadiomicsDataset, RadiomicsFeatureExtractor
 from dicom2hdf.transforms import Compose, CopySegmentationsD, PETtoSUVD
-from radiomics.featureextractor import RadiomicsFeatureExtractor
 
 
 if __name__ == "__main__":

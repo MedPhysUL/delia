@@ -18,9 +18,9 @@ from typing import Dict, List, NamedTuple, Set
 import pydicom
 import SimpleITK as sitk
 
-from dicom2hdf.data_model import ImageDataModel
-from dicom2hdf.data_readers.segmentation.segmentation_strategy import SegmentationStrategies
-from dicom2hdf.utils import is_path_valid
+from dicom2hdf.utils.data_model import ImageDataModel
+from dicom2hdf.readers.segmentation.segmentation_strategy import SegmentationStrategies
+from dicom2hdf.utils.tools import is_path_valid
 
 _logger = logging.getLogger(__name__)
 
