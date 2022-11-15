@@ -6,9 +6,9 @@
 
 import env_examples  # Modifies path, DO NOT REMOVE
 
-from dicom2hdf.databases import PatientsDatabase
-from dicom2hdf.generators import PatientsDataGenerator
-from dicom2hdf.transforms import (
+from delia.databases import PatientsDatabase
+from delia.extractors import PatientsDataExtractor
+from delia.transforms import (
     PETtoSUVD,
     ResampleD
 )
@@ -27,9 +27,9 @@ if __name__ == "__main__":
     env_examples.configure_logging("logging_conf.yaml")
 
     # ----------------------------------------------------------------------------------------------------------- #
-    #                                      Create patients data generator                                         #
+    #                                      Create patients data extractor                                         #
     # ----------------------------------------------------------------------------------------------------------- #
-    patients_data_generator = PatientsDataGenerator(
+    patients_data_extractor = PatientsDataExtractor(
         path_to_patients_folder="data/patients",
         series_descriptions="data/series_descriptions.json",
         transforms=Compose(
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     database = PatientsDatabase(path_to_database="data/patients_database.h5")
 
     database.create(
-        patients_data_generator=patients_data_generator,
+        patients_data_extractor=patients_data_extractor,
         tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         overwrite_database=True
     )

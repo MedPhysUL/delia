@@ -20,8 +20,8 @@ import json
 import numpy as np
 import SimpleITK as sitk
 
-from dicom2hdf.generators.patients_data_generator import PatientsDataGenerator, PatientWhoFailed
-from dicom2hdf.utils.data_model import ImageAndSegmentationDataModel
+from delia.extractors.patients_data_extractor import PatientsDataExtractor, PatientWhoFailed
+from delia.utils.data_model import ImageAndSegmentationDataModel
 
 _logger = logging.getLogger(__name__)
 
@@ -214,7 +214,7 @@ class PatientsDatabase:
 
     def create(
             self,
-            patients_data_generator: PatientsDataGenerator,
+            patients_data_extractor: PatientsDataExtractor,
             tags_to_use_as_attributes: Optional[List[Tuple[int, int]]] = None,
             add_sitk_image_metadata_as_attributes: bool = True,
             overwrite_database: bool = False
@@ -226,7 +226,7 @@ class PatientsDatabase:
 
         Parameters
         ----------
-        patients_data_generator : PatientsDataGenerator
+        patients_data_extractor : PatientsDataExtractor
             An object used to iterate on multiple patients' dicom files and segmentation files using the
             PatientDataReader to obtain all patients' data.
         tags_to_use_as_attributes : List[Tuple[int, int]]
@@ -249,8 +249,8 @@ class PatientsDatabase:
 
         hf = h5py.File(self.path_to_database, "w")
 
-        number_of_patients = len(patients_data_generator)
-        for patient_idx, patient_dataset in enumerate(patients_data_generator):
+        number_of_patients = len(patients_data_extractor)
+        for patient_idx, patient_dataset in enumerate(patients_data_extractor):
             patient_id = patient_dataset.patient_id
             patient_group = hf.create_group(name=patient_id)
 
@@ -299,7 +299,7 @@ class PatientsDatabase:
 
             _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to database.")
 
-        patients_data_generator.close()
-        patients_data_generator.reset()
+        patients_data_extractor.close()
+        patients_data_extractor.reset()
 
-        return patients_data_generator.patients_who_failed
+        return patients_data_extractor.patients_who_failed

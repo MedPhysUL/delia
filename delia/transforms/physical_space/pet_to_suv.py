@@ -16,7 +16,7 @@ import numpy as np
 import pydicom
 import SimpleITK as sitk
 
-from dicom2hdf.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, KeysCollection, Mode
+from delia.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, KeysCollection, Mode
 
 _logger = logging.getLogger(__name__)
 

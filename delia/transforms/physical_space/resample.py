@@ -13,7 +13,7 @@ from typing import Dict, Hashable, Tuple
 import SimpleITK as sitk
 import numpy as np
 
-from dicom2hdf.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, KeysCollection, Mode
+from delia.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, KeysCollection, Mode
 
 
 class Resampled(PhysicalSpaceTransform):

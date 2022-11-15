@@ -14,7 +14,7 @@ from typing import Collection, Dict, Hashable, Union
 
 from monai.transforms import MapTransform
 
-from dicom2hdf.utils.data_model import ImageAndSegmentationDataModel
+from delia.utils.data_model import ImageAndSegmentationDataModel
 
 KeysCollection = Union[Collection[Hashable], Hashable]
 

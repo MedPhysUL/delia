@@ -1,7 +1,7 @@
 import logging
 
 from .databases import PatientsDatabase
-from .generators import PatientsDataGenerator, PatientWhoFailed
+from .extractors import PatientsDataExtractor, PatientWhoFailed, RadiomicsFeatureExtractor
 from .radiomics import RadiomicsDataset, RadiomicsFeatureExtractor
 from .utils import PatientDataModel
 

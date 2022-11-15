@@ -11,7 +11,7 @@
 
 from typing import Dict, List, Optional
 
-from dicom2hdf.utils.data_model import PatientDataModel
+from delia.utils.data_model import PatientDataModel
 from .patient_data_query_strategy import PatientDataQueryStrategy, PatientDataQueryStrategies
 
 

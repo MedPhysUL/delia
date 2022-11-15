@@ -15,8 +15,8 @@ from typing import Dict, List, Optional
 
 import pydicom
 
-from dicom2hdf.readers.image.dicom_reader import DicomReader
-from dicom2hdf.utils.data_model import ImageDataModel, PatientDataModel
+from delia.readers.image.dicom_reader import DicomReader
+from delia.utils.data_model import ImageDataModel, PatientDataModel
 
 
 class BasePatientDataFactory(ABC):

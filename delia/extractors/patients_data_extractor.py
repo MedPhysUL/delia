@@ -20,10 +20,10 @@ from typing import Dict, List, NamedTuple, Optional, Union
 from monai.transforms import Compose
 from monai.transforms import MapTransform as MonaiMapTransform
 
-from dicom2hdf.readers.patient_data.patient_data_reader import PatientDataReader
-from dicom2hdf.transforms.data.transform import DataTransform
-from dicom2hdf.transforms.physical_space.transform import PhysicalSpaceTransform
-from dicom2hdf.utils.data_model import PatientDataModel
+from delia.readers.patient_data.patient_data_reader import PatientDataReader
+from delia.transforms.data.transform import DataTransform
+from delia.transforms.physical_space.transform import PhysicalSpaceTransform
+from delia.utils.data_model import PatientDataModel
 
 _logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class PatientWhoFailed(NamedTuple):
     available_series_descriptions: List[str]
 
 
-class PatientsDataGenerator(Generator):
+class PatientsDataExtractor(Generator):
     """
     A class used to iterate on multiple patients' dicom files and segmentation files using the PatientDataReader to
     obtain all patients' data. The PatientsDataGenerator inherits from the Generator abstract class.

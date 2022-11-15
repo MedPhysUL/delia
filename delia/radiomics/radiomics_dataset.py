@@ -16,8 +16,8 @@ from typing import Dict, List, Optional
 import pandas as pd
 from radiomics.featureextractor import RadiomicsFeatureExtractor
 
-from dicom2hdf.generators import PatientsDataGenerator
-from dicom2hdf.readers.segmentation.segmentation_strategy import SegmentationStrategies
+from delia.extractors import PatientsDataExtractor
+from delia.readers.segmentation.segmentation_strategy import SegmentationStrategies
 
 _logger = logging.getLogger(__name__)
 
@@ -153,7 +153,7 @@ class RadiomicsDataset:
 
     def create(
             self,
-            patients_data_generator: PatientsDataGenerator,
+            patients_data_extractor: PatientsDataExtractor,
             organ: str,
             image_name: Optional[str] = None,
             image_modality: Optional[str] = None,
@@ -166,7 +166,7 @@ class RadiomicsDataset:
 
         Parameters
         ----------
-        patients_data_generator : PatientsDataGenerator
+        patients_data_extractor : PatientsDataExtractor
             An object used to iterate on multiple patients' dicom files and segmentation files using the
             PatientDataReader to obtain all patients' data.
         organ : str
@@ -213,7 +213,7 @@ class RadiomicsDataset:
 
         patients_ids: List[str] = []
         radiomics_features: List[Dict] = []
-        for patient_idx, patient_dataset in enumerate(patients_data_generator):
+        for patient_idx, patient_dataset in enumerate(patients_data_extractor):
             patient_id = patient_dataset.patient_id
             patients_ids.append(patient_id)
 
@@ -286,8 +286,8 @@ class RadiomicsDataset:
             _logger.error(f"No images found for all patients. The radiomics dataset with path {self.path_to_dataset} "
                           f"was therefore not created.")
 
-        patients_data_generator.reset()
-        patients_data_generator.close()
+        patients_data_extractor.reset()
+        patients_data_extractor.close()
 
     def read(self) -> pd.DataFrame:
         """

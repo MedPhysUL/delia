@@ -14,7 +14,7 @@ from monai.data import MetaTensor
 from monai.utils import convert_to_numpy as monai_convert_to_numpy
 import numpy as np
 
-from dicom2hdf.utils.data_model import PatientDataModel
+from delia.utils.data_model import PatientDataModel
 
 
 def set_transforms_keys(patient_dataset: PatientDataModel) -> None:

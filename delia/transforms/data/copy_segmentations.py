@@ -12,8 +12,8 @@ from typing import Dict, Hashable
 
 import SimpleITK as sitk
 
-from dicom2hdf.transforms.data.transform import DataTransform
-from dicom2hdf.utils.data_model import ImageAndSegmentationDataModel, SegmentationDataModel
+from delia.transforms.data.transform import DataTransform
+from delia.utils.data_model import ImageAndSegmentationDataModel, SegmentationDataModel
 
 
 class CopySegmentationsd(DataTransform):

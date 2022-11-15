@@ -15,13 +15,13 @@ from typing import Dict, List, Optional, Union
 from monai.transforms import Compose
 from monai.transforms import MapTransform as MonaiMapTransform
 
-from dicom2hdf.readers.image.dicom_reader import DicomReader
-from dicom2hdf.readers.patient_data.patient_data_query_context import PatientDataQueryContext
-from dicom2hdf.transforms.applications import apply_transforms
-from dicom2hdf.transforms.data.transform import DataTransform
-from dicom2hdf.transforms.physical_space.transform import PhysicalSpaceTransform
-from dicom2hdf.utils.data_model import PatientDataModel
-from dicom2hdf.utils.transforms_history import TransformsHistory
+from delia.readers.image.dicom_reader import DicomReader
+from delia.readers.patient_data.patient_data_query_context import PatientDataQueryContext
+from delia.transforms.applications import apply_transforms
+from delia.transforms.data.transform import DataTransform
+from delia.transforms.physical_space.transform import PhysicalSpaceTransform
+from delia.utils.data_model import PatientDataModel
+from delia.utils.transforms_history import TransformsHistory
 
 _logger = logging.getLogger(__name__)
 

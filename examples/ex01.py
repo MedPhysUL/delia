@@ -6,8 +6,8 @@
 
 import env_examples  # Modifies path, DO NOT REMOVE
 
-from dicom2hdf.generators import PatientsDataGenerator
-from dicom2hdf.transforms import Compose, CopySegmentationsD, PETtoSUVD, ResampleD
+from delia.extractors import PatientsDataExtractor
+from delia.transforms import Compose, CopySegmentationsD, PETtoSUVD, ResampleD
 import SimpleITK as sitk
 
 
@@ -18,9 +18,9 @@ if __name__ == "__main__":
     env_examples.configure_logging("logging_conf.yaml")
 
     # ----------------------------------------------------------------------------------------------------------- #
-    #                                      Create patients data generator                                         #
+    #                                      Create patients data extractor                                         #
     # ----------------------------------------------------------------------------------------------------------- #
-    patients_data_generator = PatientsDataGenerator(
+    patients_data_extractor = PatientsDataExtractor(
         path_to_patients_folder="data/patients",
         series_descriptions="data/series_descriptions.json",
         transforms=Compose(
@@ -35,8 +35,8 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     #                                    Perform on-thy-fly tasks on images                                       #
     # ----------------------------------------------------------------------------------------------------------- #
-    for patient_data in patients_data_generator:
-        print(f"Patient ID: {patient_data.patient_id}")
+    for patient_data in patients_data_extractor:
+        print(f"{'-'*20}\nPatient ID: {patient_data.patient_id}")
 
         for patient_image_data in patient_data.data:
             dicom_header = patient_image_data.image.dicom_header

@@ -6,9 +6,9 @@
 
 import env_examples  # Modifies path, DO NOT REMOVE
 
-from dicom2hdf.generators import PatientsDataGenerator
-from dicom2hdf.radiomics import RadiomicsDataset, RadiomicsFeatureExtractor
-from dicom2hdf.transforms import Compose, CopySegmentationsD, PETtoSUVD
+from delia.extractors import PatientsDataExtractor, RadiomicsFeatureExtractor
+from delia.radiomics import RadiomicsDataset
+from delia.transforms import Compose, CopySegmentationsD, PETtoSUVD
 
 
 if __name__ == "__main__":
@@ -18,9 +18,9 @@ if __name__ == "__main__":
     env_examples.configure_logging("logging_conf.yaml")
 
     # ----------------------------------------------------------------------------------------------------------- #
-    #                                      Create patients data generator                                         #
+    #                                      Create patients data extractor                                         #
     # ----------------------------------------------------------------------------------------------------------- #
-    patients_data_generator = PatientsDataGenerator(
+    patients_data_extractor = PatientsDataExtractor(
         path_to_patients_folder="data/patients",
         series_descriptions="data/radiomics_series_descriptions.json",
         transforms=Compose(
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     )
 
     CT_radiomics_dataset.create(
-        patients_data_generator=patients_data_generator,
+        patients_data_extractor=patients_data_extractor,
         organ="Heart",
         image_name="CT_THORAX"
     )
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     )
 
     PT_radiomics_dataset.create(
-        patients_data_generator=patients_data_generator,
+        patients_data_extractor=patients_data_extractor,
         organ="Heart",
         image_name="TEP"
     )

@@ -10,10 +10,10 @@
 
 from typing import Dict, List, Optional
 
-from dicom2hdf.readers.patient_data.factories.base_patient_data_factory import BasePatientDataFactory
-from dicom2hdf.readers.image.dicom_reader import DicomReader
-from dicom2hdf.readers.segmentation.segmentation_reader import SegmentationReader
-from dicom2hdf.utils.data_model import ImageAndSegmentationDataModel, PatientDataModel
+from delia.readers.patient_data.factories.base_patient_data_factory import BasePatientDataFactory
+from delia.readers.image.dicom_reader import DicomReader
+from delia.readers.segmentation.segmentation_reader import SegmentationReader
+from delia.utils.data_model import ImageAndSegmentationDataModel, PatientDataModel
 
 
 class DefaultPatientDataFactory(BasePatientDataFactory):

@@ -10,8 +10,8 @@ import env_examples  # Modifies path, DO NOT REMOVE
 import json
 from typing import Dict, List, Union
 
-from dicom2hdf.databases import PatientsDatabase
-from dicom2hdf.generators import PatientsDataGenerator, PatientWhoFailed
+from delia.databases import PatientsDatabase
+from delia.extractors import PatientsDataExtractor, PatientWhoFailed
 
 
 def get_updated_series_descriptions(
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     #     Create database (some images of some patients might fail to be added to the database due to the         #
     #                         absence of the series descriptions in the patient record)                           #
     # ----------------------------------------------------------------------------------------------------------- #
-    patients_data_generator = PatientsDataGenerator(
+    patients_data_extractor = PatientsDataExtractor(
         path_to_patients_folder="data/patients",
         series_descriptions="data/incorrect_series_descriptions.json"
     )
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     database = PatientsDatabase(path_to_database="data/patients_database.h5")
 
     patients_who_failed = database.create(
-        patients_data_generator=patients_data_generator,
+        patients_data_extractor=patients_data_extractor,
         overwrite_database=True
     )
 
@@ -92,13 +92,13 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     #                                           Create complete database                                          #
     # ----------------------------------------------------------------------------------------------------------- #
-    patients_data_generator = PatientsDataGenerator(
+    patients_data_extractor = PatientsDataExtractor(
         path_to_patients_folder="data/patients",
         series_descriptions=updated_series_descriptions
     )
 
     patients_who_failed = database.create(
-        patients_data_generator=patients_data_generator,
+        patients_data_extractor=patients_data_extractor,
         tags_to_use_as_attributes=[(0x0008, 0x103E), (0x0020, 0x000E), (0x0008, 0x0060)],
         overwrite_database=True
     )

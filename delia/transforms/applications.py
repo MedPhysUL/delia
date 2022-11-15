@@ -17,10 +17,10 @@ from monai.transforms import Compose, EnsureChannelFirstD
 from monai.transforms import MapTransform as MonaiMapTransform
 import SimpleITK as sitk
 
-from dicom2hdf.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, Mode
-from dicom2hdf.transforms.data.transform import DataTransform
-from dicom2hdf.transforms.tools import convert_to_numpy, set_transforms_keys
-from dicom2hdf.utils.data_model import PatientDataModel
+from delia.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, Mode
+from delia.transforms.data.transform import DataTransform
+from delia.transforms.tools import convert_to_numpy, set_transforms_keys
+from delia.utils.data_model import PatientDataModel
 
 
 class _SitkImageInfo(NamedTuple):
@@ -209,13 +209,13 @@ def _apply_transform(
         A dictionary of transformed SimpleITK images.
     """
     if isinstance(transform, PhysicalSpaceTransform):
-        return _apply_dicom2hdf_transform(transform=transform, data=data, mode=mode)
+        return _apply_delia_transform(transform=transform, data=data, mode=mode)
     elif isinstance(transform, MonaiMapTransform):
         data = {k: v.simple_itk_image for k, v in data.items()}
         return _apply_monai_transforms(transform=transform, data=data)
 
 
-def _apply_dicom2hdf_transform(
+def _apply_delia_transform(
         data: Dict[str, ImageData],
         transform: PhysicalSpaceTransform,
         mode: Mode
