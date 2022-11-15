@@ -1,50 +1,90 @@
 <p align="center" width="100%">
     <img width="100%" src="https://github.com/MaxenceLarose/delia/raw/main/images/delia.svg">
 </p>
+<p align="center"><font size=4.5><i>DELIA is a Python package that facilitates data extraction from DICOM files to support large-scale image analysis workflows.</i></p>
 
-DELIA is a pure Python package that facilitates data extraction from DICOM files to support large-scale medical image analysis workflows. It is a higher-level library that builds on the excellent lower-level [pydicom](https://pydicom.github.io/pydicom/stable/) library.
+# Notable features
 
-## Notable features
-
-- Creation of an [HDF5](https://github.com/h5py/h5py) database containing multiple patients' medical images as well as binary label maps (segmentations). The HDF5 database is then easier to use to perform any tasks on medical data, such as training deep neural networks. 
+- Bulk extraction of images and segmentations from multiple patients' DICOM files. Segmentations must be in [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) or [RTStruct](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_A.19.html) format.
+- Creation of an [HDF5](https://github.com/h5py/h5py) database containing multiple patients' medical images as well as binary label maps (segmentations). The database is then easier to use than DICOMs to perform tasks on medical data, such as training deep neural networks. 
 - Bulk extraction of radiomics features from multiple patients' DICOM files using [pyradiomics](https://github.com/AIM-Harvard/pyradiomics).
 
-## Motivation
+# Quick usage preview
+
+## Extract images
+
+```python
+from delia.extractors import PatientsDataExtractor
+
+patients_data_extractor = PatientsDataExtractor(path_to_patients_folder="patients")
+
+for patient in patients_data_extractor:
+    for image_data in patient.data:
+        array = image_data.image.numpy_array
+        
+        """Perform any tasks on images on-the-fly."""
+        print(array)
+```
+
+## Create patients database (HDF5)
+
+```python
+from delia.databases import PatientsDatabase
+from delia.extractors import PatientsDataExtractor
+
+patients_data_extractor = PatientsDataExtractor(path_to_patients_folder="patients")
+
+database = PatientsDatabase(path_to_database="patients_database.h5")
+
+database.create(patients_data_extractor=patients_data_extractor)
+
+```
+
+## Create radiomics dataset (CSV)
+
+```python
+from delia.extractors import PatientsDataExtractor
+from delia.radiomics import RadiomicsDataset, RadiomicsFeatureExtractor
+
+patients_data_extractor = PatientsDataExtractor(path_to_patients_folder="patients")
+
+radiomics_dataset = RadiomicsDataset(path_to_dataset="radiomics.csv")
+radiomics_dataset.extractor = RadiomicsFeatureExtractor(path_to_params="features_extractor_params.yaml")
+
+radiomics_dataset.create(patients_data_extractor=patients_data_extractor, organ="Heart", image_name="CT")
+
+```
+
+# Motivation
 
 **Digital Imaging and Communications in Medicine** ([**DICOM**](https://www.dicomstandard.org/)) is *the* international standard for medical images and related information. The working group [DICOM WG-23](https://www.dicomstandard.org/activity/wgs/wg-23/) on Artificial Intelligence / Application Hosting is currently working to identify or develop the DICOM mechanisms to support AI workflows, concentrating on the clinical context. Moreover, their future *roadmap and objectives* includes working on the concern that current DICOM mechanisms might not be adequate to cover some use cases, particularly bulk analysis of large repository data, e.g. for training deep learning neural networks. **However, no tool has been developed to achieve this goal at present.**
 
 The main **purpose** of this module is therefore to provide the necessary tools to facilitate the use of medical images in an AI workflow.  This goal is accomplished by using the [HDF file format](https://www.hdfgroup.org/) to create a database containing patients' medical images as well as binary label maps obtained from the segmentation of these images.
 
-## Installation
+# Installation
 
-### Latest stable version :
+## Latest stable version :
 
 ```
 pip install delia
 ```
 
-### Latest (possibly unstable) version :
+## Latest (possibly unstable) version :
 
 ```
 pip install git+https://github.com/MaxenceLarose/delia
 ```
 
-## How it works
+# How it works
 
-### Main concepts
+## Main concepts
 
-There are 4 main concepts :
+There are 5 main concepts :
 
 1. `PatientDataModel` : It is the primary `delia` data structure. It is a named tuple gathering the image and segmentation data available in a patient record. 
-2. `PatientsDataExtractor` : A Python [Generator](https://docs.python.org/3/library/collections.abc.html#collections.abc.Generator) that allows to iterate over several patients and create a `PatientDataModel` object for each of them.
+2. `PatientsDataExtractor` : A Python [Generator](https://docs.python.org/3/library/collections.abc.html#collections.abc.Generator) that allows to iterate over several patients and create a `PatientDataModel` object for each of them. A sequence of `delia` or `monai` transformations to apply to specific images or segmentations can be specified (see [MONAI](https://docs.monai.io/en/stable/transforms.html)).
 3. `PatientsDatabase` : An object that is used to create/interact with an HDF5 file (a database!) containing all patients information (images + label maps). The `PatientsDataExtractor` is used to populate this database. 
-3. `RadiomicsDataset` : An object that is used to create/interact with a csv file (a dataset!) containing radiomics features extracted from images. The `PatientsDataExtractor` is used to populate this dataset. 
-
-### A deeper look into the `PatientsDataExtractor` object
-
-The `PatientsDataExtractor` has 3 important variables:  a `path_to_patients_folder` (which dictates the path to the folder that contains all patient records), a `series_descriptions` (which dictates the images that needs to be extracted from the patient records) and `transforms` that defines a sequence of transformations to apply on images or segmentations. For each patient/folder available in the `path_to_patients_folder`, all DICOM files in their folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume and its segmentation (if available) are automatically added to the `PatientDataModel`. Note that if no `series_descriptions` dictionary is given (`series_descriptions = None`), then all images (and associated segmentations) will be added to the database. 
-
-The `PatientsDataExtractor` can therefore be used to iteratively perform tasks on each of the patients, such as displaying certain images, transforming images into numpy arrays, or creating an HDF5 database using the `PatientsDatabase`. It is this last task that is highlighted in this package, but it must be understood that the data extraction is performed in a very general manner by the `PatientsDataExtractor` and is therefore not limited to this single application. For example, someone could easily develop a `Numpydatabase` whose creation would be ensured by the `PatientsDataExtractor`, similar to the current `PatientsDatabase` based on the HDF5 format.
+4. `RadiomicsDataset` : An object that is used to create/interact with a csv file (a dataset!) containing radiomics features extracted from images. The `PatientsDataExtractor` is used to populate this dataset. 
 
 ## Organize your data
 
@@ -106,7 +146,7 @@ series_descriptions = {
 ```
 </details>
 
-### Structure your patients directory
+## Structure your patients directory
 
 It is important to configure the directory structure correctly to ensure that the module interacts correctly with the data files. The `patients` folder, must be structured as follows. *Note that all DICOM files in the patients' folder will be read.*
 
@@ -125,12 +165,12 @@ It is important to configure the directory structure correctly to ensure that th
       |_📂 ...
 ```
 
-## Import the package
+# Import the package
 
 The easiest way to import the package is to use :
 
 ```python
-import delia as d2h
+import delia
 ```
 
 You can explicitly use the objects sub-modules :
@@ -141,9 +181,9 @@ from delia.extractors import PatientsDataExtractor
 from delia.radiomics import RadiomicsDataset, RadiomicsFeatureExtractor
 ```
 
-## Use the package
+# Use the package
 
-### Example using the `PatientsDatabase` class
+## Example using the `PatientsDatabase` class
 
 This file can then be executed to obtain an hdf5 database.
 
@@ -190,7 +230,7 @@ The created HDF5 database will then look something like :
 
 ![patient_dataset](https://github.com/MaxenceLarose/delia/raw/main/images/patient_dataset.png)
 
-### Example using the `PatientsDataExtractor`class
+## Example using the `PatientsDataExtractor`class
 
 This file can then be executed to perform on-the-fly tasks on images.
 
@@ -223,19 +263,25 @@ for patient_dataset in patients_data_extractor:
         print(numpy_array_image.shape)
 ```
 
-### Need more examples?
+## Need more examples?
 
 You can find more in the [examples folder](https://github.com/MaxenceLarose/delia/tree/main/examples).
 
-## TODO
+# A deeper look into the `PatientsDataExtractor` object
+
+The `PatientsDataExtractor` has 3 important variables:  a `path_to_patients_folder` (which dictates the path to the folder that contains all patient records), a `series_descriptions` (which dictates the images that needs to be extracted from the patient records) and `transforms` that defines a sequence of transformations to apply on images or segmentations. For each patient/folder available in the `path_to_patients_folder`, all DICOM files in their folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume and its segmentation (if available) are automatically added to the `PatientDataModel`. Note that if no `series_descriptions` dictionary is given (`series_descriptions = None`), then all images (and associated segmentations) will be added to the database. 
+
+The `PatientsDataExtractor` can therefore be used to iteratively perform tasks on each of the patients, such as displaying certain images, transforming images into numpy arrays, or creating an HDF5 database using the `PatientsDatabase`. It is this last task that is highlighted in this package, but it must be understood that the data extraction is performed in a very general manner by the `PatientsDataExtractor` and is therefore not limited to this single application. For example, someone could easily develop a `Numpydatabase` whose creation would be ensured by the `PatientsDataExtractor`, similar to the current `PatientsDatabase` based on the HDF5 format.
+
+# TODO
 
 - [ ] Generalize the use of arbitrary tags to choose images to extract. At the moment, the only tag available is `series_descriptions`.
 
-## License
+# License
 
 This code is provided under the [Apache License 2.0](https://github.com/MaxenceLarose/delia/blob/main/LICENSE).
 
-## Citation
+# Citation
 
 ```
 @misc{delia,
@@ -247,6 +293,6 @@ This code is provided under the [Apache License 2.0](https://github.com/MaxenceL
 }
 ```
 
-## Contact
+# Contact
 
 Maxence Larose, B. Ing., [maxence.larose.1@ulaval.ca](mailto:maxence.larose.1@ulaval.ca)
