@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="delia",
-    version="0.3.0",
+    version="1.0.2",
     author="Maxence Larose",
     author_email="maxence.larose.1@ulaval.ca",
     description="DICOM Extraction for Large-scale Image Analysis (DELIA).",
@@ -10,7 +10,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/MaxenceLarose/delia",
     license="Apache License 2.0",
-    keywords='dicom hdf5 medical image segmentation pre-processing python3',
+    keywords='dicom hdf5 medical image segmentation pre-processing python3 radiomics deep-learning dicom-seg rt-struct',
     packages=setuptools.find_packages(),
     python_requires=">=3.7",
     classifiers=[
