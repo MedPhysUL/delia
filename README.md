@@ -1,7 +1,7 @@
 <p align="center" width="100%">
     <img width="100%" src="https://github.com/MaxenceLarose/delia/raw/main/images/delia.svg">
 </p>
-<p align="center"><font size=4><i>DELIA is a Python package that facilitates data extraction from DICOM files to support large-scale image analysis workflows.</i></p>
+<p align="center"><font size=3.5><i>DELIA is a Python package that facilitates data extraction from DICOM files to support large-scale image analysis workflows.</i></p>
 
 # Notable features
 
