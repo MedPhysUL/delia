@@ -121,7 +121,13 @@ It is important to configure the directory structure correctly to ensure that th
 
 ## Import the package
 
-The easiest way to import the package is to explicitly use the objects sub-modules :
+The easiest way to import the package is to use :
+
+```python
+import dicom2hdf as d2h
+```
+
+You can explicitly use the objects sub-modules :
 
 ```python
 from dicom2hdf.databases import PatientsDatabase
