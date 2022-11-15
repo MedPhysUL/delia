@@ -6,8 +6,8 @@
 
 import env_examples  # Modifies path, DO NOT REMOVE
 
-from delia.extractors import PatientsDataExtractor, RadiomicsFeatureExtractor
-from delia.radiomics import RadiomicsDataset
+from delia.extractors import PatientsDataExtractor
+from delia.radiomics import RadiomicsDataset, RadiomicsFeatureExtractor
 from delia.transforms import Compose, CopySegmentationsD, PETtoSUVD
 
 
