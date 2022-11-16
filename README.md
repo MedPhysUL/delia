@@ -25,7 +25,7 @@ pip install git+https://github.com/MaxenceLarose/delia
 
 # Quick usage preview
 
-## Extract images as `numpy ` arrays
+## Extract images as `numpy` arrays
 
 ```python
 from delia.extractors import PatientsDataExtractor
