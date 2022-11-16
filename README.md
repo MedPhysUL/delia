@@ -1,5 +1,5 @@
 <p align="center" width="100%">
-    <img width="100%" src="https://github.com/MaxenceLarose/delia/raw/main/images/delia.svg">
+    <img width="100%" src="https://github.com/MaxenceLarose/delia/raw/main/images/logo/delia_banner.svg">
 </p>
 <p align="center"><i>DELIA facilitates data extraction from DICOM files to support large-scale image analysis workflows.</i></p>
 
@@ -9,9 +9,23 @@
 - Creation of an [HDF5](https://github.com/h5py/h5py) database containing multiple patients' medical images as well as binary label maps (segmentations). The database is then easier to use than DICOMs to perform tasks on medical data, such as training deep neural networks. 
 - Bulk extraction of radiomics features from multiple patients' DICOM files using [pyradiomics](https://github.com/AIM-Harvard/pyradiomics).
 
+# Installation
+
+## Latest stable version :
+
+```
+pip install delia
+```
+
+## Latest (possibly unstable) version :
+
+```
+pip install git+https://github.com/MaxenceLarose/delia
+```
+
 # Quick usage preview
 
-## Extract images
+## Extract images as `numpy ` arrays
 
 ```python
 from delia.extractors import PatientsDataExtractor
@@ -51,7 +65,7 @@ patients_data_extractor = PatientsDataExtractor(path_to_patients_folder="patient
 radiomics_dataset = RadiomicsDataset(path_to_dataset="radiomics.csv")
 radiomics_dataset.extractor = RadiomicsFeatureExtractor(path_to_params="features_extractor_params.yaml")
 
-radiomics_dataset.create(patients_data_extractor=patients_data_extractor, organ="Heart", image_name="CT")
+radiomics_dataset.create(patients_data_extractor=patients_data_extractor, organ="Heart", image_modality="CT")
 
 ```
 
@@ -61,28 +75,14 @@ radiomics_dataset.create(patients_data_extractor=patients_data_extractor, organ=
 
 The main **purpose** of this module is therefore to provide the necessary tools to facilitate the use of medical images in an AI workflow.  This goal is accomplished by using the [HDF file format](https://www.hdfgroup.org/) to create a database containing patients' medical images as well as binary label maps obtained from the segmentation of these images.
 
-# Installation
-
-## Latest stable version :
-
-```
-pip install delia
-```
-
-## Latest (possibly unstable) version :
-
-```
-pip install git+https://github.com/MaxenceLarose/delia
-```
-
 # How it works
 
 ## Main concepts
 
-There are 5 main concepts :
+There are 4 main concepts :
 
 1. `PatientDataModel` : It is the primary `delia` data structure. It is a named tuple gathering the image and segmentation data available in a patient record. 
-2. `PatientsDataExtractor` : A Python [Generator](https://docs.python.org/3/library/collections.abc.html#collections.abc.Generator) that allows to iterate over several patients and create a `PatientDataModel` object for each of them. A sequence of `delia` or `monai` transformations to apply to specific images or segmentations can be specified (see [MONAI](https://docs.monai.io/en/stable/transforms.html)).
+2. `PatientsDataExtractor` : A Python [Generator](https://docs.python.org/3/library/collections.abc.html#collections.abc.Generator) that allows to iterate over several patients and create a `PatientDataModel` object for each of them. A sequence of `delia` and/or `monai` transformations to apply to specific images or segmentations can be specified (see [MONAI](https://docs.monai.io/en/stable/transforms.html)).
 3. `PatientsDatabase` : An object that is used to create/interact with an HDF5 file (a database!) containing all patients information (images + label maps). The `PatientsDataExtractor` is used to populate this database. 
 4. `RadiomicsDataset` : An object that is used to create/interact with a csv file (a dataset!) containing radiomics features extracted from images. The `PatientsDataExtractor` is used to populate this dataset. 
 
