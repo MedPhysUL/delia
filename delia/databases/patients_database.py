@@ -217,7 +217,7 @@ class PatientsDatabase:
             patients_data_extractor: PatientsDataExtractor,
             tags_to_use_as_attributes: Optional[List[Tuple[int, int]]] = None,
             add_sitk_image_metadata_as_attributes: bool = True,
-            organs_to_keep: Optional[List[str]] = None,
+            organs_to_keep: Optional[Union[str, List[str]]] = None,
             overwrite_database: bool = False
     ) -> List[PatientWhoFailed]:
         """
@@ -234,7 +234,7 @@ class PatientsDatabase:
             List of DICOM tags to add as series attributes in the HDF5 database.
         add_sitk_image_metadata_as_attributes : bool, default = True.
             Keep Simple ITK image information as attributes in the corresponding series.
-        organs_to_keep : List[str]
+        organs_to_keep : Optional[Union[str, List[str]]]
             Organ segmentations to keep in the database. By default, all organs are kept.
         overwrite_database : bool, default = False.
             Overwrite existing database.
@@ -249,6 +249,8 @@ class PatientsDatabase:
 
         if tags_to_use_as_attributes is None:
             tags_to_use_as_attributes = []
+        if isinstance(organs_to_keep, str):
+            organs_to_keep = [organs_to_keep]
 
         hf = h5py.File(self.path_to_database, "w")
 
