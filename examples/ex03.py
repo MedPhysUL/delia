@@ -56,3 +56,4 @@ if __name__ == "__main__":
     )
 
     print("R01-005 patient :", database["R01-005"])
+    print("R01-005 patient :", database[0])
