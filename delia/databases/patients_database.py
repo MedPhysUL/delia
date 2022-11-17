@@ -79,27 +79,49 @@ class PatientsDatabase:
         else:
             self._path_to_database = f"{path_to_database}.h5"
 
-    def __getitem__(self, patient_id: Union[List[str], str]) -> Union[List[h5py.Group], h5py.Group]:
+    def __getitem__(self, patient: Union[int, List[int], str, List[str]]) -> Union[List[h5py.Group], h5py.Group]:
         """
         Get a patient group given the patient ID.
 
         Parameters
         ----------
-        patient_id : str
-            Patient ID.
+        patient : Union[int, List[int], str, List[str]]
+            Patient ID (strings) or index (integers).
         """
         if os.path.exists(self.path_to_database):
             file = h5py.File(self.path_to_database, mode="r")
 
-            if isinstance(patient_id, str):
-                return file[patient_id]
-            elif isinstance(patient_id, list):
-                return [file[uid] for uid in patient_id]
+            if isinstance(patient, int):
+                file_keys = list(file.keys())
+                patient = file_keys[patient]
+            elif isinstance(patient, list):
+                file_keys = list(file.keys())
+                patient = [file_keys[p] if isinstance(p, int) else p for p in patient]
+
+            if isinstance(patient, str):
+                return file[patient]
+            elif isinstance(patient, list):
+                return [file[uid] for uid in patient]
             else:
                 raise AssertionError(f"Patient ID should be a list of patient ids (List[str]) or a single patient id "
-                                     f"(str). Received {type(patient_id)}.")
+                                     f"(str). Received {type(patient)}.")
         else:
             raise AssertionError(f"Database with path {self.path_to_database} doesn't exist. Use 'create'.")
+
+    def __len__(self) -> int:
+        """
+        Gets number of patients in the database of h5py.File.
+
+        Returns
+        -------
+        length : int
+            Number of patients in the database.
+        """
+        if os.path.exists(self.path_to_database):
+            db = h5py.File(self.path_to_database, mode="r")
+            return len(db.keys())
+        else:
+            return 0
 
     def _check_authorization_of_database_creation(
             self,
