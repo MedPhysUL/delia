@@ -217,6 +217,7 @@ class PatientsDatabase:
             patients_data_extractor: PatientsDataExtractor,
             tags_to_use_as_attributes: Optional[List[Tuple[int, int]]] = None,
             add_sitk_image_metadata_as_attributes: bool = True,
+            organs_to_keep: Optional[List[str]] = None,
             overwrite_database: bool = False
     ) -> List[PatientWhoFailed]:
         """
@@ -233,6 +234,8 @@ class PatientsDatabase:
             List of DICOM tags to add as series attributes in the HDF5 database.
         add_sitk_image_metadata_as_attributes : bool, default = True.
             Keep Simple ITK image information as attributes in the corresponding series.
+        organs_to_keep : List[str]
+            Organ segmentations to keep in the database. By default, all organs are kept.
         overwrite_database : bool, default = False.
             Overwrite existing database.
 
@@ -282,11 +285,12 @@ class PatientsDatabase:
                         for organ, simple_itk_label_map in segmentation.simple_itk_label_maps.items():
                             numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
 
-                            segmentation_group.create_dataset(
-                                name=organ,
-                                data=self._transpose(numpy_array_label_map),
-                                dtype=np.int8
-                            )
+                            if organs_to_keep is None or organ in organs_to_keep:
+                                segmentation_group.create_dataset(
+                                    name=organ,
+                                    data=self._transpose(numpy_array_label_map),
+                                    dtype=np.int8
+                                )
 
             for idx, transform in enumerate(patient_dataset.transforms_history.history):
                 patient_group.attrs.create(
