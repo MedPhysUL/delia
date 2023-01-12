@@ -96,9 +96,9 @@ class SegmentationContext:
         segmentation_dicom_header : pydicom.dataset.FileDataset
             Segmentation dicom header.
         """
-        dicom = pydicom.dcmread(self.path_to_segmentation, stop_before_pixels=True)
+        header = pydicom.dcmread(self.path_to_segmentation, stop_before_pixels=True)
 
-        return dicom.Modality
+        return header
 
     @property
     def segmentation_strategy(self) -> SegmentationStrategy:
