@@ -77,13 +77,26 @@ class SegmentationContext:
         segmentation_modality : str
             Segmentation modality.
         """
-        dicom = pydicom.dcmread(self.path_to_segmentation)
-        modality = dicom.Modality
+        modality = self.segmentation_dicom_header.Modality
         available_modalities = SegmentationStrategies.get_available_modalities()
 
         assert modality in available_modalities, f"The given segmentation file ({self.path_to_segmentation}) is of" \
                                                  f" modality {modality}. However, the available modalities for the" \
                                                  f" segmentations are {available_modalities}."
+
+        return modality
+
+    @property
+    def segmentation_dicom_header(self) -> pydicom.dataset.FileDataset:
+        """
+        Segmentation dicom header.
+
+        Returns
+        -------
+        segmentation_dicom_header : pydicom.dataset.FileDataset
+            Segmentation dicom header.
+        """
+        dicom = pydicom.dcmread(self.path_to_segmentation, stop_before_pixels=True)
 
         return dicom.Modality
 

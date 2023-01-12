@@ -76,6 +76,7 @@ class SegmentationReader:
             A named tuple grouping the segmentation data.
         """
         segmentation_data = SegmentationDataModel(
+            dicom_header=self.__segmentation_context_manager.segmentation_dicom_header,
             modality=self.__segmentation_context_manager.segmentation_strategy.modality,
             simple_itk_label_maps=self.__segmentation.simple_itk_label_maps
         )

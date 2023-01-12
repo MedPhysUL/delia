@@ -27,6 +27,8 @@ class SegmentationDataModel:
 
     Elements
     --------
+    dicom_header : FileDataset
+        Dicom header dataset.
     modality : str
         Segmentation modality (ex: SEG, RTSTRUCT).
     simple_itk_label_maps : Dict[str, sitk.Image]
@@ -40,6 +42,7 @@ class SegmentationDataModel:
                 ...
             }
     """
+    dicom_header: pydicom.dataset.FileDataset
     modality: Optional[str] = None
     simple_itk_label_maps: Optional[Dict[str, sitk.Image]] = None
 
