@@ -98,7 +98,11 @@ class CopySegmentationsd(DataTransform):
                 new_label_maps[organ] = resampled_mask
 
             new_segmentations.append(
-                SegmentationDataModel(modality=segmentation.modality, simple_itk_label_maps=new_label_maps)
+                SegmentationDataModel(
+                    dicom_header=segmentation.dicom_header,
+                    modality=segmentation.modality,
+                    simple_itk_label_maps=new_label_maps
+                )
             )
 
         d[self._unsegmented_image_key].segmentations = new_segmentations
