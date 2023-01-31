@@ -196,26 +196,7 @@ class PatientsDatabase:
             group.attrs.create(name=dicom_data_element.name, data=data)
 
     @staticmethod
-    def _is_shape_valid(shape: np.shape) -> bool:
-        """
-        Check if the given shape is in the right format for the hdf5 database.
-
-        Parameters
-        ----------
-        shape : np.shape
-            An numpy array's shape.
-
-        Returns
-        -------
-        valid : bool
-            Whether the shape is valid or not.
-        """
-        if shape[1] == shape[2] and shape[0] != shape[1] and shape[0] != shape[2]:
-            return False
-        else:
-            return True
-
-    def _transpose(self, array: np.ndarray) -> np.ndarray:
+    def _transpose(array: np.ndarray) -> np.ndarray:
         """
         Transpose an array if its shape is not valid for the hdf5 database format.
 
@@ -229,10 +210,7 @@ class PatientsDatabase:
         transposed_array : np.ndarray
             The original array or the transposed array depending on its input shape.
         """
-        if self._is_shape_valid(array.shape):
-            return array
-        else:
-            return array.transpose((1, 2, 0))
+        return array.transpose((1, 2, 0))
 
     def create(
             self,
