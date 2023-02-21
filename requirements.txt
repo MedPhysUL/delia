@@ -7,7 +7,7 @@ pydicom-seg==0.4.0
 pynrrd==0.4.2
 pyradiomics==3.0.1
 rt-utils==1.2.1
-setuptools==58.5.3
+setuptools==65.5.1
 SimpleITK==2.1.1
 tqdm==4.62.3
 PyYAML==6.0
