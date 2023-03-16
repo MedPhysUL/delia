@@ -8,6 +8,7 @@
     @Description:       This file contains some tools to help applying transforms on images.
 """
 
+from enum import IntEnum
 from typing import Union
 
 from monai.data import MetaTensor
@@ -15,6 +16,12 @@ from monai.utils import convert_to_numpy as monai_convert_to_numpy
 import numpy as np
 
 from delia.utils.data_model import PatientDataModel
+
+
+class Mode(IntEnum):
+    NONE = -1
+    IMAGE = 0
+    SEGMENTATION = 1
 
 
 def set_transforms_keys(patient_dataset: PatientDataModel) -> None:

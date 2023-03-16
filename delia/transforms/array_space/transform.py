@@ -2,18 +2,17 @@
     @file:              transform.py
     @Author:            Maxence Larose
 
-    @Creation Date:     10/2022
-    @Last modification: 11/2022
+    @Creation Date:     03/2023
+    @Last modification: 03/2023
 
-    @Description:       This file contains the PhysicalSpaceTransform abstract class which is used to define transforms
+    @Description:       This file contains the ArraySpaceTransform abstract class which is used to define transforms
                         that can be applied to images and segmentations.
 """
 
 from abc import abstractmethod
-from typing import Collection, Dict, Hashable, NamedTuple, Union
+from typing import Collection, Dict, Hashable, Union
 
-import SimpleITK as sitk
-import pydicom
+import numpy as np
 from monai.transforms import MapTransform
 
 from ..tools import Mode
@@ -21,24 +20,9 @@ from ..tools import Mode
 KeysCollection = Union[Collection[Hashable], Hashable]
 
 
-class ImageData(NamedTuple):
+class ArraySpaceTransform(MapTransform):
     """
-    A named tuple the medical image as a simpleITK image and its dicom header.
-
-    Elements
-    --------
-    simple_itk_image : Image
-        Segmentation as a SimpleITK image.
-    dicom_header : FileDataset
-        Dicom header dataset.
-    """
-    simple_itk_image: sitk.Image
-    dicom_header: pydicom.dataset.FileDataset = None
-
-
-class PhysicalSpaceTransform(MapTransform):
-    """
-    PhysicalSpaceTransform abstract class.
+    ArraySpaceTransform abstract class.
     """
 
     def __init__(self, keys: KeysCollection) -> None:
@@ -58,7 +42,7 @@ class PhysicalSpaceTransform(MapTransform):
     @property
     def mode(self) -> Mode:
         """
-        The transform mode, i.e. whether the single ITK images on which to apply the transformation are images OR
+        The transform mode, i.e. whether the single arrays on which to apply the transformation are images OR
         segmentations.
 
         Returns
@@ -71,30 +55,30 @@ class PhysicalSpaceTransform(MapTransform):
     @mode.setter
     def mode(self, mode: Mode):
         """
-        The transform mode, i.e. whether the single ITK images on which to apply the transformation are images OR
+        The transform mode, i.e. whether the single arrays on which to apply the transformation are images OR
         segmentations.
 
         Parameters
         ----------
         mode : Mode
-            The transform mode, i.e. whether the single ITK images on which to apply the transformation are images OR
+            The transform mode, i.e. whether the single arrays on which to apply the transformation are images OR
             segmentations.
         """
         self._mode = mode
 
     @abstractmethod
-    def __call__(self, data: Dict[str, ImageData]) -> Dict[Hashable, sitk.Image]:
+    def __call__(self, data: Dict[Hashable, np.ndarray]) -> Dict[str, np.ndarray]:
         """
         Apply the transformation.
 
         Parameters
         ----------
-        data : Dict[str, ImageData]
-            A Python dictionary that contains ImageData.
+        data : Dict[Hashable, np.ndarray]
+            A Python dictionary that contains numpy array.
 
         Returns
         -------
-        transformed_data : Dict[Hashable, sitk.Image]
-            A Python dictionary that contains transformed SimpleITK images.
+        transformed_data : Dict[str, np.ndarray]
+            A Python dictionary that contains transformed images.
         """
         raise NotImplementedError

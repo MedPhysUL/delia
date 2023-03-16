@@ -10,14 +10,15 @@
 
 from typing import Collection, Dict, Hashable, Union
 
-from monai.transforms import MapTransform as MonaiMapTransform
 from monai.transforms import CropForeground, SpatialCrop
 import numpy as np
+
+from .transform import ArraySpaceTransform
 
 KeysCollection = Union[Collection[Hashable], Hashable]
 
 
-class MatchingCropForegroundd(MonaiMapTransform):
+class MatchingCropForegroundd(ArraySpaceTransform):
     """
     Performs CropForeground on an image, get the used coordinates of spatial bounding box for foreground and apply this
     crop on other matching images.

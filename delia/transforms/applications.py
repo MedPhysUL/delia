@@ -17,9 +17,10 @@ from monai.transforms import Compose, EnsureChannelFirstD
 from monai.transforms import MapTransform as MonaiMapTransform
 import SimpleITK as sitk
 
-from delia.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, Mode
+from delia.transforms.array_space.transform import ArraySpaceTransform
+from delia.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData
 from delia.transforms.data.transform import DataTransform
-from delia.transforms.tools import convert_to_numpy, set_transforms_keys
+from delia.transforms.tools import convert_to_numpy, Mode, set_transforms_keys
 from delia.utils.data_model import PatientDataModel
 
 
@@ -209,13 +210,16 @@ def _apply_transform(
         A dictionary of transformed SimpleITK images.
     """
     if isinstance(transform, PhysicalSpaceTransform):
-        return _apply_delia_transform(transform=transform, data=data, mode=mode)
+        return _apply_physical_transform(transform=transform, data=data, mode=mode)
+    elif isinstance(transform, ArraySpaceTransform):
+        data = {k: v.simple_itk_image for k, v in data.items()}
+        return _apply_array_transform(transform=transform, data=data, mode=mode)
     elif isinstance(transform, MonaiMapTransform):
         data = {k: v.simple_itk_image for k, v in data.items()}
         return _apply_monai_transforms(transform=transform, data=data)
 
 
-def _apply_delia_transform(
+def _apply_physical_transform(
         data: Dict[str, ImageData],
         transform: PhysicalSpaceTransform,
         mode: Mode
@@ -246,6 +250,36 @@ def _apply_delia_transform(
     for k, v in transformed_data.items():
         if isinstance(v, ImageData):
             transformed_data[k] = v.simple_itk_image
+
+    return transformed_data
+
+
+def _apply_array_transform(
+        data: Dict[str, sitk.Image],
+        transform: ArraySpaceTransform,
+        mode: Mode
+) -> Dict[Hashable, sitk.Image]:
+    """
+    Apply a ArraySpaceTransform.
+
+    Parameters
+    ----------
+    data : Dict[str, sitk.Image]
+        A Python dictionary that contains ImageData to be transformed.
+    transform : ArraySpaceTransform
+        A transformation to apply to images and segmentations in the physical space, i.e on the SimpleITK image. Keys
+        are assumed to be modality names for images and organ names for segmentations.
+    mode : Mode
+        Mode.
+
+    Returns
+    -------
+    transformed_data : Dict[Hashable, sitk.Image]
+        A dictionary of transformed SimpleITK images.
+    """
+    transform.mode = mode.value
+    transformed_data = _apply_monai_transforms(data=data, transform=transform)
+    transform.mode = Mode.NONE.value
 
     return transformed_data
 

@@ -7,7 +7,7 @@
 import env_examples  # Modifies path, DO NOT REMOVE
 
 from delia.extractors import PatientsDataExtractor
-from delia.transforms import Compose, CopySegmentationsD, PETtoSUVD, ResampleD
+from delia.transforms import Compose, CopySegmentationsD, MatchingCentroidSpatialCropD, PETtoSUVD, ResampleD
 import SimpleITK as sitk
 
 
@@ -26,6 +26,11 @@ if __name__ == "__main__":
         transforms=Compose(
             [
                 ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
+                MatchingCentroidSpatialCropD(
+                    segmentation_key="Heart",
+                    matching_keys=["CT_THORAX"],
+                    roi_size=(96, 96, 96)
+                ),
                 PETtoSUVD(keys=["TEP"]),
                 CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="TEP")
             ]
