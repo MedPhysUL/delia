@@ -25,6 +25,10 @@ class MatchingCentroidSpatialCropd(ArraySpaceTransform):
     """
     Performs crop around the centroid of a segmentation, get the used coordinates of the spatial bounding box and apply
     this crop on other matching images.
+
+    WARNING! The first segmentation (that has the required key) contained in the list of segmentations of a given image
+    is used to compute the centroid. For example, if there is multiple 'Prostate' segmentation of the same CT scan, the
+    first segmentation in the files is used to compute the centroid.
     """
 
     def __init__(
@@ -81,7 +85,8 @@ class MatchingCentroidSpatialCropd(ArraySpaceTransform):
         elif self._mode == Mode.IMAGE:
             assert self._centroid is not None, "'centroid' must be set before __call__ with image mode."
         elif self._mode == Mode.SEGMENTATION:
-            self._centroid = compute_centroid(d[self._segmentation_key])
+            if self._centroid is None:
+                self._centroid = compute_centroid(d[self._segmentation_key])
         else:
             raise ValueError("Unknown transform mode.")
 
