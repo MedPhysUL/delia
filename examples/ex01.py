@@ -8,6 +8,7 @@ import env_examples  # Modifies path, DO NOT REMOVE
 
 from delia.extractors import PatientsDataExtractor
 from delia.transforms import Compose, CopySegmentationsD, MatchingCentroidSpatialCropD, PETtoSUVD, ResampleD
+from monai.transforms import KeepLargestConnectedComponentD
 import SimpleITK as sitk
 
 
@@ -32,6 +33,7 @@ if __name__ == "__main__":
                     roi_size=(96, 96, 96)
                 ),
                 PETtoSUVD(keys=["TEP"]),
+                KeepLargestConnectedComponentD(keys=["Heart"]),
                 CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="TEP")
             ]
         )

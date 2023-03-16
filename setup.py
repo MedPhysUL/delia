@@ -27,6 +27,7 @@ setuptools.setup(
         "pydicom-seg",
         "pyradiomics",
         "rt_utils",
+        "scikit-image"
         "SimpleITK"
     ],
 )
