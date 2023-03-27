@@ -61,11 +61,11 @@ class MatchingResampled(PhysicalSpaceTransform):
         reference_image = None
         for key in self.key_iterator(d):
             if key == self._reference_image_key:
-                reference_image = d[key]
+                reference_image = d[key].simple_itk_image
 
         for key in self.key_iterator(d):
             if key != self._reference_image_key:
-                d[key] = sitk.Resample(d[key], reference_image)
+                d[key] = sitk.Resample(d[key].simple_itk_image, reference_image)
 
         return d
 
