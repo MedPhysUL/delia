@@ -26,7 +26,7 @@ class MatchingCropForegroundd(ArraySpaceTransform):
 
     def __init__(
             self,
-            image_key: str,
+            reference_image_key: str,
             matching_keys: KeysCollection,
     ):
         """
@@ -34,7 +34,7 @@ class MatchingCropForegroundd(ArraySpaceTransform):
 
         Parameters
         ----------
-        image_key : str
+        reference_image_key : str
             Key of the image from which to crop foreground and to get coordinates of spatial bounding box for
             foreground. Image keys are assumed to be arbitrary series keys defined in 'series_descriptions'. Note that
             if 'series_descriptions' is None, the image keys are assumed to be modality names.
@@ -44,10 +44,10 @@ class MatchingCropForegroundd(ArraySpaceTransform):
             'series_descriptions'. For the label maps, the keys are organ names. Note that if 'series_descriptions' is
             None, the image keys are assumed to be modality names.
         """
-        keys = [key for key in matching_keys] + [image_key]
+        keys = [key for key in matching_keys] + [reference_image_key]
         super().__init__(keys=keys)
 
-        self._image_key = image_key
+        self._reference_image_key = reference_image_key
         self._crop_foreground = CropForeground(return_coords=True)
 
     def __call__(self, data: Dict[Hashable, np.ndarray]) -> Dict[str, np.ndarray]:
@@ -69,13 +69,13 @@ class MatchingCropForegroundd(ArraySpaceTransform):
 
         start, end = None, None
         for key in self.key_iterator(d):
-            if key == self._image_key:
+            if key == self._reference_image_key:
                 d[key], start, end = self._crop_foreground(d[key])
 
         spatial_crop = SpatialCrop(roi_start=start, roi_end=end)
 
         for key in self.key_iterator(d):
-            if key != self._image_key:
+            if key != self._reference_image_key:
                 d[key] = spatial_crop(d[key])
 
         return d

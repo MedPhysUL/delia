@@ -1,3 +1,8 @@
+from .matching_resample import (
+    MatchingResampled,
+    MatchingResampleD,
+    MatchingResampleDict
+)
 from .pet_to_suv import (
     PETtoSUVd,
     PETtoSUVD,
