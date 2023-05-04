@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="delia",
-    version="1.0.17",
+    version="1.0.18",
     author="Maxence Larose",
     author_email="maxence.larose.1@ulaval.ca",
     description="DICOM Extraction for Large-scale Image Analysis (DELIA).",
