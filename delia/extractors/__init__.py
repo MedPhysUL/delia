@@ -1,2 +1,6 @@
 from .patients_data_extractor import PatientsDataExtractor, PatientWhoFailed
-from radiomics.featureextractor import RadiomicsFeatureExtractor
+
+try:
+    from radiomics.featureextractor import RadiomicsFeatureExtractor
+except ImportError:
+    pass

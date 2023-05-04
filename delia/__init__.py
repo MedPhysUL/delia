@@ -1,8 +1,8 @@
 import logging
 
 from .databases import PatientsDatabase
-from .extractors import PatientsDataExtractor, PatientWhoFailed, RadiomicsFeatureExtractor
-from .radiomics import RadiomicsDataset, RadiomicsFeatureExtractor
+from .extractors import PatientsDataExtractor, PatientWhoFailed
+from .radiomics import RadiomicsDataset
 from .utils import PatientDataModel
 
 stream_handler = logging.StreamHandler()

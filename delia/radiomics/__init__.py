@@ -1,2 +1,6 @@
 from .radiomics_dataset import RadiomicsDataset
-from radiomics.featureextractor import RadiomicsFeatureExtractor
+
+try:
+    from radiomics.featureextractor import RadiomicsFeatureExtractor
+except ImportError:
+    pass

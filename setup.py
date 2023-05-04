@@ -25,7 +25,6 @@ setuptools.setup(
         "pandas",
         "pydicom",
         "pydicom-seg",
-        "pyradiomics",
         "rt_utils",
         "scikit-image",
         "SimpleITK"
