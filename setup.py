@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="delia",
-    version="1.0.20",
+    version="1.0.19",
     author="Maxence Larose",
     author_email="maxence.larose.1@ulaval.ca",
     description="DICOM Extraction for Large-scale Image Analysis (DELIA).",
@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     install_requires=[
         "h5py",
-        "monai",
+        "monai==1.0.1",
         "numpy",
         "pandas",
         "pydicom",
