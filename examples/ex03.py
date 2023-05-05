@@ -55,5 +55,6 @@ if __name__ == "__main__":
         overwrite_database=True
     )
 
+    print("Database length:", len(database))
     print("R01-005 patient :", database["R01-005"])
     print("R01-005 patient :", database[0])
