@@ -52,6 +52,11 @@ class PatientsDatabase:
         """
         self.path_to_database = path_to_database
 
+        if os.path.exists(path_to_database):
+            self._file = h5py.File(path_to_database, mode="r")
+        else:
+            self._file = None
+
     @property
     def path_to_database(self) -> str:
         """
@@ -81,7 +86,7 @@ class PatientsDatabase:
 
     def __getitem__(self, patient: Union[int, List[int], str, List[str]]) -> Union[List[h5py.Group], h5py.Group]:
         """
-        Get a patient group given the patient ID.
+        Gets a patient group given the patient ID. This method returns a copy of the patient group.
 
         Parameters
         ----------
@@ -89,22 +94,22 @@ class PatientsDatabase:
             Patient ID (strings) or index (integers).
         """
         if os.path.exists(self.path_to_database):
-            file = h5py.File(self.path_to_database, mode="r")
-
             if isinstance(patient, int):
-                file_keys = list(file.keys())
+                file_keys = list(self._file.keys())
                 patient = file_keys[patient]
             elif isinstance(patient, list):
-                file_keys = list(file.keys())
+                file_keys = list(self._file.keys())
                 patient = [file_keys[p] if isinstance(p, int) else p for p in patient]
 
             if isinstance(patient, str):
-                return file[patient]
+                return self._file[patient]
             elif isinstance(patient, list):
-                return [file[uid] for uid in patient]
+                return [self._file[uid] for uid in patient]
             else:
-                raise AssertionError(f"Patient ID should be a list of patient ids (List[str]) or a single patient id "
-                                     f"(str). Received {type(patient)}.")
+                raise AssertionError(
+                    f"Patient ID should be a list of patient ids (List[str]) or a single patient id (str). "
+                    f"Received {type(patient)}."
+                )
         else:
             raise AssertionError(f"Database with path {self.path_to_database} doesn't exist. Use 'create'.")
 
@@ -117,9 +122,8 @@ class PatientsDatabase:
         length : int
             Number of patients in the database.
         """
-        if os.path.exists(self.path_to_database):
-            db = h5py.File(self.path_to_database, mode="r")
-            return len(db.keys())
+        if self._file:
+            return len(self._file.keys())
         else:
             return 0
 
@@ -140,6 +144,7 @@ class PatientsDatabase:
                 raise FileExistsError("The database already exists. You may overwrite it using "
                                       "overwrite_database = True.")
             else:
+                self.close()
                 _logger.info(f"Overwriting HDF5 database with path : {self.path_to_database}")
         else:
             _logger.info(f"Writing HDF5 database with path : {self.path_to_database}")
@@ -252,60 +257,76 @@ class PatientsDatabase:
         if isinstance(organs_to_keep, str):
             organs_to_keep = [organs_to_keep]
 
-        hf = h5py.File(self.path_to_database, "w")
+        with h5py.File(self.path_to_database, "w") as file:
+            number_of_patients = len(patients_data_extractor)
+            for patient_idx, patient_dataset in enumerate(patients_data_extractor):
+                patient_id = patient_dataset.patient_id
+                patient_group = file.create_group(name=patient_id)
 
-        number_of_patients = len(patients_data_extractor)
-        for patient_idx, patient_dataset in enumerate(patients_data_extractor):
-            patient_id = patient_dataset.patient_id
-            patient_group = hf.create_group(name=patient_id)
+                for image_idx, patient_image_data in enumerate(patient_dataset.data):
+                    series_group = patient_group.create_group(name=str(image_idx))
 
-            for image_idx, patient_image_data in enumerate(patient_dataset.data):
-                series_group = patient_group.create_group(name=str(image_idx))
-
-                self._add_dicom_attributes_to_hdf5_group(patient_image_data, series_group, tags_to_use_as_attributes)
-
-                if add_sitk_image_metadata_as_attributes:
-                    self._add_sitk_image_attributes_to_hdf5_group(patient_image_data, series_group)
-
-                series_group.create_dataset(
-                    name=self.DICOM_HEADER,
-                    data=json.dumps(patient_image_data.image.dicom_header.to_json_dict())
-                )
-
-                image_array = sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image)
-
-                series_group.create_dataset(
-                    name=self.IMAGE,
-                    data=self._transpose(image_array)
-                )
-
-                if patient_image_data.segmentations:
-                    for segmentation_idx, segmentation in enumerate(patient_image_data.segmentations):
-                        segmentation_group = series_group.create_group(name=str(segmentation_idx))
-                        segmentation_group.attrs.create(name=self.MODALITY, data=segmentation.modality)
-
-                        for organ, simple_itk_label_map in segmentation.simple_itk_label_maps.items():
-                            numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
-
-                            if organs_to_keep is None or organ in organs_to_keep:
-                                segmentation_group.create_dataset(
-                                    name=organ,
-                                    data=self._transpose(numpy_array_label_map),
-                                    dtype=np.int8
-                                )
-
-            for idx, transform in enumerate(patient_dataset.transforms_history.history):
-                patient_group.attrs.create(
-                    name=f"{self.TRANSFORMS}_{idx}",
-                    data=json.dumps(
-                        obj=transform,
-                        default=patient_dataset.transforms_history.serialize
+                    self._add_dicom_attributes_to_hdf5_group(
+                        patient_image_data, series_group, tags_to_use_as_attributes
                     )
-                )
 
-            _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to database.")
+                    if add_sitk_image_metadata_as_attributes:
+                        self._add_sitk_image_attributes_to_hdf5_group(patient_image_data, series_group)
 
-        patients_data_extractor.close()
-        patients_data_extractor.reset()
+                    series_group.create_dataset(
+                        name=self.DICOM_HEADER,
+                        data=json.dumps(patient_image_data.image.dicom_header.to_json_dict())
+                    )
+
+                    image_array = sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image)
+
+                    series_group.create_dataset(
+                        name=self.IMAGE,
+                        data=self._transpose(image_array)
+                    )
+
+                    if patient_image_data.segmentations:
+                        for segmentation_idx, segmentation in enumerate(patient_image_data.segmentations):
+                            segmentation_group = series_group.create_group(name=str(segmentation_idx))
+                            segmentation_group.attrs.create(name=self.MODALITY, data=segmentation.modality)
+
+                            for organ, simple_itk_label_map in segmentation.simple_itk_label_maps.items():
+                                numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
+
+                                if organs_to_keep is None or organ in organs_to_keep:
+                                    segmentation_group.create_dataset(
+                                        name=organ,
+                                        data=self._transpose(numpy_array_label_map),
+                                        dtype=np.int8
+                                    )
+
+                for idx, transform in enumerate(patient_dataset.transforms_history.history):
+                    patient_group.attrs.create(
+                        name=f"{self.TRANSFORMS}_{idx}",
+                        data=json.dumps(
+                            obj=transform,
+                            default=patient_dataset.transforms_history.serialize
+                        )
+                    )
+
+                _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to database.")
+
+            patients_data_extractor.close()
+            patients_data_extractor.reset()
+
+        self._file = h5py.File(self.path_to_database, "r")
 
         return patients_data_extractor.patients_who_failed
+
+    def close(self):
+        """
+        Closes the hdf5 file database.
+        """
+        if self._file:
+            self._file.close()
+
+    def __del__(self):
+        """
+        Closes the hdf5 file database.
+        """
+        self.close()
