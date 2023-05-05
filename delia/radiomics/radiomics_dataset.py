@@ -106,8 +106,9 @@ class RadiomicsDataset:
         """
         if os.path.exists(self.path_to_dataset):
             if not overwrite_dataset:
-                raise FileExistsError("The dataset already exists. You may overwrite it using "
-                                      "overwrite_dataset = True.")
+                raise FileExistsError(
+                    "The dataset already exists. You may overwrite it using overwrite_dataset = True."
+                )
             else:
                 _logger.info(f"Overwriting dataset with path : {self.path_to_dataset}.")
         else:
@@ -195,17 +196,21 @@ class RadiomicsDataset:
         }
         """
         if not image_name and not image_modality:
-            raise AssertionError(f"Parameters 'image_name' or 'image_modality' must be provided. Found 'image_name' "
-                                 f"= {image_name} and 'image_modality' = {image_modality}.")
+            raise AssertionError(
+                f"Parameters 'image_name' or 'image_modality' must be provided. Found 'image_name'={image_name} and "
+                f"'image_modality'={image_modality}."
+            )
         elif image_name and image_modality:
-            raise AssertionError(f"Parameters 'image_name' OR 'image_modality' must be provided. Both are provided. "
-                                 f"Found 'image_name' = {image_name} and 'image_modality' = {image_modality}. One of "
-                                 f"the two must be None.")
+            raise AssertionError(
+                f"Parameters 'image_name' OR 'image_modality' must be provided. Both are provided. Found "
+                f"'image_name'={image_name} and 'image_modality'={image_modality}. One of the two must be None."
+            )
 
         if segmentation_modality_to_prioritize not in SegmentationStrategies.get_available_modalities():
-            raise AssertionError(f"Unknown 'segmentation_modality_to_prioritize = "
-                                 f"{segmentation_modality_to_prioritize}'. Available modalities are "
-                                 f"{SegmentationStrategies.get_available_modalities()}.")
+            raise AssertionError(
+                f"Unknown 'segmentation_modality_to_prioritize={segmentation_modality_to_prioritize}'. Available "
+                f"modalities are {SegmentationStrategies.get_available_modalities()}."
+            )
         if not self.extractor:
             raise AssertionError("The 'extractor' needs to be set before creating the radiomics dataset.")
 
@@ -283,8 +288,10 @@ class RadiomicsDataset:
             )
 
         else:
-            _logger.error(f"No images found for all patients. The radiomics dataset with path {self.path_to_dataset} "
-                          f"was therefore not created.")
+            _logger.error(
+                f"No images found for all patients. The radiomics dataset with path {self.path_to_dataset} was "
+                f"therefore not created."
+            )
 
         patients_data_extractor.reset()
         patients_data_extractor.close()

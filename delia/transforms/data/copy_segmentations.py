@@ -71,16 +71,20 @@ class CopySegmentationsd(DataTransform):
                 image = d[key].image
 
                 if d[key].segmentations:
-                    raise AssertionError(f"'CopySegmentationsd' found segmentations associated to 'unsegmented_image' "
-                                         f"= {self._segmented_image_key}. Unsegmented images are supposed to be "
-                                         f"unsegmented.")
+                    raise AssertionError(
+                        f"'CopySegmentationsd' found segmentations associated to 'unsegmented_image' = "
+                        f"{self._segmented_image_key}. Unsegmented images are supposed to be unsegmented."
+                    )
 
         if not image:
-            raise AssertionError(f"'CopySegmentationsd' found no image associated to 'unsegmented_image' = "
-                                 f"{self._unsegmented_image_key}.")
+            raise AssertionError(
+                f"'CopySegmentationsd' found no image associated to 'unsegmented_image' = "
+                f"{self._unsegmented_image_key}.")
         if not segmentations:
-            raise AssertionError(f"'CopySegmentationsd' found no segmentations associated to 'segmented_image' = "
-                                 f"{self._segmented_image_key}.")
+            raise AssertionError(
+                f"'CopySegmentationsd' found no segmentations associated to 'segmented_image' = "
+                f"{self._segmented_image_key}."
+            )
 
         new_segmentations = []
         for segmentation in segmentations:

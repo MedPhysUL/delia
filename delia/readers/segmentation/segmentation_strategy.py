@@ -39,6 +39,7 @@ class SegmentationStrategies(enum.Enum):
         """
         Used to make sure that the segmentation strategies enumeration contains no strategy with the same modality.
         """
+        super().__init__()
         cls = self.__class__
 
         if any(self.value.modality == member.value.modality for member in cls):
@@ -47,10 +48,11 @@ class SegmentationStrategies(enum.Enum):
             second_member_name = cls(self.value).name
             second_member_modality_value = cls(self.value).value.modality
 
-            raise ValueError(f"Aliases not allowed in the SegmentationStrategies Enum Class. The value assigned to the"
-                             f" {first_member_name} attribute is {first_member_modality_value} and it is the same as "
-                             f"the one assigned to the {second_member_name} attribute, since it is also "
-                             f"{second_member_modality_value}.")
+            raise ValueError(
+                f"Aliases not allowed in the SegmentationStrategies Enum Class. The value assigned to the "
+                f"{first_member_name} attribute is {first_member_modality_value} and it is the same as the one "
+                f"assigned to the {second_member_name} attribute, since it is also {second_member_modality_value}."
+            )
 
     @classmethod
     def get_available_modalities(cls) -> List[str]:

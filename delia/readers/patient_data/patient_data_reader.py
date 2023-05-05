@@ -120,11 +120,12 @@ class PatientDataReader(DicomReader):
             set_intersection = set(previous_items[1]) & set(current_items[1])
 
             if bool(set_intersection):
-                raise AssertionError(f"\nThe dictionary of series descriptions should not contain the same series names"
-                                     f" for different images/modalities. \nHowever, here we find the series names "
-                                     f"{previous_items[1]} for the {previous_items[0]} image and {current_items[1]} "
-                                     f"for the {current_items[0]} image. \nClearly, the images series values are "
-                                     f"overlapping because of the series named {set_intersection}.")
+                raise AssertionError(
+                    f"\nThe dictionary of series descriptions should not contain the same series names for different "
+                    f"images/modalities. \nHowever, here we find the series names {previous_items[1]} for the "
+                    f"{previous_items[0]} image and {current_items[1]} for the {current_items[0]} image. \nClearly, "
+                    f"the images series values are overlapping because of the series named {set_intersection}."
+                )
 
         self.series_descriptions = series_descriptions
 
@@ -165,10 +166,11 @@ class PatientDataReader(DicomReader):
         series_key : str
             Series key.
         """
-        _logger.error(f"Patient with ID {self.patient_id} has no series available that correlates with the "
-                      f"image '{series_key}'. The expected series descriptions for this image are "
-                      f"{self.series_descriptions[series_key]} while the patient record only contains the following "
-                      f"series descriptions: {self.available_series_descriptions}.")
+        _logger.error(
+            f"Patient with ID {self.patient_id} has no series available that correlates with the image '{series_key}'. "
+            f"The expected series descriptions for this image are {self.series_descriptions[series_key]} while the "
+            f"patient record only contains the following series descriptions: {self.available_series_descriptions}."
+        )
 
         self.failed_images.append(series_key)
 
@@ -206,8 +208,9 @@ class PatientDataReader(DicomReader):
         if transforms:
             apply_transforms(patient_dataset=patient_dataset, transforms=transforms)
 
-        _logger.debug(f"Chosen patient data query strategy : "
-                      f"'{patient_data_context.patient_data_query_strategy.name}'.")
+        _logger.debug(
+            f"Chosen patient data query strategy: '{patient_data_context.patient_data_query_strategy.name}'."
+        )
         _logger.info(f"{len(patient_dataset.data)} images added to the patient dataset, namely: ")
 
         for image_and_segmentation_data in patient_dataset.data:

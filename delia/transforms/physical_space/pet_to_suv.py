@@ -69,8 +69,10 @@ class PETtoSUVd(PhysicalSpaceTransform):
         if hasattr(header, "PatientWeight"):
             return float(header.PatientWeight) * 1000
         else:
-            _logger.warning(f"Attribute 'PatientWeight' doesn't exist. Using estimated patient weight of "
-                            f"{DefaultParams.WEIGHT / 1000} kg.")
+            _logger.warning(
+                f"Attribute 'PatientWeight' doesn't exist. Using estimated patient weight of "
+                f"{DefaultParams.WEIGHT / 1000} kg."
+            )
 
             return DefaultParams.WEIGHT
 
@@ -100,22 +102,26 @@ class PETtoSUVd(PhysicalSpaceTransform):
 
                     return (scan_time - injection_time).seconds
                 else:
-                    _logger.warning(f"Attribute 'RadiopharmaceuticalStartTime' doesn't exist. Using estimated time delay "
-                                    f"between injection and scan of {DefaultParams.SCAN_INJECTION_DELAY / 60} minutes, "
-                                    f"i.e. 90 min waiting time + 15 min preparation.")
+                    _logger.warning(
+                        f"Attribute 'RadiopharmaceuticalStartTime' doesn't exist. Using estimated time delay between "
+                        f"injection and scan of {DefaultParams.SCAN_INJECTION_DELAY / 60} minutes, i.e. 90 min waiting "
+                        f"time + 15 min preparation."
+                    )
 
                     return DefaultParams.SCAN_INJECTION_DELAY
             except ValueError:
                 _logger.warning(
                     f"Unknown time data format (Expected '%H%M%S.%f). Using estimated time delay between injection "
                     f"and scan of {DefaultParams.SCAN_INJECTION_DELAY / 60} minutes, i.e. 90 min waiting time + 15 min "
-                    f"preparation.")
+                    f"preparation."
+                )
                 return DefaultParams.SCAN_INJECTION_DELAY
         else:
             _logger.warning(
                 f"Attribute 'AcquisitionTime' doesn't exist. Using estimated time delay between injection and "
                 f"scan of {DefaultParams.SCAN_INJECTION_DELAY / 60} minutes, i.e. 90 min waiting time + 15 min "
-                f"preparation.")
+                f"preparation."
+            )
 
             return DefaultParams.SCAN_INJECTION_DELAY
 
@@ -139,7 +145,8 @@ class PETtoSUVd(PhysicalSpaceTransform):
         else:
             _logger.warning(
                 f"Attribute 'RadionuclideHalfLife' doesn't exist. Using estimated radionuclide half-life of "
-                f"{DefaultParams.HALF_LIFE} seconds.")
+                f"{DefaultParams.HALF_LIFE} seconds."
+            )
 
             return DefaultParams.HALF_LIFE
 
@@ -161,8 +168,10 @@ class PETtoSUVd(PhysicalSpaceTransform):
         if hasattr(header.RadiopharmaceuticalInformationSequence[0], "RadionuclideTotalDose"):
             return float(header.RadiopharmaceuticalInformationSequence[0].RadionuclideTotalDose)
         else:
-            _logger.warning(f"Attribute 'RadionuclideTotalDose' doesn't exist. Using estimated total injected dose of "
-                            f"{DefaultParams.TOTAL_INJECTED_DOSE / 1e6} MBq.")
+            _logger.warning(
+                f"Attribute 'RadionuclideTotalDose' doesn't exist. Using estimated total injected dose of "
+                f"{DefaultParams.TOTAL_INJECTED_DOSE / 1e6} MBq."
+            )
 
             return DefaultParams.TOTAL_INJECTED_DOSE
 
@@ -205,7 +214,8 @@ class PETtoSUVd(PhysicalSpaceTransform):
                 f"between injection and scan of {DefaultParams.SCAN_INJECTION_DELAY / 60} minutes (90 min "
                 f"waiting time, 15 min preparation), estimated radionuclide half-life of "
                 f"{DefaultParams.HALF_LIFE} seconds and estimated total injected dose of "
-                f"{DefaultParams.TOTAL_INJECTED_DOSE / 1e6} MBq.")
+                f"{DefaultParams.TOTAL_INJECTED_DOSE / 1e6} MBq."
+            )
 
             decay = np.exp(-np.log(2) * DefaultParams.SCAN_INJECTION_DELAY / DefaultParams.HALF_LIFE)
             injected_dose_decay = DefaultParams.TOTAL_INJECTED_DOSE * decay
@@ -235,11 +245,15 @@ class PETtoSUVd(PhysicalSpaceTransform):
             if self._mode == Mode.NONE:
                 raise AssertionError("Transform mode must be set before __call__.")
             elif not d[key].dicom_header:
-                raise AssertionError(f"The 'PETtoSUV' can't be used on segmentations. The 'PETtoSUV' can only be used "
-                                     f"on {self.PET_MODALITY_NAME} modality.")
+                raise AssertionError(
+                    f"The 'PETtoSUV' can't be used on segmentations. The 'PETtoSUV' can only be used on "
+                    f"{self.PET_MODALITY_NAME} modality."
+                )
             elif str(d[key].dicom_header.Modality) != self.PET_MODALITY_NAME:
-                raise AssertionError(f"Tried using 'PETtoSUV' transform on {d[key].dicom_header.Modality} modality. "
-                                     f"The 'PETtoSUV' can only be used on {self.PET_MODALITY_NAME} modality.")
+                raise AssertionError(
+                    f"Tried using 'PETtoSUV' transform on {d[key].dicom_header.Modality} modality. The 'PETtoSUV' "
+                    f"can only be used on {self.PET_MODALITY_NAME} modality."
+                )
             else:
                 d[key] = self.compute_suv(sitk_pet_image=d[key].simple_itk_image, dicom_header=d[key].dicom_header)
 

@@ -84,8 +84,10 @@ class PatientsDataExtractor(Generator):
             self._series_descriptions = None
             self._path_to_series_description_json = None
         else:
-            raise TypeError(f"Given series descriptions {series_descriptions} doesn't have the right type. Allowed"
-                            f" types are str, dict and None.")
+            raise TypeError(
+                f"Given series descriptions {series_descriptions} doesn't have the right type. Allowed types are str, "
+                f"dict and None."
+            )
 
         self._current_index = 0
         self._patients_who_failed = []
@@ -152,11 +154,12 @@ class PatientsDataExtractor(Generator):
             set_intersection = set(previous_items[1]) & set(current_items[1])
 
             if bool(set_intersection):
-                raise AssertionError(f"\nThe dictionary of series descriptions should not contain the same series names"
-                                     f" for different images/modalities. \nHowever, here we find the series names "
-                                     f"{previous_items[1]} for the {previous_items[0]} image and {current_items[1]} "
-                                     f"for the {current_items[0]} image. \nClearly, the images series values are "
-                                     f"overlapping because of the series named {set_intersection}.")
+                raise AssertionError(
+                    f"\nThe dictionary of series descriptions should not contain the same series names for different "
+                    f"images/modalities. \nHowever, here we find the series names {previous_items[1]} for the "
+                    f"{previous_items[0]} image and {current_items[1]} for the {current_items[0]} image. \nClearly, "
+                    f"the images series values are overlapping because of the series named {set_intersection}."
+                )
 
         self._series_descriptions = series_descriptions
 
@@ -234,16 +237,20 @@ class PatientsDataExtractor(Generator):
         elif isinstance(transforms, Compose):
             for t in transforms.transforms:
                 if not isinstance(t, (DataTransform, PhysicalSpaceTransform, MonaiMapTransform)):
-                    raise AssertionError("The given transforms must inherit from 'DataTransform', "
-                                         "'PhysicalSpaceTransform' or 'MonaiMapTransform'.")
+                    raise AssertionError(
+                        "The given transforms must inherit from 'DataTransform', 'PhysicalSpaceTransform' or "
+                        "'MonaiMapTransform'."
+                    )
                 t.allow_missing_keys = True
             return transforms
         elif isinstance(transforms, (DataTransform, PhysicalSpaceTransform, MonaiMapTransform)):
             transforms.allow_missing_keys = True
             return transforms
         else:
-            raise AssertionError("'transforms' must either be of type 'Compose', 'DataTransform',"
-                                 "'PhysicalSpaceTransform' or 'MonaiMapTransform'.")
+            raise AssertionError(
+                "'transforms' must either be of type 'Compose', 'DataTransform', 'PhysicalSpaceTransform' or "
+                "'MonaiMapTransform'."
+            )
 
     def save_series_descriptions_to_json(self, path: str) -> None:
         """

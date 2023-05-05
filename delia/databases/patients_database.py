@@ -141,8 +141,9 @@ class PatientsDatabase:
         """
         if os.path.exists(self.path_to_database):
             if not overwrite_database:
-                raise FileExistsError("The database already exists. You may overwrite it using "
-                                      "overwrite_database = True.")
+                raise FileExistsError(
+                    "The database already exists. You may overwrite it using overwrite_database = True."
+                )
             else:
                 self.close()
                 _logger.info(f"Overwriting HDF5 database with path : {self.path_to_database}")

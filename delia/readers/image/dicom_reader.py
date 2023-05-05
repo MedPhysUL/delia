@@ -285,7 +285,9 @@ class DicomReader:
                     images_data.append(image_data)
 
                 except RuntimeError as e:
-                    _logger.error(f"      RuntimeError : {e}. Simple ITK raised an error while loading the series "
-                                  f"named {series_data.series_description}. This series is therefore ignored.")
+                    _logger.error(
+                        f"      RuntimeError : {e}. Simple ITK raised an error while loading the series named "
+                        f"{series_data.series_description}. This series is therefore ignored."
+                    )
 
         return images_data
