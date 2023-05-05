@@ -7,7 +7,7 @@
 
 - Bulk extraction of images and segmentations from multiple patients' DICOM files. Segmentations must be in [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) or [RTStruct](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_A.19.html) format.
 - Creation of an [HDF5](https://github.com/h5py/h5py) database containing multiple patients' medical images as well as binary label maps (segmentations). The database is then easier to use than DICOMs to perform tasks on medical data, such as training deep neural networks. 
-- Bulk extraction of radiomics features from multiple patients' DICOM files using [pyradiomics](https://github.com/AIM-Harvard/pyradiomics).
+- Bulk extraction of radiomics features from multiple patients' DICOM files using [pyradiomics](https://github.com/AIM-Harvard/pyradiomics). Note that `pyradiomics` is not a dependency of `delia` and must be installed separately.
 
 # Installation
 
@@ -68,6 +68,7 @@ radiomics_dataset.extractor = RadiomicsFeatureExtractor(path_to_params="features
 radiomics_dataset.create(patients_data_extractor=patients_data_extractor, organ="Heart", image_modality="CT")
 
 ```
+*Note that `pyradiomics` is not a dependency of `delia` and must be installed separately.*
 
 # Motivation
 
@@ -276,6 +277,8 @@ The `PatientsDataExtractor` can therefore be used to iteratively perform tasks o
 # TODO
 
 - [ ] Generalize the use of arbitrary tags to choose images to extract. At the moment, the only tag available is `series_descriptions`.
+- [ ] Loosen monai version requirements (monai==1.0.1) to allow for more recent versions. This needs a redefinition of the way transforms are applied.
+
 
 # License
 
