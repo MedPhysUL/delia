@@ -32,9 +32,9 @@ if __name__ == "__main__":
                     matching_keys=["CT_THORAX"],
                     roi_size=(96, 96, 96)
                 ),
-                PETtoSUVD(keys=["TEP"]),
+                PETtoSUVD(keys=["PET"]),
                 KeepLargestConnectedComponentD(keys=["Heart"]),
-                CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="TEP")
+                CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="PET")
             ]
         )
     )

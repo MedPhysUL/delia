@@ -9,14 +9,14 @@ import env_examples  # Modifies path, DO NOT REMOVE
 from delia.databases import PatientsDatabase
 from delia.extractors import PatientsDataExtractor
 from delia.transforms import (
+    MatchingResampleD,
     PETtoSUVD,
     ResampleD
 )
 from monai.transforms import (
     CenterSpatialCropD,
     Compose,
-    ScaleIntensityD,
-    ThresholdIntensityD
+    ScaleIntensityRangeD
 )
 
 
@@ -34,12 +34,11 @@ if __name__ == "__main__":
         series_descriptions="data/series_descriptions.json",
         transforms=Compose(
             [
-                ResampleD(keys=["CT_THORAX", "TEP", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
-                CenterSpatialCropD(keys=["CT_THORAX", "TEP", "Heart"], roi_size=(1000, 160, 160)),
-                ThresholdIntensityD(keys=["CT_THORAX"], threshold=-250, above=True, cval=-250),
-                ThresholdIntensityD(keys=["CT_THORAX"], threshold=500, above=False, cval=500),
-                ScaleIntensityD(keys=["CT_THORAX"], minv=0, maxv=1),
-                PETtoSUVD(keys=["TEP"])
+                ResampleD(keys=["CT_THORAX", "PET", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
+                MatchingResampleD(reference_image_key="CT_THORAX", matching_keys=["PET", "Heart"]),
+                CenterSpatialCropD(keys=["CT_THORAX", "PET", "Heart"], roi_size=(1000, 160, 160)),
+                ScaleIntensityRangeD(keys=["CT_THORAX"], a_min=-250, a_max=500, b_min=0, b_max=1, clip=True),
+                PETtoSUVD(keys=["PET"])
             ]
         )
     )
