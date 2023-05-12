@@ -8,7 +8,7 @@
     @Description:       This file contains the Resampled transform.
 """
 
-from typing import Dict, Hashable, Tuple
+from typing import Callable, Dict, Hashable, Tuple
 
 import SimpleITK as sitk
 import numpy as np
@@ -24,7 +24,8 @@ class Resampled(PhysicalSpaceTransform):
     def __init__(
             self,
             keys: KeysCollection,
-            out_spacing: Tuple[float, float, float] = (1.0, 1.0, 1.0)
+            out_spacing: Tuple[float, float, float] = (1.0, 1.0, 1.0),
+            interpolator: Callable = sitk.sitkBSpline,
     ):
         """
         Initialize output spacing.
@@ -37,9 +38,12 @@ class Resampled(PhysicalSpaceTransform):
             'series_descriptions' is None, the image keys are assumed to be modality names.
         out_spacing : Tuple[int, int, int], default = (1.0, 1.0, 1.0)
             The desired spacing in the physical space. Default = (1.0 mm, 1.0 mm, 1.0 mm).
+        interpolator : Callable
+            The interpolator to be used for resampling the images. Default = sitk.sitkBSpline.
         """
         super().__init__(keys=keys)
         self._out_spacing = out_spacing
+        self._interpolator = interpolator
 
     def __call__(self, data: Dict[str, ImageData]) -> Dict[Hashable, sitk.Image]:
         """
@@ -80,7 +84,7 @@ class Resampled(PhysicalSpaceTransform):
             if self._mode == Mode.NONE:
                 raise AssertionError("Transform mode must be set before __call__.")
             elif self._mode == Mode.IMAGE:
-                resample.SetInterpolator(sitk.sitkLinear)
+                resample.SetInterpolator(self._interpolator)
             elif self._mode == Mode.SEGMENTATION:
                 resample.SetInterpolator(sitk.sitkNearestNeighbor)
             else:

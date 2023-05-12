@@ -8,11 +8,11 @@
     @Description:       This file contains the MatchingResampled transform.
 """
 
-from typing import Dict, Hashable
+from typing import Callable, Dict, Hashable
 
 import SimpleITK as sitk
 
-from delia.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, KeysCollection
+from delia.transforms.physical_space.transform import PhysicalSpaceTransform, ImageData, KeysCollection, Mode
 
 
 class MatchingResampled(PhysicalSpaceTransform):
@@ -24,6 +24,7 @@ class MatchingResampled(PhysicalSpaceTransform):
             self,
             reference_image_key: str,
             matching_keys: KeysCollection,
+            interpolator: Callable = sitk.sitkBSpline,
     ):
         """
         Initializes images.
@@ -37,10 +38,13 @@ class MatchingResampled(PhysicalSpaceTransform):
             for foreground on the image. Image keys are assumed to be arbitrary series keys defined in
             'series_descriptions'. For the label maps, the keys are organ names. Note that if 'series_descriptions' is
             None, the image keys are assumed to be modality names.
+        interpolator : Callable
+            The interpolator to be used for resampling the images. Default = sitk.sitkBSpline.
         """
         keys = [key for key in matching_keys] + [reference_image_key]
         super().__init__(keys=keys)
         self._reference_image_key = reference_image_key
+        self._interpolator = interpolator
 
     def __call__(self, data: Dict[str, ImageData]) -> Dict[Hashable, sitk.Image]:
         """
@@ -65,7 +69,21 @@ class MatchingResampled(PhysicalSpaceTransform):
 
         for key in self.key_iterator(d):
             if key != self._reference_image_key:
-                d[key] = sitk.Resample(d[key].simple_itk_image, reference_image)
+
+                if self._mode == Mode.NONE:
+                    raise AssertionError("Transform mode must be set before __call__.")
+                elif self._mode == Mode.IMAGE:
+                    interpolator = self._interpolator
+                elif self._mode == Mode.SEGMENTATION:
+                    interpolator = sitk.sitkNearestNeighbor
+                else:
+                    raise ValueError("Unknown transform mode.")
+
+                d[key] = sitk.Resample(
+                    image1=d[key].simple_itk_image,
+                    referenceImage=reference_image,
+                    interpolator=interpolator
+                )
 
         return d
 
