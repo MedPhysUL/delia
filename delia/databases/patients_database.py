@@ -53,7 +53,7 @@ class PatientsDatabase:
         self.path_to_database = path_to_database
 
         if os.path.exists(path_to_database):
-            self._file = h5py.File(path_to_database, mode="r")
+            self._file = h5py.File(path_to_database, mode="r+")
         else:
             self._file = None
 
@@ -315,7 +315,7 @@ class PatientsDatabase:
             patients_data_extractor.close()
             patients_data_extractor.reset()
 
-        self._file = h5py.File(self.path_to_database, "r")
+        self._file = h5py.File(self.path_to_database, "r+")
 
         return patients_data_extractor.patients_who_failed
 
