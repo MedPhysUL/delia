@@ -31,4 +31,3 @@ class PatientDataQueryStrategies(Enum):
         name="Series description",
         factory=SeriesDescriptionPatientDataFactory
     )
-

@@ -27,6 +27,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             path_to_patient_folder: str,
             paths_to_segmentations: Optional[List[str]],
             series_descriptions: Optional[Dict[str, List[str]]],
+            tag: str,
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -42,6 +43,8 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions.
+        tag : str
+            Name of the DICOM tag to use while selecting which files to extract.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
@@ -49,6 +52,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             path_to_patient_folder=path_to_patient_folder,
             paths_to_segmentations=paths_to_segmentations,
             series_descriptions=series_descriptions,
+            tag=tag,
             erase_unused_dicom_files=erase_unused_dicom_files
         )
 
@@ -104,6 +108,7 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
             path_to_patient_folder: str,
             paths_to_segmentations: Optional[List[str]],
             series_descriptions: Optional[Dict[str, List[str]]],
+            tag: str,
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -119,6 +124,8 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions.
+        tag : str
+            Name of the DICOM tag to use while selecting which files to extract.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
@@ -126,6 +133,7 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
             path_to_patient_folder=path_to_patient_folder,
             paths_to_segmentations=paths_to_segmentations,
             series_descriptions=series_descriptions,
+            tag=tag,
             erase_unused_dicom_files=erase_unused_dicom_files
         )
 
@@ -141,10 +149,12 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
         data = []
         for image_idx, image in enumerate(self._images_data):
             image_added = False
-            series_description = image.dicom_header.SeriesDescription
-
+            if isinstance(image.dicom_header[self.tag].value, str):
+                tag_value = image.dicom_header[self.tag].value
+            else:
+                tag_value = image.dicom_header[self.tag].repval
             for series_key, list_of_series_descriptions in self._series_descriptions.items():
-                if series_description in list_of_series_descriptions:
+                if tag_value in list_of_series_descriptions:
                     image.series_key = series_key
 
                     segmentations = []

@@ -42,7 +42,8 @@ class DicomReader:
 
     def __init__(
             self,
-            path_to_patient_folder: str
+            path_to_patient_folder: str,
+            tag: str
     ):
         """
         Constructor of the class DicomReader.
@@ -51,11 +52,14 @@ class DicomReader:
         ----------
         path_to_patient_folder : str
             Path to the folder containing the patient DICOM files.
+        tag : str
+            Name of the DICOM tag to use while selecting which files to extract.
         """
         super(DicomReader, self).__init__()
 
         is_path_valid(path=path_to_patient_folder)
         self._path_to_patient_folder = path_to_patient_folder
+        self.tag = tag
 
         self._images_series_data_dict = {}
         self._segmentations_series_data_dict = {}
@@ -89,7 +93,7 @@ class DicomReader:
         return loaded_dicom
 
     @staticmethod
-    def _get_series_description(dicom_header: pydicom.FileDataset) -> str:
+    def _get_series_description(dicom_header: pydicom.FileDataset, tag: str) -> str:
         """
         Get Series Description of given DICOM header.
 
@@ -97,14 +101,19 @@ class DicomReader:
         ----------
         dicom_header : pydicom.dataset.FileDataset
             Loaded DICOM dataset.
+        tag : str
+            Name of the DICOM tag to use while selecting which files to extract.
 
         Returns
         -------
         series_description : str
             Series Description.
         """
-        if hasattr(dicom_header, "SeriesDescription"):
-            return dicom_header.SeriesDescription
+        if hasattr(dicom_header, tag):
+            if isinstance(dicom_header[tag].value, str):
+                return dicom_header[tag].value
+            else:
+                return dicom_header[tag].repval
         else:
             return DicomReader.UNKNOWN
 
@@ -164,7 +173,7 @@ class DicomReader:
             all_patient_ids.add(loaded_dicom_header.PatientID)
 
             series_data = self.SeriesData(
-                series_description=self._get_series_description(loaded_dicom_header),
+                series_description=self._get_series_description(loaded_dicom_header, self.tag),
                 paths_to_dicoms_from_series=paths,
                 dicom_header=loaded_dicom_header
             )

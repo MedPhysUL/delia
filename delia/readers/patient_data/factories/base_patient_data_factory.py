@@ -29,6 +29,7 @@ class BasePatientDataFactory(ABC):
             path_to_patient_folder: str,
             paths_to_segmentations: Optional[List[str]],
             series_descriptions: Optional[Dict[str, List[str]]],
+            tag: str,
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -44,6 +45,8 @@ class BasePatientDataFactory(ABC):
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions.
+        tag : str
+            Name of the DICOM tag to use while selecting which files to extract.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
@@ -51,8 +54,9 @@ class BasePatientDataFactory(ABC):
         self._paths_to_segmentations = paths_to_segmentations
         self._series_descriptions = series_descriptions
         self._erase_unused_dicom_files = erase_unused_dicom_files
+        self.tag = tag
 
-        dicom_reader = DicomReader(path_to_patient_folder=self._path_to_patient_folder)
+        dicom_reader = DicomReader(path_to_patient_folder=self._path_to_patient_folder, tag=self.tag)
         self._images_data = dicom_reader.get_images_data(remove_segmentations=True)
 
     @property

@@ -26,6 +26,7 @@ class PatientDataQueryContext:
             path_to_patient_folder: str,
             paths_to_segmentations: Optional[List[str]],
             series_descriptions: Dict[str, List[str]],
+            tag: str,
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -41,6 +42,8 @@ class PatientDataQueryContext:
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions.
+        tag : str
+            Name of the DICOM tag to use while selecting which files to extract.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
@@ -48,6 +51,7 @@ class PatientDataQueryContext:
         self._paths_to_segmentations = paths_to_segmentations
         self._series_descriptions = series_descriptions
         self._erase_unused_dicom_files = erase_unused_dicom_files
+        self.tag = tag
 
     @property
     def patient_data_query_strategy(self) -> PatientDataQueryStrategy:
@@ -78,6 +82,7 @@ class PatientDataQueryContext:
             path_to_patient_folder=self._path_to_patient_folder,
             paths_to_segmentations=self._paths_to_segmentations,
             series_descriptions=self._series_descriptions,
+            tag=self.tag,
             erase_unused_dicom_files=self._erase_unused_dicom_files
         )
 

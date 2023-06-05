@@ -35,6 +35,7 @@ class PatientDataReader(DicomReader):
             self,
             path_to_patient_folder: str,
             series_descriptions: Optional[Dict[str, List[str]]],
+            tag: str,
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -48,10 +49,13 @@ class PatientDataReader(DicomReader):
             A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
             the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
             series descriptions.
+        tag : str
+            Name of the DICOM tag to use while selecting which files to extract.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
-        super().__init__(path_to_patient_folder=path_to_patient_folder)
+        self.tag = tag
+        super().__init__(path_to_patient_folder=path_to_patient_folder, tag=self.tag)
 
         self._images_dicom_headers = self.get_dicom_headers(remove_segmentations=True)
         self._series_descriptions = series_descriptions
@@ -140,7 +144,7 @@ class PatientDataReader(DicomReader):
             Available series descriptions in the patient dicom files.
         """
         available_series_descriptions = [
-            self._get_series_description(dicom_header) for dicom_header in self._images_dicom_headers
+            self._get_series_description(dicom_header, self.tag) for dicom_header in self._images_dicom_headers
         ]
 
         return available_series_descriptions
@@ -201,6 +205,7 @@ class PatientDataReader(DicomReader):
             path_to_patient_folder=self._path_to_patient_folder,
             paths_to_segmentations=self.paths_to_segmentations,
             series_descriptions=self._series_descriptions,
+            tag=self.tag,
             erase_unused_dicom_files=self._erase_unused_dicom_files
         )
         patient_dataset = patient_data_context.create_patient_data()

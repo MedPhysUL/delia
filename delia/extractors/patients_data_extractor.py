@@ -15,10 +15,11 @@ from copy import deepcopy
 import json
 import logging
 import os
-from typing import Dict, List, NamedTuple, Optional, Union
+from typing import Dict, List, NamedTuple, Optional, Union, Tuple
 
 from monai.transforms import Compose
 from monai.transforms import MapTransform as MonaiMapTransform
+from pydicom.datadict import keyword_for_tag
 
 from delia.readers.patient_data.patient_data_reader import PatientDataReader
 from delia.transforms.data.transform import DataTransform
@@ -43,6 +44,7 @@ class PatientsDataExtractor(Generator):
     def __init__(
             self,
             path_to_patients_folder: str,
+            tag: Union[str, Tuple[int, int]] = "SeriesDescription",
             series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
             transforms: Optional[Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]] = None,
             erase_unused_dicom_files: bool = False
@@ -55,6 +57,9 @@ class PatientsDataExtractor(Generator):
         ----------
         path_to_patients_folder : str
             The path to the folder that contains all the patients' folders.
+        tag : Union[str, Tuple[int, int]] = "SeriesDescription"
+            Keyword or tuple of the DICOM tag to use while selecting which files to extract. Uses SeriesDescription
+             as a default.
         series_descriptions : Optional[Union[str, Dict[str, List[str]]]], default = None.
             A dictionary that contains the series descriptions of the images that needs to be extracted from the
             patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
@@ -74,6 +79,7 @@ class PatientsDataExtractor(Generator):
         self._path_to_patients_folder = path_to_patients_folder
         self._erase_unused_dicom_files = erase_unused_dicom_files
         self._transforms = self._validate_transforms(transforms)
+        self.tag = tag
 
         if isinstance(series_descriptions, str):
             self.path_to_series_description_json = series_descriptions
@@ -292,6 +298,7 @@ class PatientsDataExtractor(Generator):
         patient_data_reader = PatientDataReader(
             path_to_patient_folder=self.paths_to_patients_folders[self._current_index],
             series_descriptions=self.series_descriptions,
+            tag=self.tag,
             erase_unused_dicom_files=self._erase_unused_dicom_files
         )
 
