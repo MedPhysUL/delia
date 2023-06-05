@@ -173,10 +173,10 @@ class RadiomicsDataset:
         organ : str
             The organ specifies the segment of the mask from which the radiomics features are to be acquired.
         image_name : Optional[str]
-            Arbitrary name given to the image in the 'series_descriptions' dictionary. If 'series_descriptions' is
+            Arbitrary name given to the image in the 'tag_values' dictionary. If 'tag_values' is
             None, use 'image_modality'.
         image_modality : Optional[str]
-            Image modality. If 'series_descriptions' is NOT None, use 'image_name'.
+            Image modality. If 'tag_values' is NOT None, use 'image_name'.
         segmentation_modality_to_prioritize : str
             If there is multiple segmentation of the same organ for the same patient, this parameter sets the modality
             of the segmentation to prioritize, i.e. "SEG" or "RTSTRUCT". Default = "SEG".

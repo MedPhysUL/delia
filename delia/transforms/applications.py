@@ -46,8 +46,8 @@ def apply_transforms(
         A sequence of transformations to apply. PhysicalSpaceTransform are applied in the physical space, i.e on the
         SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that represents
         the image. DataTransform transforms the data using other a patient's other images or segmentations. The keys
-        for images are assumed to be the arbitrary series key set in 'series_descriptions'. For segmentation, keys are
-        organ names. Note that if 'series_descriptions' is None, the keys for images are assumed to be modalities.
+        for images are assumed to be the arbitrary series key set in 'tag_values'. For segmentation, keys are
+        organ names. Note that if 'tag_values' is None, the keys for images are assumed to be modalities.
     """
     set_transforms_keys(patient_dataset=patient_dataset)
 
@@ -121,8 +121,8 @@ def _apply_transform_on_images(
     transform : Union[MonaiMapTransform, PhysicalSpaceTransform]
         A transformation to apply on images. PhysicalSpaceTransform are applied in the physical space, i.e on the
         SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that represents
-        the image. The keys for images are assumed to be the arbitrary series key set in 'series_descriptions'. For
-        segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
+        the image. The keys for images are assumed to be the arbitrary series key set in 'tag_values'. For
+        segmentation, keys are organ names. Note that if 'tag_values' is None, the keys for images are
         assumed to be modalities.
     """
     images = {
@@ -154,8 +154,8 @@ def _apply_transform_on_segmentations(
     transform : Union[MonaiMapTransform, PhysicalSpaceTransform]
         A transformation to apply on segmentations. PhysicalSpaceTransform are applied in the physical space, i.e on the
         SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that represents
-        the image. Image keys are assumed to be arbitrary series keys defined in 'series_descriptions'. For the
-        label maps, the keys are organ names. Note that if 'series_descriptions' is None, the image keys are
+        the image. Image keys are assumed to be arbitrary series keys defined in 'tag_values'. For the
+        label maps, the keys are organ names. Note that if 'tag_values' is None, the image keys are
         assumed to be modality names.
     """
     images = {
@@ -198,8 +198,8 @@ def _apply_transform(
     transform : Union[MonaiMapTransform, PhysicalSpaceTransform]
         A transformation to apply. PhysicalSpaceTransform are applied in the physical space, i.e on the SimpleITK image,
         while MonaiMapTransform are applied in the array space, i.e on the numpy array that represents the image. The
-        keys for images are assumed to be the arbitrary series key set in 'series_descriptions'. For segmentation,
-        keys are organ names. Note that if 'series_descriptions' is None, the keys for images are assumed to be
+        keys for images are assumed to be the arbitrary series key set in 'tag_values'. For segmentation,
+        keys are organ names. Note that if 'tag_values' is None, the keys for images are assumed to be
         modalities.
     mode : Mode
         The mode.

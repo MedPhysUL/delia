@@ -36,12 +36,12 @@ class MatchingCropForegroundd(ArraySpaceTransform):
         ----------
         reference_image_key : str
             Key of the image from which to crop foreground and to get coordinates of spatial bounding box for
-            foreground. Image keys are assumed to be arbitrary series keys defined in 'series_descriptions'. Note that
-            if 'series_descriptions' is None, the image keys are assumed to be modality names.
+            foreground. Image keys are assumed to be arbitrary series keys defined in 'tag_values'. Note that
+            if 'tag_values' is None, the image keys are assumed to be modality names.
         matching_keys : KeysCollection
             Keys of the corresponding items to be transformed using the calculated coordinates of spatial bounding box
             for foreground on the image. Image keys are assumed to be arbitrary series keys defined in
-            'series_descriptions'. For the label maps, the keys are organ names. Note that if 'series_descriptions' is
+            'tag_values'. For the label maps, the keys are organ names. Note that if 'tag_values' is
             None, the image keys are assumed to be modality names.
         """
         keys = [key for key in matching_keys] + [reference_image_key]

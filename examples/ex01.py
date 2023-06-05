@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     patients_data_extractor = PatientsDataExtractor(
         path_to_patients_folder="data/patients",
-        series_descriptions="data/series_descriptions.json",
+        tag_values="data/tag_values.json",
         transforms=Compose(
             [
                 ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5)),

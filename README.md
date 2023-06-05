@@ -204,7 +204,7 @@ from monai.transforms import (
 
 patients_data_extractor = PatientsDataExtractor(
     path_to_patients_folder="data/patients",
-    series_descriptions="data/series_descriptions.json",
+    series_descriptions="data/tag_values.json",
     transforms=Compose(
         [
             ResampleD(keys=["CT_THORAX", "TEP", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
@@ -242,7 +242,7 @@ import SimpleITK as sitk
 
 patients_data_extractor = PatientsDataExtractor(
     path_to_patients_folder="data/patients",
-    series_descriptions="data/series_descriptions.json",
+    series_descriptions="data/tag_values.json",
     transforms=Compose(
         [
             ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5)),

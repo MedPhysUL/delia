@@ -32,8 +32,8 @@ class DataTransform(MapTransform):
         ----------
         keys : KeysCollection
             Keys of the corresponding items to be transformed. Image keys are assumed to be arbitrary series keys
-            defined in 'series_descriptions'. For the label maps, the keys are organ names. Note that if
-            'series_descriptions' is None, the image keys are assumed to be modality names.
+            defined in 'tag_values'. For the label maps, the keys are organ names. Note that if
+            'tag_values' is None, the image keys are assumed to be modality names.
         """
         super().__init__(keys=keys, allow_missing_keys=True)
 

@@ -19,7 +19,6 @@ from typing import Dict, List, NamedTuple, Optional, Union, Tuple
 
 from monai.transforms import Compose
 from monai.transforms import MapTransform as MonaiMapTransform
-from pydicom.datadict import keyword_for_tag
 
 from delia.readers.patient_data.patient_data_reader import PatientDataReader
 from delia.transforms.data.transform import DataTransform
@@ -32,7 +31,7 @@ _logger = logging.getLogger(__name__)
 class PatientWhoFailed(NamedTuple):
     id: str
     failed_images: Dict[str, List[str]]
-    available_series_descriptions: List[str]
+    available_tag_values: List[str]
 
 
 class PatientsDataExtractor(Generator):
@@ -45,13 +44,13 @@ class PatientsDataExtractor(Generator):
             self,
             path_to_patients_folder: str,
             tag: Union[str, Tuple[int, int]] = "SeriesDescription",
-            series_descriptions: Optional[Union[str, Dict[str, List[str]]]] = None,
+            tag_values: Optional[Union[str, Dict[str, List[str]]]] = None,
             transforms: Optional[Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]] = None,
             erase_unused_dicom_files: bool = False
     ) -> None:
         """
-        Used to get the paths to the images and segmentations folders. Also used to check if either the series
-        descriptions or the path to the series description json dictionary is None.
+        Used to get the paths to the images and segmentations folders. Also used to check if either the tag values or
+        the path to the tag value json dictionary is None.
 
         Parameters
         ----------
@@ -59,19 +58,19 @@ class PatientsDataExtractor(Generator):
             The path to the folder that contains all the patients' folders.
         tag : Union[str, Tuple[int, int]] = "SeriesDescription"
             Keyword or tuple of the DICOM tag to use while selecting which files to extract. Uses SeriesDescription
-             as a default.
-        series_descriptions : Optional[Union[str, Dict[str, List[str]]]], default = None.
-            A dictionary that contains the series descriptions of the images that needs to be extracted from the
-            patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions. The images associated with these series descriptions do not need to have a
+            as a default.
+        tag_values : Optional[Union[str, Dict[str, List[str]]]], default = None.
+            A dictionary that contains the desired tag's values for the images that absolutely needs to be extracted
+            from the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+            values associated with the specified tag. The images associated with these values do not need to have a
             corresponding segmentation. Note that it can be specified as a path to a json dictionary that contains the
-            series descriptions.
+            desired values for the tag.
         transforms : Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]
             A sequence of transformations to apply. PhysicalSpaceTransform are applied in the physical space, i.e on
             the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that
             represents the image. DataTransform transforms the data using other a patient's other images or
-            segmentations. The keys for images are assumed to be the arbitrary series key set in 'series_descriptions'.
-            For segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
+            segmentations. The keys for images are assumed to be the arbitrary series key set in 'tag_values'.
+            For segmentation, keys are organ names. Note that if 'tag_values' is None, the keys for images are
             assumed to be modalities.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with EXTREME caution!
@@ -81,17 +80,17 @@ class PatientsDataExtractor(Generator):
         self._transforms = self._validate_transforms(transforms)
         self.tag = tag
 
-        if isinstance(series_descriptions, str):
-            self.path_to_series_description_json = series_descriptions
-        elif isinstance(series_descriptions, dict):
-            self.series_descriptions = series_descriptions
-            self._path_to_series_description_json = None
-        elif series_descriptions is None:
-            self._series_descriptions = None
-            self._path_to_series_description_json = None
+        if isinstance(tag_values, str):
+            self.path_to_tag_value_json = tag_values
+        elif isinstance(tag_values, dict):
+            self.tag_values = tag_values
+            self._path_to_tag_value_json = None
+        elif tag_values is None:
+            self._tag_values = None
+            self._path_to_tag_value_json = None
         else:
             raise TypeError(
-                f"Given series descriptions {series_descriptions} doesn't have the right type. Allowed types are str, "
+                f"Given values {tag_values} for the tag {tag} doesn't have the right type. Allowed types are str, "
                 f"dict and None."
             )
 
@@ -130,72 +129,72 @@ class PatientsDataExtractor(Generator):
         return paths_to_folders
 
     @property
-    def series_descriptions(self) -> Dict[str, List[str]]:
+    def tag_values(self) -> Dict[str, List[str]]:
         """
-        Series descriptions.
+        Tag values.
 
         Returns
         -------
-        series_descriptions : Dict[str, List[str]]
-            A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
-            the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions.
+        tag_values : Dict[str, List[str]]
+            A dictionary that contains the desired tag's values for the images that absolutely needs to be extracted
+            from the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+            values associated with the specified tag.
         """
-        return self._series_descriptions
+        return self._tag_values
 
-    @series_descriptions.setter
-    def series_descriptions(self, series_descriptions: Dict[str, List[str]]) -> None:
+    @tag_values.setter
+    def tag_values(self, tag_values: Dict[str, List[str]]) -> None:
         """
-        Series descriptions setter.
+        Tag values setter.
 
         Parameters
         ----------
-        series_descriptions : Dict[str, List[str]]
-            A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
-            the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions.
+        tag_values : Dict[str, List[str]]
+            A dictionary that contains the desired tag's values for the images that absolutely needs to be extracted
+            from the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+            values associated with the specified tag.
         """
-        items = list(series_descriptions.items())
+        items = list(tag_values.items())
         for previous_items, current_items in zip(items, items[1:]):
             set_intersection = set(previous_items[1]) & set(current_items[1])
 
             if bool(set_intersection):
                 raise AssertionError(
-                    f"\nThe dictionary of series descriptions should not contain the same series names for different "
+                    f"\nThe dictionary of tag values should not contain the same series names for different "
                     f"images/modalities. \nHowever, here we find the series names {previous_items[1]} for the "
                     f"{previous_items[0]} image and {current_items[1]} for the {current_items[0]} image. \nClearly, "
                     f"the images series values are overlapping because of the series named {set_intersection}."
                 )
 
-        self._series_descriptions = series_descriptions
+        self._tag_values = tag_values
 
     @property
-    def path_to_series_description_json(self) -> Union[str, None]:
+    def path_to_tag_value_json(self) -> Union[str, None]:
         """
-        Path to series description json.
+        Path to tag values json.
 
         Returns
         -------
-        path_to_series_description_json : Union[str, None]
-            Path to the json dictionary that contains the series descriptions.
+        path_to_tag_value_json : Union[str, None]
+            Path to the json dictionary that contains the tag values.
         """
-        return self._path_to_series_description_json
+        return self._path_to_tag_value_json
 
-    @path_to_series_description_json.setter
-    def path_to_series_description_json(self, path_to_series_description_json: str) -> None:
+    @path_to_tag_value_json.setter
+    def path_to_tag_value_json(self, path_to_tag_value_json: str) -> None:
         """
-        Path to series description json setter. This is used to set the series descriptions attribute using the
+        Path to tag values json setter. This is used to set the tag values attribute using the
         dictionary read from the json file.
 
         Parameters
         ----------
-        path_to_series_description_json : str
-            Path to the json dictionary that contains the series descriptions.
+        path_to_tag_value_json : str
+            Path to the json dictionary that contains the tag values.
         """
-        with open(path_to_series_description_json, "r") as json_file:
-            self.series_descriptions = deepcopy(json.load(json_file))
+        with open(path_to_tag_value_json, "r") as json_file:
+            self.tag_values = deepcopy(json.load(json_file))
 
-        self._path_to_series_description_json = path_to_series_description_json
+        self._path_to_tag_value_json = path_to_tag_value_json
 
     @property
     def patients_who_failed(self) -> List[PatientWhoFailed]:
@@ -224,8 +223,8 @@ class PatientsDataExtractor(Generator):
             A sequence of transformations to apply. PhysicalSpaceTransform are applied in the physical space, i.e on
             the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that
             represents the image. DataTransform transforms the data using other a patient's other images or
-            segmentations. The keys for images are assumed to be the arbitrary series key set in 'series_descriptions'.
-            For segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
+            segmentations. The keys for images are assumed to be the arbitrary series key set in 'tag_values'.
+            For segmentation, keys are organ names. Note that if 'tag_values' is None, the keys for images are
             assumed to be modalities.
 
         Returns
@@ -234,8 +233,8 @@ class PatientsDataExtractor(Generator):
             A sequence of transformations to apply. PhysicalSpaceTransform are applied in the physical space, i.e on
             the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that
             represents the image. DataTransform transforms the data using other a patient's other images or
-            segmentations. The keys for images are assumed to be the arbitrary series key set in 'series_descriptions'.
-            For segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
+            segmentations. The keys for images are assumed to be the arbitrary series key set in 'tag_values'.
+            For segmentation, keys are organ names. Note that if 'tag_values' is None, the keys for images are
             assumed to be modalities.
         """
         if transforms is None:
@@ -258,17 +257,17 @@ class PatientsDataExtractor(Generator):
                 "'MonaiMapTransform'."
             )
 
-    def save_series_descriptions_to_json(self, path: str) -> None:
+    def save_tag_values_to_json(self, path: str) -> None:
         """
-        Saves the dictionary of series descriptions in a json format at the given path.
+        Saves the dictionary of tag values in a json format at the given path.
 
         Parameters
         ----------
         path : str
-            Path to the json dictionary that will contain the series descriptions.
+            Path to the json dictionary that will contain the tag values.
         """
         with open(path, 'w', encoding='utf-8') as json_file:
-            json.dump(self.series_descriptions, json_file, ensure_ascii=False, indent=4)
+            json.dump(self.tag_values, json_file, ensure_ascii=False, indent=4)
 
     def reset(self) -> None:
         """
@@ -297,23 +296,23 @@ class PatientsDataExtractor(Generator):
 
         patient_data_reader = PatientDataReader(
             path_to_patient_folder=self.paths_to_patients_folders[self._current_index],
-            series_descriptions=self.series_descriptions,
+            tag_values=self.tag_values,
             tag=self.tag,
             erase_unused_dicom_files=self._erase_unused_dicom_files
         )
 
-        if self._series_descriptions is not None:
-            self.series_descriptions = patient_data_reader.series_descriptions
-        if self.path_to_series_description_json:
-            self.save_series_descriptions_to_json(path=self._path_to_series_description_json)
+        if self._tag_values is not None:
+            self.tag_values = patient_data_reader.tag_values
+        if self.path_to_tag_value_json:
+            self.save_tag_values_to_json(path=self._path_to_tag_value_json)
         if patient_data_reader.failed_images:
-            failed_images = {image: self.series_descriptions[image] for image in patient_data_reader.failed_images}
+            failed_images = {image: self.tag_values[image] for image in patient_data_reader.failed_images}
 
             self._patients_who_failed.append(
                 PatientWhoFailed(
                     id=patient_data_reader.patient_id,
                     failed_images=failed_images,
-                    available_series_descriptions=patient_data_reader.available_series_descriptions
+                    available_tag_values=patient_data_reader.available_tag_values
                 )
             )
 

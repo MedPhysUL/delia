@@ -46,9 +46,9 @@ def set_transforms_keys(patient_dataset: PatientDataModel) -> None:
             keys.append(series_key)
         elif modality in keys:
             raise AssertionError(f"Modality {modality} already in dict. To use 'transforms' without using "
-                                 f"'series_descriptions', there must be only one image associated to a given modality. "
-                                 f"Otherwise, use 'series_descriptions' to specify the images' names as keys in the"
-                                 f"'series_descriptions' dictionary.")
+                                 f"'tag_values', there must be only one image associated to a given modality. "
+                                 f"Otherwise, use 'tag_values' to specify the images' names as keys in the"
+                                 f"'tag_values' dictionary.")
         else:
             image_and_segmentation_data.image.transforms_key = modality
             keys.append(modality)

@@ -13,7 +13,7 @@ from collections import defaultdict
 from glob import glob
 import logging
 import os
-from typing import Dict, List, NamedTuple, Set
+from typing import Dict, List, NamedTuple, Set, Union, Tuple
 
 import pydicom
 import SimpleITK as sitk
@@ -34,16 +34,16 @@ class DicomReader:
 
     class SeriesData(NamedTuple):
         """
-        Series description namedtuple to simplify management of values.
+        Tag value namedtuple to simplify management of values.
         """
-        series_description: str
+        tag_value: str
         paths_to_dicoms_from_series: List[str]
         dicom_header: pydicom.dataset.FileDataset
 
     def __init__(
             self,
             path_to_patient_folder: str,
-            tag: str
+            tag: Union[str, Tuple[int, int]]
     ):
         """
         Constructor of the class DicomReader.
@@ -52,8 +52,8 @@ class DicomReader:
         ----------
         path_to_patient_folder : str
             Path to the folder containing the patient DICOM files.
-        tag : str
-            Name of the DICOM tag to use while selecting which files to extract.
+        tag : Union[str, Tuple[int, int]]
+            Keyword or tuple of the DICOM tag to use while selecting which files to extract.
         """
         super(DicomReader, self).__init__()
 
@@ -93,21 +93,21 @@ class DicomReader:
         return loaded_dicom
 
     @staticmethod
-    def _get_series_description(dicom_header: pydicom.FileDataset, tag: str) -> str:
+    def _get_tag_value(dicom_header: pydicom.FileDataset, tag: Union[str, Tuple[int, int]]) -> str:
         """
-        Get Series Description of given DICOM header.
+        Get tag value of given DICOM header.
 
         Parameters
         ----------
         dicom_header : pydicom.dataset.FileDataset
             Loaded DICOM dataset.
-        tag : str
-            Name of the DICOM tag to use while selecting which files to extract.
+        tag : Union[str, Tuple[int, int]]
+            Keyword or tuple of the DICOM tag to use while selecting which files to extract.
 
         Returns
         -------
-        series_description : str
-            Series Description.
+        tag_value : str
+            tag value.
         """
         if hasattr(dicom_header, tag):
             if isinstance(dicom_header[tag].value, str):
@@ -173,7 +173,7 @@ class DicomReader:
             all_patient_ids.add(loaded_dicom_header.PatientID)
 
             series_data = self.SeriesData(
-                series_description=self._get_series_description(loaded_dicom_header, self.tag),
+                tag_value=self._get_tag_value(loaded_dicom_header, self.tag),
                 paths_to_dicoms_from_series=paths,
                 dicom_header=loaded_dicom_header
             )
@@ -240,7 +240,7 @@ class DicomReader:
                 _logger.info(f"Patient ID : {series_data.dicom_header.PatientID}")
                 _logger.debug(f"Path to images folder : {self._path_to_patient_folder}")
 
-            _logger.debug(f"  Series description : {series_data.series_description}")
+            _logger.debug(f"  Tag value : {series_data.tag_value}")
 
             if not remove_segmentations:
                 dicom_headers.append(series_data.dicom_header)
@@ -271,13 +271,13 @@ class DicomReader:
         images_data = []
         for idx, series_data in enumerate(self.__series_data_dict.values()):
             if idx == 0:
-                _logger.info(f"Series description found in the patient's images folder :")
-            _logger.info(f"  Series description {idx + 1}: {series_data.series_description}")
+                _logger.info(f"Tag values found in the patient's images folder :")
+            _logger.info(f"  Tag values {idx + 1}: {series_data.tag_value}")
 
             if remove_segmentations and (series_data.dicom_header.Modality in
                                          SegmentationStrategies.get_available_modalities()):
                 pass
-            elif series_data.series_description == DicomReader.UNKNOWN:
+            elif series_data.tag_value == DicomReader.UNKNOWN:
                 pass
             else:
                 try:
@@ -296,7 +296,7 @@ class DicomReader:
                 except RuntimeError as e:
                     _logger.error(
                         f"      RuntimeError : {e}. Simple ITK raised an error while loading the series named "
-                        f"{series_data.series_description}. This series is therefore ignored."
+                        f"{series_data.tag_value}. This series is therefore ignored."
                     )
 
         return images_data

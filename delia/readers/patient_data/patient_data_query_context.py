@@ -9,7 +9,7 @@
                         strategies are types of requests the client could ask the PatientDataReader class.
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union, Tuple
 
 from delia.utils.data_model import PatientDataModel
 from .patient_data_query_strategy import PatientDataQueryStrategy, PatientDataQueryStrategies
@@ -25,8 +25,8 @@ class PatientDataQueryContext:
             self,
             path_to_patient_folder: str,
             paths_to_segmentations: Optional[List[str]],
-            series_descriptions: Dict[str, List[str]],
-            tag: str,
+            tag_values: Dict[str, List[str]],
+            tag: Union[str, Tuple[int, int]],
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -38,33 +38,33 @@ class PatientDataQueryContext:
             Path to the folder containing the patient's DICOM files.
         paths_to_segmentations : Optional[List[str]]
             List of paths to the patient's segmentation files.
-        series_descriptions : Dict[str, List[str]]
-            A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
-            the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions.
-        tag : str
-            Name of the DICOM tag to use while selecting which files to extract.
+        tag_values : Dict[str, List[str]]
+            A dictionary that contains the desired tag's values for the images that absolutely needs to be extracted
+            from the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+            values associated with the specified tag.
+        tag : Union[str, Tuple[int, int]]
+            Keyword or tuple of the DICOM tag to use while selecting which files to extract.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
         self._path_to_patient_folder = path_to_patient_folder
         self._paths_to_segmentations = paths_to_segmentations
-        self._series_descriptions = series_descriptions
+        self._tag_values = tag_values
         self._erase_unused_dicom_files = erase_unused_dicom_files
         self.tag = tag
 
     @property
     def patient_data_query_strategy(self) -> PatientDataQueryStrategy:
         """
-        Patient data query strategy corresponding to the given series descriptions configuration.
+        Patient data query strategy corresponding to the given tag values configuration.
 
         Returns
         -------
         patient_data_query_strategy : PatientDataQueryStrategy
             Patient data query strategy.
         """
-        if self._series_descriptions:
-            return PatientDataQueryStrategies.SERIES_DESCRIPTION.value
+        if self._tag_values:
+            return PatientDataQueryStrategies.TAG_VALUE.value
         else:
             return PatientDataQueryStrategies.DEFAULT.value
 
@@ -81,7 +81,7 @@ class PatientDataQueryContext:
         patient_data_factory_instance = self.patient_data_query_strategy.factory(
             path_to_patient_folder=self._path_to_patient_folder,
             paths_to_segmentations=self._paths_to_segmentations,
-            series_descriptions=self._series_descriptions,
+            tag_values=self._tag_values,
             tag=self.tag,
             erase_unused_dicom_files=self._erase_unused_dicom_files
         )

@@ -27,7 +27,7 @@ class PatientDataQueryStrategies(Enum):
         factory=DefaultPatientDataFactory
     )
 
-    SERIES_DESCRIPTION = PatientDataQueryStrategy(
-        name="Series description",
+    TAG_VALUE = PatientDataQueryStrategy(
+        name="Tag value",
         factory=SeriesDescriptionPatientDataFactory
     )
