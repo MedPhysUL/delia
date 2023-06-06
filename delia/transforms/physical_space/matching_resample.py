@@ -36,7 +36,7 @@ class MatchingResampled(PhysicalSpaceTransform):
         matching_keys : KeysCollection
             Keys of the corresponding items to be transformed using the calculated coordinates of spatial bounding box
             for foreground on the image. Image keys are assumed to be arbitrary series keys defined in
-            'series_descriptions'. For the label maps, the keys are organ names. Note that if 'series_descriptions' is
+            'tag_values'. For the label maps, the keys are organ names. Note that if 'tag_values' is
             None, the image keys are assumed to be modality names.
         interpolator : Callable
             The interpolator to be used for resampling the images. Default = sitk.sitkBSpline.

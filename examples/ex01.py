@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     patients_data_extractor = PatientsDataExtractor(
         path_to_patients_folder="data/patients",
-        series_descriptions="data/series_descriptions.json",
+        tag_values="data/tag_values.json",
         transforms=Compose(
             [
                 ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
@@ -32,9 +32,9 @@ if __name__ == "__main__":
                     matching_keys=["CT_THORAX"],
                     roi_size=(96, 96, 96)
                 ),
-                PETtoSUVD(keys=["PET"]),
+                PETtoSUVD(keys=["PT"]),
                 KeepLargestConnectedComponentD(keys=["Heart"]),
-                CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="PET")
+                CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="PT")
             ]
         )
     )

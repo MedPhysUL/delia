@@ -35,11 +35,11 @@ class CopySegmentationsd(DataTransform):
         ----------
         segmented_image_key : str
             Key of the segmented image from which to copy the segmentations. Image keys are assumed to be arbitrary
-            series keys defined in 'series_descriptions'. Note that if 'series_descriptions' is None, the image keys
+            series keys defined in 'tag_values'. Note that if 'tag_values' is None, the image keys
             are assumed to be modality names.
         unsegmented_image_key : str
             Key of the unsegmented image on which to copy the segmentations. Image keys are assumed to be arbitrary
-            series keys defined in 'series_descriptions'. Note that if 'series_descriptions' is None, the image keys
+            series keys defined in 'tag_values'. Note that if 'tag_values' is None, the image keys
             are assumed to be modality names.
         """
         super().__init__(keys=[segmented_image_key, unsegmented_image_key])

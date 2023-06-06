@@ -8,7 +8,7 @@
     @Description:       This file contains all factories that inherit from the BasePatientDataFactory class.
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 from delia.readers.patient_data.factories.base_patient_data_factory import BasePatientDataFactory
 from delia.readers.image.dicom_reader import DicomReader
@@ -26,7 +26,8 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             self,
             path_to_patient_folder: str,
             paths_to_segmentations: Optional[List[str]],
-            series_descriptions: Optional[Dict[str, List[str]]],
+            tag_values: Optional[Dict[str, List[str]]],
+            tag: Union[str, Tuple[int, int]],
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -38,17 +39,20 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             Path to the folder containing the patient's image files.
         paths_to_segmentations : Optional[List[str]]
             List of paths to the patient's segmentation files.
-        series_descriptions : Optional[Dict[str, List[str]]]
-            A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
-            the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions.
+        tag_values : Optional[Dict[str, List[str]]]
+            A dictionary that contains the desired tag's values for the images that absolutely needs to be extracted
+            from the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+            values associated with the specified tag.
+        tag : Union[str, Tuple[int, int]]
+            Keyword or tuple of the DICOM tag to use while selecting which files to extract.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
         super().__init__(
             path_to_patient_folder=path_to_patient_folder,
             paths_to_segmentations=paths_to_segmentations,
-            series_descriptions=series_descriptions,
+            tag_values=tag_values,
+            tag=tag,
             erase_unused_dicom_files=erase_unused_dicom_files
         )
 
@@ -95,15 +99,16 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
 
 class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
     """
-    Class that defines the methods that are used to get the patient data. The series description patient data factory
-    consists in obtaining only the images that have the given series descriptions and their corresponding segmentations.
+    Class that defines the methods that are used to get the patient data. The tag value patient data factory
+    consists in obtaining only the images that have the given tag's desired value and their corresponding segmentations.
     """
 
     def __init__(
             self,
             path_to_patient_folder: str,
             paths_to_segmentations: Optional[List[str]],
-            series_descriptions: Optional[Dict[str, List[str]]],
+            tag_values: Optional[Dict[str, List[str]]],
+            tag: Union[str, Tuple[int, int]],
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -115,17 +120,20 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
             Path to the folder containing the patient's image files.
         paths_to_segmentations : Optional[List[str]]
             List of paths to the patient's segmentation files.
-        series_descriptions : Optional[Dict[str, List[str]]]
-            A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
-            the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions.
+        tag_values : Optional[Dict[str, List[str]]]
+            A dictionary that contains the desired tag's values for the images that absolutely needs to be extracted
+            from the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+            values associated with the specified tag.
+        tag : Union[str, Tuple[int, int]]
+            Keyword or tuple of the DICOM tag to use while selecting which files to extract.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
         super().__init__(
             path_to_patient_folder=path_to_patient_folder,
             paths_to_segmentations=paths_to_segmentations,
-            series_descriptions=series_descriptions,
+            tag_values=tag_values,
+            tag=tag,
             erase_unused_dicom_files=erase_unused_dicom_files
         )
 
@@ -141,10 +149,12 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
         data = []
         for image_idx, image in enumerate(self._images_data):
             image_added = False
-            series_description = image.dicom_header.SeriesDescription
-
-            for series_key, list_of_series_descriptions in self._series_descriptions.items():
-                if series_description in list_of_series_descriptions:
+            if isinstance(image.dicom_header[self.tag].value, str):
+                tag_value = image.dicom_header[self.tag].value
+            else:
+                tag_value = image.dicom_header[self.tag].repval
+            for series_key, list_of_tag_values in self._tag_values.items():
+                if tag_value in list_of_tag_values:
                     image.series_key = series_key
 
                     segmentations = []

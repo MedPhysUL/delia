@@ -34,8 +34,8 @@ class Resampled(PhysicalSpaceTransform):
         ----------
         keys : KeysCollection
             Keys of the corresponding items to be transformed. Image keys are assumed to be arbitrary series keys
-            defined in 'series_descriptions'. For the label maps, the keys are organ names. Note that if
-            'series_descriptions' is None, the image keys are assumed to be modality names.
+            defined in 'tag_values'. For the label maps, the keys are organ names. Note that if
+            'tag_values' is None, the image keys are assumed to be modality names.
         out_spacing : Tuple[int, int, int], default = (1.0, 1.0, 1.0)
             The desired spacing in the physical space. Default = (1.0 mm, 1.0 mm, 1.0 mm).
         interpolator : Callable

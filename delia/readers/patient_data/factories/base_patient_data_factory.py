@@ -11,7 +11,7 @@
 
 from abc import ABC, abstractmethod
 from os import remove
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 import pydicom
 
@@ -28,7 +28,8 @@ class BasePatientDataFactory(ABC):
             self,
             path_to_patient_folder: str,
             paths_to_segmentations: Optional[List[str]],
-            series_descriptions: Optional[Dict[str, List[str]]],
+            tag_values: Optional[Dict[str, List[str]]],
+            tag: Union[str, Tuple[int, int]],
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -40,19 +41,22 @@ class BasePatientDataFactory(ABC):
             Path to the folder containing the patient's image files.
         paths_to_segmentations : Optional[List[str]]
             List of paths to the patient's segmentation files.
-        series_descriptions : Optional[Dict[str, List[str]]]
-            A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
-            the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions.
+        tag_values : Optional[Dict[str, List[str]]]
+            A dictionary that contains the desired tag's values for the images that absolutely needs to be extracted
+            from the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+            values associated with the specified tag.
+        tag : Union[str, Tuple[int, int]]
+            Keyword or tuple of the DICOM tag to use while selecting which files to extract.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
         self._path_to_patient_folder = path_to_patient_folder
         self._paths_to_segmentations = paths_to_segmentations
-        self._series_descriptions = series_descriptions
+        self._tag_values = tag_values
         self._erase_unused_dicom_files = erase_unused_dicom_files
+        self.tag = tag
 
-        dicom_reader = DicomReader(path_to_patient_folder=self._path_to_patient_folder)
+        dicom_reader = DicomReader(path_to_patient_folder=self._path_to_patient_folder, tag=self.tag)
         self._images_data = dicom_reader.get_images_data(remove_segmentations=True)
 
     @property

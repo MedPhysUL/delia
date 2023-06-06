@@ -97,26 +97,26 @@ Images files must be in standard [**DICOM**](https://www.dicomstandard.org/) for
 
 If your segmentation files are in a research file format (`.nrrd`, `.nii`, etc.), you need to convert them into the standardized [DICOM-SEG](https://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.html) or [RTStruct](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_A.19.html) format. You can use the [pydicom-seg](https://pypi.org/project/pydicom-seg/) library to create the DICOM-SEG files OR use the [itkimage2dicomSEG](https://github.com/MaxenceLarose/itkimage2dicomSEG) python module, which provide a complete pipeline to perform this conversion. Also, you can use the [RT-Utils](https://github.com/qurit/rt-utils) library to create the RTStruct files.
 
-### Series descriptions (Optional)
+### Tag values (Optional)
 
-*This dictionary is **not** mandatory for the code to work and therefore its default value is `None`. Note that if no `series_descriptions` dictionary is given, i.e. `series_descriptions = None`, then all images will be added to the database.*
+*This dictionary is **not** mandatory for the code to work and therefore its default value is `None`. Note that if no `tag_values` dictionary is given, i.e. `tag_values = None`, then all images will be added to the database.*
 
-The series descriptions are specified as a **dictionary** that contains the series descriptions of the images that needs to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of series descriptions. The images associated with these series descriptions do not need to have a corresponding segmentation volume. If none of the descriptions match the series in a patient's files, a warning is raised and the patient is added to the list of patients for whom the pipeline has failed.
+The tag values are specified as a **dictionary** that contains the values for the tag specified when creating the PatientsDataExtractor object of the images that need to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of values for the desired tag. The images associated with these tag values do not need to have a corresponding segmentation volume. If none of the descriptions match the series in a patient's files, a warning is raised and the patient is added to the list of patients for whom the pipeline has failed.
 
-Note that the series descriptions can be specified as a classic dictionary or as a path to a **json file** that contains the series descriptions. Both methods are presented below.
+Note that the tag values can be specified as a python dictionary or as a path to a **json file** that contains the desired values. Both methods are presented below.
 
 <details>
   <summary>Using a json file</summary>
 
-Create a json file containing only the dictionary of the names given to the images we want to add (keys) and lists of series descriptions (values). Place this file in your data folder.
+Create a json file containing only the dictionary of the names given to the images we want to add (keys) and lists of tag values (values). Place this file in your data folder.
 
 Here is an example of a json file configured as expected :
 
 ```json
 {
-    "TEP": [
-        "TEP WB CORR (AC)",
-        "TEP WB XL CORR (AC)"
+    "PT": [
+        "PT WB CORR (AC)",
+        "PT WB XL CORR (AC)"
     ],
     "CT": [
         "CT 2.5 WB",
@@ -134,10 +134,10 @@ Create the organs dictionary in your main.py python file.
 Here is an example of a python dictionary instanced as expected :
 
 ```python
-series_descriptions = {
-    "TEP": [
-        "TEP WB CORR (AC)",
-        "TEP WB XL CORR (AC)"
+tag_values = {
+    "PT": [
+        "PT WB CORR (AC)",
+        "PT WB XL CORR (AC)"
     ],
     "CT": [
         "CT 2.5 WB",
@@ -155,7 +155,7 @@ It is important to configure the directory structure correctly to ensure that th
 |_📂 Project directory/
   |_📄 main.py
   |_📂 data/
-    |_📄 series_descriptions.json
+    |_📄 tag_values.json
     |_📂 patients/
       |_📂 patient1/
        	|_📄 ...
@@ -204,15 +204,15 @@ from monai.transforms import (
 
 patients_data_extractor = PatientsDataExtractor(
     path_to_patients_folder="data/patients",
-    series_descriptions="data/series_descriptions.json",
+    tag_values="data/tag_values.json",
     transforms=Compose(
         [
-            ResampleD(keys=["CT_THORAX", "TEP", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
-            CenterSpatialCropD(keys=["CT_THORAX", "TEP", "Heart"], roi_size=(1000, 160, 160)),
+            ResampleD(keys=["CT_THORAX", "PT", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
+            CenterSpatialCropD(keys=["CT_THORAX", "PT", "Heart"], roi_size=(1000, 160, 160)),
             ThresholdIntensityD(keys=["CT_THORAX"], threshold=-250, above=True, cval=-250),
             ThresholdIntensityD(keys=["CT_THORAX"], threshold=500, above=False, cval=500),
             ScaleIntensityD(keys=["CT_THORAX"], minv=0, maxv=1),
-            PETtoSUVD(keys=["TEP"])
+            PETtoSUVD(keys=["PT"])
         ]
     )
 )
@@ -242,18 +242,18 @@ import SimpleITK as sitk
 
 patients_data_extractor = PatientsDataExtractor(
     path_to_patients_folder="data/patients",
-    series_descriptions="data/series_descriptions.json",
+    tag_values="data/tag_values.json",
     transforms=Compose(
         [
             ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
-            PETtoSUVD(keys=["TEP"]),
-            CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="TEP")
+            PETtoSUVD(keys=["PT"]),
+            CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="PT")
         ]
     )
 )
 
 for patient_dataset in patients_data_extractor:
-	print(f"Patient ID: {patient_data.patient_id}")
+    print(f"Patient ID: {patient_dataset.patient_id}")
 
     for patient_image_data in patient_dataset.data:
         dicom_header = patient_image_data.image.dicom_header
@@ -270,13 +270,15 @@ You can find more in the [examples folder](https://github.com/MaxenceLarose/deli
 
 # A deeper look into the `PatientsDataExtractor` object
 
-The `PatientsDataExtractor` has 3 important variables:  a `path_to_patients_folder` (which dictates the path to the folder that contains all patient records), a `series_descriptions` (which dictates the images that needs to be extracted from the patient records) and `transforms` that defines a sequence of transformations to apply on images or segmentations. For each patient/folder available in the `path_to_patients_folder`, all DICOM files in their folder are read. If the series descriptions of a certain volume match one of the descriptions present in the given `series_descriptions` dictionary, this volume and its segmentation (if available) are automatically added to the `PatientDataModel`. Note that if no `series_descriptions` dictionary is given (`series_descriptions = None`), then all images (and associated segmentations) will be added to the database. 
+The `PatientsDataExtractor` has 4 important variables:  a `path_to_patients_folder` (which dictates the path to the folder that contains all patient records), a `tag` (which specifies which tag to use when choosing which images need to be extracted, if no value is given, this defaults to `SeriesDescription`), a `tag_values` (which dictates the images that needs to be extracted from the patient records) and `transforms` that defines a sequence of transformations to apply on images or segmentations. For each patient/folder available in the `path_to_patients_folder`, all DICOM files in their folder are read. If the specified tag's value of a certain volume match one of the descriptions present in the given `tag_values` dictionary, this volume and its segmentation (if available) are automatically added to the `PatientDataModel`. Note that if no `tag_values` dictionary is given (`tag_values = None`), then all images (and associated segmentations) will be added to the database. 
 
 The `PatientsDataExtractor` can therefore be used to iteratively perform tasks on each of the patients, such as displaying certain images, transforming images into numpy arrays, or creating an HDF5 database using the `PatientsDatabase`. It is this last task that is highlighted in this package, but it must be understood that the data extraction is performed in a very general manner by the `PatientsDataExtractor` and is therefore not limited to this single application. For example, someone could easily develop a `Numpydatabase` whose creation would be ensured by the `PatientsDataExtractor`, similar to the current `PatientsDatabase` based on the HDF5 format.
 
 # TODO
 
-- [ ] Generalize the use of arbitrary tags to choose images to extract. At the moment, the only tag available is `series_descriptions`.
+- [√] Generalize the use of arbitrary tags to choose images to extract. At the moment, the only tag available is `series_descriptions`.
+- [ ] Find which DICOM tags act in unusual ways such as having data associated with .repval and .value which differ by more than just their type. For now, both are used to obtain the same value in delia/readers/patient_data/factories/patient_data_factories.py (152-155) and delia/readers/image/dicom_reader.py (113-116).
+- [ ] Allow for more comprehensive use of tags such as using AND, OR and NOT between tags and their values. 
 - [ ] Loosen monai version requirements (monai==1.0.1) to allow for more recent versions. This needs a redefinition of the way transforms are applied.
 
 

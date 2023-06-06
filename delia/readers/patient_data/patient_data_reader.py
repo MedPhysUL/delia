@@ -10,7 +10,7 @@
 """
 
 import logging
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from monai.transforms import Compose
 from monai.transforms import MapTransform as MonaiMapTransform
@@ -34,32 +34,36 @@ class PatientDataReader(DicomReader):
     def __init__(
             self,
             path_to_patient_folder: str,
-            series_descriptions: Optional[Dict[str, List[str]]],
+            tag_values: Optional[Dict[str, List[str]]],
+            tag: Union[str, Tuple[int, int]],
             erase_unused_dicom_files: bool = False
     ):
         """
-        Used to check availability of given series' uid and series descriptions in the patient's dicom files.
+        Used to check availability of given series' uid and tag values in the patient's dicom files.
 
         Parameters
         ----------
         path_to_patient_folder : str
             Path to the folder containing the patient's files.
-        series_descriptions : Dict[str, List[str]]
-            A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
-            the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions.
+        tag_values : Dict[str, List[str]]
+            A dictionary that contains the desired tag's values for the images that absolutely needs to be extracted
+            from the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+            values associated with the specified tag.
+        tag : Union[str, Tuple[int, int]]
+            Keyword or tuple of the DICOM tag to use while selecting which files to extract.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
-        super().__init__(path_to_patient_folder=path_to_patient_folder)
+        self.tag = tag
+        super().__init__(path_to_patient_folder=path_to_patient_folder, tag=self.tag)
 
         self._images_dicom_headers = self.get_dicom_headers(remove_segmentations=True)
-        self._series_descriptions = series_descriptions
+        self._tag_values = tag_values
         self._erase_unused_dicom_files = erase_unused_dicom_files
 
         self.failed_images = []
-        if series_descriptions is not None:
-            self.check_availability_of_given_series_description()
+        if tag_values is not None:
+            self.check_availability_of_given_tag_value()
 
     @property
     def patient_id(self) -> str:
@@ -90,68 +94,68 @@ class PatientDataReader(DicomReader):
         return paths_to_segmentations
 
     @property
-    def series_descriptions(self) -> Dict[str, List[str]]:
+    def tag_values(self) -> Dict[str, List[str]]:
         """
-        Series descriptions setter.
+        Tag values setter.
 
         Returns
         -------
-        series_descriptions : Dict[str, List[str]]
-            A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
-            the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions.
+        tag_values : Dict[str, List[str]]
+            A dictionary that contains the desired tag's values for the images that absolutely needs to be extracted
+            from the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+            values associated with the specified tag.
         """
-        return self._series_descriptions
+        return self._tag_values
 
-    @series_descriptions.setter
-    def series_descriptions(self, series_descriptions: Dict[str, List[str]]):
+    @tag_values.setter
+    def tag_values(self, tag_values: Dict[str, List[str]]):
         """
-        Series descriptions setter.
+        Tag values setter.
 
         Parameters
         ----------
-        series_descriptions : Dict[str, List[str]]
-            A dictionary that contains the series descriptions of the images that absolutely needs to be extracted from
-            the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
-            series descriptions.
+        tag_values : Dict[str, List[str]]
+            A dictionary that contains the desired tag's values for the images that absolutely needs to be extracted
+            from the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
+            values associated with the specified tag.
         """
-        items = list(series_descriptions.items())
+        items = list(tag_values.items())
         for previous_items, current_items in zip(items, items[1:]):
             set_intersection = set(previous_items[1]) & set(current_items[1])
 
             if bool(set_intersection):
                 raise AssertionError(
-                    f"\nThe dictionary of series descriptions should not contain the same series names for different "
+                    f"\nThe dictionary of tag values should not contain the same series names for different "
                     f"images/modalities. \nHowever, here we find the series names {previous_items[1]} for the "
                     f"{previous_items[0]} image and {current_items[1]} for the {current_items[0]} image. \nClearly, "
                     f"the images series values are overlapping because of the series named {set_intersection}."
                 )
 
-        self.series_descriptions = series_descriptions
+        self.tag_values = tag_values
 
     @property
-    def available_series_descriptions(self) -> List[str]:
+    def available_tag_values(self) -> List[str]:
         """
-        Available series descriptions.
+        Available values of the specified tag.
 
         Returns
         -------
-        available_series_descriptions : List[str]
-            Available series descriptions in the patient dicom files.
+        available_tag_values : List[str]
+            Available values of the specified tag in the patient dicom files.
         """
-        available_series_descriptions = [
-            self._get_series_description(dicom_header) for dicom_header in self._images_dicom_headers
+        available_tag_values = [
+            self._get_tag_value(dicom_header, self.tag) for dicom_header in self._images_dicom_headers
         ]
 
-        return available_series_descriptions
+        return available_tag_values
 
-    def check_availability_of_given_series_description(self) -> None:
+    def check_availability_of_given_tag_value(self) -> None:
         """
-        Check availability of given series description in the patient's dicom files.
+        Check availability of given value for specified tag in the patient's dicom files.
         """
-        _logger.debug("Checking availability of given series description...")
-        for series_key, series_description_list in self.series_descriptions.items():
-            if any(series in self.available_series_descriptions for series in series_description_list):
+        _logger.debug("Checking availability of given value for specified tag...")
+        for series_key, tag_value_list in self.tag_values.items():
+            if any(series in self.available_tag_values for series in tag_value_list):
                 pass
             else:
                 self.record_failed_images(series_key)
@@ -168,8 +172,8 @@ class PatientDataReader(DicomReader):
         """
         _logger.error(
             f"Patient with ID {self.patient_id} has no series available that correlates with the image '{series_key}'. "
-            f"The expected series descriptions for this image are {self.series_descriptions[series_key]} while the "
-            f"patient record only contains the following series descriptions: {self.available_series_descriptions}."
+            f"The expected values of specified tag for this image are {self.tag_values[series_key]} while the "
+            f"patient record only contains the following values: {self.available_tag_values}."
         )
 
         self.failed_images.append(series_key)
@@ -187,8 +191,8 @@ class PatientDataReader(DicomReader):
             A sequence of transformations to apply. PhysicalSpaceTransform are applied in the physical space, i.e on
             the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that
             represents the image. DataTransform transforms the data using other a patient's other images or
-            segmentations. The keys for images are assumed to be the arbitrary series key set in 'series_descriptions'.
-            For segmentation, keys are organ names. Note that if 'series_descriptions' is None, the keys for images are
+            segmentations. The keys for images are assumed to be the arbitrary series key set in 'tag_values'.
+            For segmentation, keys are organ names. Note that if 'tag_values' is None, the keys for images are
             assumed to be modalities.
 
         Returns
@@ -200,7 +204,8 @@ class PatientDataReader(DicomReader):
         patient_data_context = PatientDataQueryContext(
             path_to_patient_folder=self._path_to_patient_folder,
             paths_to_segmentations=self.paths_to_segmentations,
-            series_descriptions=self._series_descriptions,
+            tag_values=self._tag_values,
+            tag=self.tag,
             erase_unused_dicom_files=self._erase_unused_dicom_files
         )
         patient_dataset = patient_data_context.create_patient_data()
