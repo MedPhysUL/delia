@@ -137,4 +137,3 @@ pyproject.toml
 # Local data
 prostate/
 patients/
-examples/.DS_Store

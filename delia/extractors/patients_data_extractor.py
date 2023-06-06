@@ -15,7 +15,7 @@ from copy import deepcopy
 import json
 import logging
 import os
-from typing import Dict, List, NamedTuple, Optional, Union, Tuple
+from typing import Dict, List, NamedTuple, Optional, Tuple, Union
 
 from monai.transforms import Compose
 from monai.transforms import MapTransform as MonaiMapTransform

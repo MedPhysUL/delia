@@ -11,7 +11,7 @@
 
 from abc import ABC, abstractmethod
 from os import remove
-from typing import Dict, List, Optional, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import pydicom
 

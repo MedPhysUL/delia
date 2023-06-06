@@ -34,11 +34,11 @@ if __name__ == "__main__":
         tag_values="data/tag_values.json",
         transforms=Compose(
             [
-                ResampleD(keys=["CT_THORAX", "PET", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
-                MatchingResampleD(reference_image_key="CT_THORAX", matching_keys=["PET", "Heart"]),
-                CenterSpatialCropD(keys=["CT_THORAX", "PET", "Heart"], roi_size=(1000, 160, 160)),
+                ResampleD(keys=["CT_THORAX", "PT", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
+                MatchingResampleD(reference_image_key="CT_THORAX", matching_keys=["PT", "Heart"]),
+                CenterSpatialCropD(keys=["CT_THORAX", "PT", "Heart"], roi_size=(1000, 160, 160)),
                 ScaleIntensityRangeD(keys=["CT_THORAX"], a_min=-250, a_max=500, b_min=0, b_max=1, clip=True),
-                PETtoSUVD(keys=["PET"])
+                PETtoSUVD(keys=["PT"])
             ]
         )
     )

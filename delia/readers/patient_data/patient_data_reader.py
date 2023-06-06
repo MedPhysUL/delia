@@ -10,7 +10,7 @@
 """
 
 import logging
-from typing import Dict, List, Optional, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from monai.transforms import Compose
 from monai.transforms import MapTransform as MonaiMapTransform

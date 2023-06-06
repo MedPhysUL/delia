@@ -9,7 +9,7 @@
                         strategies are types of requests the client could ask the PatientDataReader class.
 """
 
-from typing import Dict, List, Optional, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from delia.utils.data_model import PatientDataModel
 from .patient_data_query_strategy import PatientDataQueryStrategy, PatientDataQueryStrategies

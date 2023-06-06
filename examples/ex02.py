@@ -25,8 +25,8 @@ if __name__ == "__main__":
         tag_values="data/radiomics_tag_values.json",
         transforms=Compose(
             [
-                PETtoSUVD(keys=["PET"]),
-                CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="PET")
+                PETtoSUVD(keys=["PT"]),
+                CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="PT")
             ]
         )
     )
@@ -61,5 +61,5 @@ if __name__ == "__main__":
     PT_radiomics_dataset.create(
         patients_data_extractor=patients_data_extractor,
         organ="Heart",
-        image_name="PET"
+        image_name="PT"
     )

@@ -13,7 +13,7 @@ from collections import defaultdict
 from glob import glob
 import logging
 import os
-from typing import Dict, List, NamedTuple, Set, Union, Tuple
+from typing import Dict, List, NamedTuple, Set, Tuple, Union
 
 import pydicom
 import SimpleITK as sitk
@@ -240,7 +240,7 @@ class DicomReader:
                 _logger.info(f"Patient ID : {series_data.dicom_header.PatientID}")
                 _logger.debug(f"Path to images folder : {self._path_to_patient_folder}")
 
-            _logger.debug(f"  Tag value : {series_data.tag_value}")
+            _logger.debug(f"  {self.tag} : {series_data.tag_value}")
 
             if not remove_segmentations:
                 dicom_headers.append(series_data.dicom_header)
@@ -272,7 +272,7 @@ class DicomReader:
         for idx, series_data in enumerate(self.__series_data_dict.values()):
             if idx == 0:
                 _logger.info(f"Tag values found in the patient's images folder :")
-            _logger.info(f"  Tag values {idx + 1}: {series_data.tag_value}")
+            _logger.info(f"  {self.tag} {idx + 1}: {series_data.tag_value}")
 
             if remove_segmentations and (series_data.dicom_header.Modality in
                                          SegmentationStrategies.get_available_modalities()):

@@ -101,9 +101,9 @@ If your segmentation files are in a research file format (`.nrrd`, `.nii`, etc.)
 
 *This dictionary is **not** mandatory for the code to work and therefore its default value is `None`. Note that if no `tag_values` dictionary is given, i.e. `tag_values = None`, then all images will be added to the database.*
 
-The tag values are specified as a **dictionary** that contains the values for the tag specified when calling creating the PatientsDataExtractor object of the images that needs to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of values for the desired tag. The images associated with these tag values do not need to have a corresponding segmentation volume. If none of the descriptions match the series in a patient's files, a warning is raised and the patient is added to the list of patients for whom the pipeline has failed.
+The tag values are specified as a **dictionary** that contains the values for the tag specified when creating the PatientsDataExtractor object of the images that need to be extracted from the patients' files. Keys are arbitrary names given to the images we want to add and values are lists of values for the desired tag. The images associated with these tag values do not need to have a corresponding segmentation volume. If none of the descriptions match the series in a patient's files, a warning is raised and the patient is added to the list of patients for whom the pipeline has failed.
 
-Note that the tag values can be specified as a classic dictionary or as a path to a **json file** that contains the desired values. Both methods are presented below.
+Note that the tag values can be specified as a python dictionary or as a path to a **json file** that contains the desired values. Both methods are presented below.
 
 <details>
   <summary>Using a json file</summary>
@@ -114,9 +114,9 @@ Here is an example of a json file configured as expected :
 
 ```json
 {
-    "TEP": [
-        "TEP WB CORR (AC)",
-        "TEP WB XL CORR (AC)"
+    "PT": [
+        "PT WB CORR (AC)",
+        "PT WB XL CORR (AC)"
     ],
     "CT": [
         "CT 2.5 WB",
@@ -135,9 +135,9 @@ Here is an example of a python dictionary instanced as expected :
 
 ```python
 tag_values = {
-    "TEP": [
-        "TEP WB CORR (AC)",
-        "TEP WB XL CORR (AC)"
+    "PT": [
+        "PT WB CORR (AC)",
+        "PT WB XL CORR (AC)"
     ],
     "CT": [
         "CT 2.5 WB",
@@ -207,12 +207,12 @@ patients_data_extractor = PatientsDataExtractor(
     tag_values="data/tag_values.json",
     transforms=Compose(
         [
-            ResampleD(keys=["CT_THORAX", "TEP", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
-            CenterSpatialCropD(keys=["CT_THORAX", "TEP", "Heart"], roi_size=(1000, 160, 160)),
+            ResampleD(keys=["CT_THORAX", "PT", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
+            CenterSpatialCropD(keys=["CT_THORAX", "PT", "Heart"], roi_size=(1000, 160, 160)),
             ThresholdIntensityD(keys=["CT_THORAX"], threshold=-250, above=True, cval=-250),
             ThresholdIntensityD(keys=["CT_THORAX"], threshold=500, above=False, cval=500),
             ScaleIntensityD(keys=["CT_THORAX"], minv=0, maxv=1),
-            PETtoSUVD(keys=["TEP"])
+            PETtoSUVD(keys=["PT"])
         ]
     )
 )
@@ -246,14 +246,14 @@ patients_data_extractor = PatientsDataExtractor(
     transforms=Compose(
         [
             ResampleD(keys=["CT_THORAX", "Heart"], out_spacing=(1.5, 1.5, 1.5)),
-            PETtoSUVD(keys=["TEP"]),
-            CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="TEP")
+            PETtoSUVD(keys=["PT"]),
+            CopySegmentationsD(segmented_image_key="CT_THORAX", unsegmented_image_key="PT")
         ]
     )
 )
 
 for patient_dataset in patients_data_extractor:
-	print(f"Patient ID: {patient_data.patient_id}")
+    print(f"Patient ID: {patient_dataset.patient_id}")
 
     for patient_image_data in patient_dataset.data:
         dicom_header = patient_image_data.image.dicom_header

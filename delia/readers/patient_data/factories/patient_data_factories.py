@@ -8,7 +8,7 @@
     @Description:       This file contains all factories that inherit from the BasePatientDataFactory class.
 """
 
-from typing import Dict, List, Optional, Union, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from delia.readers.patient_data.factories.base_patient_data_factory import BasePatientDataFactory
 from delia.readers.image.dicom_reader import DicomReader
