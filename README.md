@@ -276,7 +276,7 @@ The `PatientsDataExtractor` can therefore be used to iteratively perform tasks o
 
 # TODO
 
-- [√] Generalize the use of arbitrary tags to choose images to extract. At the moment, the only tag available is `series_descriptions`.
+- [x] Generalize the use of arbitrary tags to choose images to extract. At the moment, the only tag available is `series_descriptions`.
 - [ ] Find which DICOM tags act in unusual ways such as having data associated with .repval and .value which differ by more than just their type. For now, both are used to obtain the same value in delia/readers/patient_data/factories/patient_data_factories.py (152-155) and delia/readers/image/dicom_reader.py (113-116).
 - [ ] Allow for more comprehensive use of tags such as using AND, OR and NOT between tags and their values. 
 - [ ] Loosen monai version requirements (monai==1.0.1) to allow for more recent versions. This needs a redefinition of the way transforms are applied.
