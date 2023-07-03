@@ -216,12 +216,8 @@ class RadiomicsDataset:
 
         self._check_authorization_of_dataset_creation(overwrite_dataset=overwrite_dataset)
 
-        patients_ids: List[str] = []
-        radiomics_features: List[Dict] = []
+        radiomics_features: Dict[str, dict] = {}
         for patient_idx, patient_dataset in enumerate(patients_data_extractor):
-            patient_id = patient_dataset.patient_id
-            patients_ids.append(patient_id)
-
             image, mask = None, None
             for image_idx, patient_image_data in enumerate(patient_dataset.data):
                 series_key = patient_image_data.image.series_key
@@ -268,25 +264,10 @@ class RadiomicsDataset:
                     voxelBased=kwargs.get("voxel_based", False)
                 )
 
-                radiomics_features.append(radiomics)
+                radiomics_features[patient_dataset.patient_id] = radiomics
 
         if radiomics_features:
-            radiomics_features_of_multiple_patients = self.convert_list_of_dicts_to_dict_of_lists(
-                list_of_dicts=radiomics_features
-            )
-
-            dataframe = pd.DataFrame(
-                data=radiomics_features_of_multiple_patients,
-                index=patients_ids
-            )
-
-            dataframe.to_csv(
-                path_or_buf=self.path_to_dataset,
-                sep=",",
-                index=True,
-                index_label=self.DEFAULT_INDEX_LABEL
-            )
-
+            self.save(radiomics_features=radiomics_features)
         else:
             _logger.error(
                 f"No images found for all patients. The radiomics dataset with path {self.path_to_dataset} was "
@@ -308,3 +289,33 @@ class RadiomicsDataset:
         dataframe = pd.read_csv(filepath_or_buffer=self.path_to_dataset, index_col=self.DEFAULT_INDEX_LABEL)
 
         return dataframe
+
+    def save(
+            self,
+            radiomics_features: Dict[str, dict]
+    ) -> None:
+        """
+        Save radiomics features to dataset. The dataset is overwritten.
+
+        Parameters
+        ----------
+        radiomics_features : Dict[str, dict]
+            Radiomics features of multiple patients. The keys are the patient IDs, the values are the radiomics features
+            of the corresponding patient. The radiomics features are stored in a dictionary, where the keys are the
+            feature names and the values are the feature values.
+        """
+        radiomics_features_of_multiple_patients = self.convert_list_of_dicts_to_dict_of_lists(
+            list_of_dicts=list(radiomics_features.values())
+        )
+
+        dataframe = pd.DataFrame(
+            data=radiomics_features_of_multiple_patients,
+            index=list(radiomics_features.keys())
+        )
+
+        dataframe.to_csv(
+            path_or_buf=self.path_to_dataset,
+            sep=",",
+            index=True,
+            index_label=self.DEFAULT_INDEX_LABEL
+        )
