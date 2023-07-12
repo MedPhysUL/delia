@@ -262,6 +262,7 @@ class PatientsDatabase:
             organs_to_keep = [organs_to_keep]
 
         with h5py.File(self.path_to_database, "w") as file:
+            patients_data_extractor.reset()
             number_of_patients = len(patients_data_extractor)
             for patient_idx, patient_dataset in enumerate(patients_data_extractor):
                 patient_id = patient_dataset.patient_id
