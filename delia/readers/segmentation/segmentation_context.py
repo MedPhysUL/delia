@@ -10,6 +10,8 @@
                         segmentation object factory.
 """
 
+from typing import List, Optional
+
 import pydicom
 
 from .segmentation_strategy import SegmentationStrategy, SegmentationStrategies
@@ -27,7 +29,8 @@ class SegmentationContext:
     def __init__(
             self,
             image: ImageDataModel,
-            path_to_segmentation: str
+            path_to_segmentation: str,
+            organs: Optional[List[str]] = None
     ):
         """
         Constructor of the SegmentationContext class.
@@ -39,9 +42,12 @@ class SegmentationContext:
             the paths to each dicom contained in the series.
         path_to_segmentation : str
             The path to the segmentation file.
+        organs : Optional[List[str]]
+            A set of the organs to segment.
         """
         self._image = image
         self._path_to_segmentation = path_to_segmentation
+        self._organs = organs
 
     @property
     def path_to_segmentation(self) -> str:
@@ -128,7 +134,8 @@ class SegmentationContext:
         """
         return self.segmentation_strategy.factory(
             image=self._image,
-            path_to_segmentation=self.path_to_segmentation
+            path_to_segmentation=self.path_to_segmentation,
+            organs=self._organs
         )
 
     def create_segmentation(self) -> Segmentation:

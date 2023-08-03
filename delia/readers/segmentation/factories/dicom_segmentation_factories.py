@@ -10,7 +10,7 @@
 """
 
 from abc import abstractmethod
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import pydicom
@@ -33,7 +33,8 @@ class BaseDicomSegmentationFactory(BaseSegmentationFactory):
     def __init__(
             self,
             image: ImageDataModel,
-            path_to_segmentation: str
+            path_to_segmentation: str,
+            organs: Optional[List[str]] = None
     ):
         """
         Used to load the segmentation data from the path to segmentation.
@@ -45,10 +46,13 @@ class BaseDicomSegmentationFactory(BaseSegmentationFactory):
             the paths to each dicom contained in the series.
         path_to_segmentation : str
             The path to the segmentation file.
+        organs : Optional[List[str]]
+            The set of organs to save.
         """
         super().__init__(
             image=image,
-            path_to_segmentation=path_to_segmentation
+            path_to_segmentation=path_to_segmentation,
+            organs=organs
         )
 
         self._dicom: pydicom.FileDataset = pydicom.dcmread(path_to_segmentation)
@@ -74,7 +78,8 @@ class DicomSEGSegmentationFactory(BaseDicomSegmentationFactory):
     def __init__(
             self,
             image: ImageDataModel,
-            path_to_segmentation: str
+            path_to_segmentation: str,
+            organs: Optional[List[str]] = None
     ):
         """
         Used to load the segmentation data from the path to segmentation.
@@ -86,10 +91,13 @@ class DicomSEGSegmentationFactory(BaseDicomSegmentationFactory):
             the paths to each dicom contained in the series.
         path_to_segmentation : str
             The path to the segmentation file.
+        organs : Optional[List[str]]
+            The set of organs to save.
         """
         super().__init__(
             image=image,
-            path_to_segmentation=path_to_segmentation
+            path_to_segmentation=path_to_segmentation,
+            organs=organs
         )
 
     @property
@@ -123,9 +131,10 @@ class DicomSEGSegmentationFactory(BaseDicomSegmentationFactory):
             else:
                 organ_name = dicom_header.SegmentDescription
 
-            simple_itk_label_map = result.segment_image(segment_number)
-
-            segments.append(Segment(name=organ_name, simple_itk_label_map=simple_itk_label_map))
+            load_organ = True if self._organs is None else organ_name in self._organs
+            if load_organ:
+                simple_itk_label_map = result.segment_image(segment_number)
+                segments.append(Segment(name=organ_name, simple_itk_label_map=simple_itk_label_map))
 
         return segments
 
@@ -138,7 +147,8 @@ class RTStructSegmentationFactory(BaseDicomSegmentationFactory):
     def __init__(
             self,
             image: ImageDataModel,
-            path_to_segmentation: str
+            path_to_segmentation: str,
+            organs: Optional[List[str]] = None
     ):
         """
         Used to load the segmentation data from the path to segmentation.
@@ -150,10 +160,13 @@ class RTStructSegmentationFactory(BaseDicomSegmentationFactory):
             the paths to each dicom contained in the series.
         path_to_segmentation : str
             The path to the segmentation file.
+        organs : Optional[List[str]]
+            The set of organs to save.
         """
         super().__init__(
             image=image,
-            path_to_segmentation=path_to_segmentation
+            path_to_segmentation=path_to_segmentation,
+            organs=organs
         )
 
     @property
@@ -185,15 +198,18 @@ class RTStructSegmentationFactory(BaseDicomSegmentationFactory):
         segments = []
 
         for organ_name in segment_names:
-            array = self._reader.get_roi_mask_by_name(organ_name)
-            array = np.multiply(array, 1)
-            array = array.transpose(2, 0, 1)
+            load_organ = True if self._organs is None else organ_name in self._organs
 
-            simple_itk_label_map = sitk.GetImageFromArray(array)
-            simple_itk_label_map.SetOrigin(self._image.simple_itk_image.GetOrigin())
-            simple_itk_label_map.SetSpacing(self._image.simple_itk_image.GetSpacing())
-            simple_itk_label_map.SetDirection(self._image.simple_itk_image.GetDirection())
+            if load_organ:
+                array = self._reader.get_roi_mask_by_name(organ_name)
+                array = np.multiply(array, 1)
+                array = array.transpose(2, 0, 1)
 
-            segments.append(Segment(name=organ_name, simple_itk_label_map=simple_itk_label_map))
+                simple_itk_label_map = sitk.GetImageFromArray(array)
+                simple_itk_label_map.SetOrigin(self._image.simple_itk_image.GetOrigin())
+                simple_itk_label_map.SetSpacing(self._image.simple_itk_image.GetSpacing())
+                simple_itk_label_map.SetDirection(self._image.simple_itk_image.GetDirection())
+
+                segments.append(Segment(name=organ_name, simple_itk_label_map=simple_itk_label_map))
 
         return segments

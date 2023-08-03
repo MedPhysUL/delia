@@ -45,6 +45,8 @@ class PatientsDataExtractor(Generator):
             path_to_patients_folder: str,
             tag: Union[str, Tuple[int, int]] = "Modality",
             tag_values: Optional[Union[str, Dict[str, List[str]]]] = None,
+            load_segmentations: bool = True,
+            organs: Optional[List[str]] = None,
             transforms: Optional[Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]] = None,
             erase_unused_dicom_files: bool = False
     ) -> None:
@@ -64,6 +66,10 @@ class PatientsDataExtractor(Generator):
             values associated with the specified tag. The images associated with these values do not need to have a
             corresponding segmentation. Note that it can be specified as a path to a json dictionary that contains the
             desired values for the tag.
+        load_segmentations : bool = True
+            Whether to load the segmentations or not.
+        organs : Optional[List[str]] = None
+            A list of organs to load. If None, all organs are loaded.
         transforms : Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]
             A sequence of transformations to apply. PhysicalSpaceTransform are applied in the physical space, i.e on
             the SimpleITK image, while MonaiMapTransform are applied in the array space, i.e on the numpy array that
@@ -76,6 +82,8 @@ class PatientsDataExtractor(Generator):
         """
         self._path_to_patients_folder = path_to_patients_folder
         self._erase_unused_dicom_files = erase_unused_dicom_files
+        self._load_segmentations = load_segmentations
+        self._organs = organs
         self._transforms = self._validate_transforms(transforms)
         self.tag = tag
 
@@ -297,6 +305,8 @@ class PatientsDataExtractor(Generator):
             path_to_patient_folder=self.paths_to_patients_folders[self._current_index],
             tag_values=self.tag_values,
             tag=self.tag,
+            load_segmentations=self._load_segmentations,
+            organs=self._organs,
             erase_unused_dicom_files=self._erase_unused_dicom_files
         )
 

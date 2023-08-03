@@ -28,6 +28,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             paths_to_segmentations: Optional[List[str]],
             tag_values: Optional[Dict[str, List[str]]],
             tag: Union[str, Tuple[int, int]],
+            organs: Optional[List[str]] = None,
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -45,6 +46,8 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             values associated with the specified tag.
         tag : Union[str, Tuple[int, int]]
             Keyword or tuple of the DICOM tag to use while selecting which files to extract.
+        organs : Optional[List[str]]
+            A set of the organs to segment.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
@@ -53,6 +56,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
             paths_to_segmentations=paths_to_segmentations,
             tag_values=tag_values,
             tag=tag,
+            organs=organs,
             erase_unused_dicom_files=erase_unused_dicom_files
         )
 
@@ -75,7 +79,8 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
                 if image.dicom_header.SeriesInstanceUID == reference_uid:
                     segmentation_reader = SegmentationReader(
                         image=image,
-                        path_to_segmentation=path_to_segmentation
+                        path_to_segmentation=path_to_segmentation,
+                        organs=self._organs
                     )
 
                     segmentations.append(segmentation_reader.get_segmentation_data())
@@ -109,6 +114,7 @@ class SpecificTagPatientDataFactory(BasePatientDataFactory):
             paths_to_segmentations: Optional[List[str]],
             tag_values: Optional[Dict[str, List[str]]],
             tag: Union[str, Tuple[int, int]],
+            organs: Optional[List[str]] = None,
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -126,6 +132,8 @@ class SpecificTagPatientDataFactory(BasePatientDataFactory):
             values associated with the specified tag.
         tag : Union[str, Tuple[int, int]]
             Keyword or tuple of the DICOM tag to use while selecting which files to extract.
+        organs : Optional[List[str]]
+            A set of the organs to segment.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
@@ -134,6 +142,7 @@ class SpecificTagPatientDataFactory(BasePatientDataFactory):
             paths_to_segmentations=paths_to_segmentations,
             tag_values=tag_values,
             tag=tag,
+            organs=organs,
             erase_unused_dicom_files=erase_unused_dicom_files
         )
 
@@ -165,7 +174,8 @@ class SpecificTagPatientDataFactory(BasePatientDataFactory):
                         if image.dicom_header.SeriesInstanceUID == reference_uid:
                             segmentation_reader = SegmentationReader(
                                 image=image,
-                                path_to_segmentation=path_to_segmentation
+                                path_to_segmentation=path_to_segmentation,
+                                organs=self._organs
                             )
 
                             segmentations.append(segmentation_reader.get_segmentation_data())

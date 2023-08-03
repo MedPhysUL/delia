@@ -13,7 +13,7 @@ from collections import defaultdict
 from glob import glob
 import logging
 import os
-from typing import Dict, List, NamedTuple, Set, Tuple, Union
+from typing import Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
 import pydicom
 import SimpleITK as sitk
@@ -43,7 +43,8 @@ class DicomReader:
     def __init__(
             self,
             path_to_patient_folder: str,
-            tag: Union[str, Tuple[int, int]]
+            tag: Union[str, Tuple[int, int]],
+            load_segmentations: bool = True
     ):
         """
         Constructor of the class DicomReader.
@@ -54,11 +55,14 @@ class DicomReader:
             Path to the folder containing the patient DICOM files.
         tag : Union[str, Tuple[int, int]]
             Keyword or tuple of the DICOM tag to use while selecting which files to extract.
+        load_segmentations : bool
+            Whether to load segmentations or not.
         """
         super(DicomReader, self).__init__()
 
         is_path_valid(path=path_to_patient_folder)
         self._path_to_patient_folder = path_to_patient_folder
+        self._load_segmentations = load_segmentations
         self.tag = tag
 
         self._images_series_data_dict = {}
@@ -190,7 +194,8 @@ class DicomReader:
 
         for series_id, series_data in series_data_dict.items():
             if series_data.dicom_header.Modality in SegmentationStrategies.get_available_modalities():
-                self._segmentations_series_data_dict[series_id] = series_data
+                if self._load_segmentations:
+                    self._segmentations_series_data_dict[series_id] = series_data
             else:
                 self._images_series_data_dict[series_id] = series_data
 

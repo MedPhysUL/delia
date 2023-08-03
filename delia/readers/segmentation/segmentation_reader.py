@@ -9,6 +9,8 @@
                         and transform its contents into the format of the SegmentationDataModel class.
 """
 
+from typing import List, Optional
+
 from .segmentation_context import SegmentationContext
 from .factories.segmentation import Segmentation
 from ...utils.data_model import ImageDataModel, SegmentationDataModel
@@ -24,6 +26,7 @@ class SegmentationReader:
             self,
             image: ImageDataModel,
             path_to_segmentation: str,
+            organs: Optional[List[str]] = None
     ):
         """
         Constructor of the class SegmentationReader.
@@ -35,9 +38,12 @@ class SegmentationReader:
             the paths to each dicom contained in the series.
         path_to_segmentation : str
             The path to the segmentation file.
+        organs : Optional[List[str]]
+            A set of the organs to segment.
         """
         self._image = image
         self._path_to_segmentation = path_to_segmentation
+        self._organs = organs
 
     @property
     def __segmentation_context_manager(self) -> SegmentationContext:
@@ -51,7 +57,8 @@ class SegmentationReader:
         """
         return SegmentationContext(
             image=self._image,
-            path_to_segmentation=self._path_to_segmentation
+            path_to_segmentation=self._path_to_segmentation,
+            organs=self._organs
         )
 
     @property

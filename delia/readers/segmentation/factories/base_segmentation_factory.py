@@ -11,7 +11,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
 from ....utils.data_model import ImageDataModel
 from .segment import Segment
@@ -28,6 +28,7 @@ class BaseSegmentationFactory(ABC):
             self,
             image: ImageDataModel,
             path_to_segmentation: str,
+            organs: Optional[List[str]] = None
     ):
         """
         Used to load the segmentation data from the path to segmentation.
@@ -39,9 +40,12 @@ class BaseSegmentationFactory(ABC):
             the paths to each dicom contained in the series.
         path_to_segmentation : str
             The path to the segmentation file.
+        organs : Optional[List[str]]
+            The set of organs to save.
         """
         self._image = image
         self._path_to_segmentation = path_to_segmentation
+        self._organs = organs
 
     @property
     @abstractmethod

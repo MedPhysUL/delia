@@ -36,6 +36,8 @@ class PatientDataReader(DicomReader):
             path_to_patient_folder: str,
             tag_values: Optional[Dict[str, List[str]]],
             tag: Union[str, Tuple[int, int]],
+            load_segmentations: bool = True,
+            organs: Optional[List[str]] = None,
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -51,15 +53,23 @@ class PatientDataReader(DicomReader):
             values associated with the specified tag.
         tag : Union[str, Tuple[int, int]]
             Keyword or tuple of the DICOM tag to use while selecting which files to extract.
+        load_segmentations : bool = True
+            Whether to load the segmentation files or not.
+        organs : Optional[List[str]] = None
+            List of organs to load. If None, all organs will be loaded.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
-        self.tag = tag
-        super().__init__(path_to_patient_folder=path_to_patient_folder, tag=self.tag)
+        super().__init__(
+            path_to_patient_folder=path_to_patient_folder,
+            tag=tag,
+            load_segmentations=load_segmentations
+        )
 
         self._images_dicom_headers = self.get_dicom_headers(remove_segmentations=True)
         self._tag_values = tag_values
         self._erase_unused_dicom_files = erase_unused_dicom_files
+        self._organs = organs
 
         self.failed_images = []
         if tag_values is not None:
@@ -206,6 +216,7 @@ class PatientDataReader(DicomReader):
             paths_to_segmentations=self.paths_to_segmentations,
             tag_values=self._tag_values,
             tag=self.tag,
+            organs=self._organs,
             erase_unused_dicom_files=self._erase_unused_dicom_files
         )
         patient_dataset = patient_data_context.create_patient_data()

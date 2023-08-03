@@ -27,6 +27,7 @@ class PatientDataQueryContext:
             paths_to_segmentations: Optional[List[str]],
             tag_values: Dict[str, List[str]],
             tag: Union[str, Tuple[int, int]],
+            organs: Optional[List[str]] = None,
             erase_unused_dicom_files: bool = False
     ):
         """
@@ -44,12 +45,15 @@ class PatientDataQueryContext:
             values associated with the specified tag.
         tag : Union[str, Tuple[int, int]]
             Keyword or tuple of the DICOM tag to use while selecting which files to extract.
+        organs : Optional[List[str]]
+            A set of the organs to save.
         erase_unused_dicom_files: bool = False
             Whether to delete unused DICOM files or not. Use with caution.
         """
         self._path_to_patient_folder = path_to_patient_folder
         self._paths_to_segmentations = paths_to_segmentations
         self._tag_values = tag_values
+        self._organs = organs
         self._erase_unused_dicom_files = erase_unused_dicom_files
         self.tag = tag
 
@@ -83,6 +87,7 @@ class PatientDataQueryContext:
             paths_to_segmentations=self._paths_to_segmentations,
             tag_values=self._tag_values,
             tag=self.tag,
+            organs=self._organs,
             erase_unused_dicom_files=self._erase_unused_dicom_files
         )
 
