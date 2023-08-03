@@ -233,18 +233,21 @@ class PatientDataReader(DicomReader):
             image = image_and_segmentation_data.image
             segmentations = image_and_segmentation_data.segmentations
 
-            modality = image.dicom_header.Modality
-            series_description = image.dicom_header.SeriesDescription
-            image_segmentation_available = True if segmentations else False
-
             segmented_organs = set()
             if segmentations:
                 for segmentation in segmentations:
                     for organ in list(segmentation.simple_itk_label_maps.keys()):
                         segmented_organs.add(organ)
 
-            _logger.info(f"Series Description : {series_description}")
-            _logger.info(f"  Modality : {modality}")
+            if hasattr(image.dicom_header, "SeriesDescription"):
+                series_description = image.dicom_header.SeriesDescription
+                _logger.info(f"Series Description : {series_description}")
+
+            if hasattr(image.dicom_header, "Modality"):
+                modality = image.dicom_header.Modality
+                _logger.info(f"  Modality : {modality}")
+
+            image_segmentation_available = True if segmentations else False
             _logger.info(f"  Image Segmentation available: {image_segmentation_available}")
 
             if image_segmentation_available:

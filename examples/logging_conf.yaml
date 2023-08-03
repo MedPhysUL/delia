@@ -23,8 +23,8 @@ loggers:
   root:
     level: INFO
     handlers:
-  dicom2hdf:
+  delia:
     level: INFO
     handlers: [console, file]
     propagate: no
-    qualname: dicom2hdf
+    qualname: delia
