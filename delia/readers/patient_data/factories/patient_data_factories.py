@@ -97,7 +97,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
         return patient_data
 
 
-class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
+class SpecificTagPatientDataFactory(BasePatientDataFactory):
     """
     Class that defines the methods that are used to get the patient data. The tag value patient data factory
     consists in obtaining only the images that have the given tag's desired value and their corresponding segmentations.
@@ -112,7 +112,7 @@ class SeriesDescriptionPatientDataFactory(BasePatientDataFactory):
             erase_unused_dicom_files: bool = False
     ):
         """
-        Constructor of the class SeriesDescriptionPatientDataFactory.
+        Constructor of the class SpecificTagPatientDataFactory.
 
         Parameters
         ----------

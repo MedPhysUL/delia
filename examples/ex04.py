@@ -62,6 +62,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------------- #
     patients_data_extractor = PatientsDataExtractor(
         path_to_patients_folder="data/patients",
+        tag="SeriesDescription",
         tag_values="data/incorrect_tag_values.json"
     )
 

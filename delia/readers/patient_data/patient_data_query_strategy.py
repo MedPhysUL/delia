@@ -12,7 +12,7 @@
 from enum import Enum
 from typing import NamedTuple, Callable
 
-from .factories.patient_data_factories import DefaultPatientDataFactory, SeriesDescriptionPatientDataFactory
+from .factories.patient_data_factories import DefaultPatientDataFactory, SpecificTagPatientDataFactory
 
 
 class PatientDataQueryStrategy(NamedTuple):
@@ -29,5 +29,5 @@ class PatientDataQueryStrategies(Enum):
 
     TAG_VALUE = PatientDataQueryStrategy(
         name="Tag value",
-        factory=SeriesDescriptionPatientDataFactory
+        factory=SpecificTagPatientDataFactory
     )

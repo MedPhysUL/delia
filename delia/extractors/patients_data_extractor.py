@@ -43,7 +43,7 @@ class PatientsDataExtractor(Generator):
     def __init__(
             self,
             path_to_patients_folder: str,
-            tag: Union[str, Tuple[int, int]] = "SeriesDescription",
+            tag: Union[str, Tuple[int, int]] = "Modality",
             tag_values: Optional[Union[str, Dict[str, List[str]]]] = None,
             transforms: Optional[Union[Compose, DataTransform, MonaiMapTransform, PhysicalSpaceTransform]] = None,
             erase_unused_dicom_files: bool = False
@@ -56,9 +56,8 @@ class PatientsDataExtractor(Generator):
         ----------
         path_to_patients_folder : str
             The path to the folder that contains all the patients' folders.
-        tag : Union[str, Tuple[int, int]] = "SeriesDescription"
-            Keyword or tuple of the DICOM tag to use while selecting which files to extract. Uses SeriesDescription
-            as a default.
+        tag : Union[str, Tuple[int, int]] = "Modality"
+            Keyword or tuple of the DICOM tag to use while selecting which files to extract. Uses Modality as a default.
         tag_values : Optional[Union[str, Dict[str, List[str]]]], default = None.
             A dictionary that contains the desired tag's values for the images that absolutely needs to be extracted
             from the patient's file. Keys are arbitrary names given to the images we want to add and values are lists of
