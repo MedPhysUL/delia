@@ -294,7 +294,7 @@ This code is provided under the [Apache License 2.0](https://github.com/MaxenceL
   author={Maxence Larose},
   year={2022},
   publisher={Université Laval},
-  url={https://github.com/MaxenceLarose/delia},
+  url={https://github.com/MedPhysUL/delia},
 }
 ```
 
