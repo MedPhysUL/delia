@@ -77,6 +77,18 @@ class BasePatientDataFactory(ABC):
 
         return str(patient_id)
 
+    @property
+    def patient_path(self) -> str:
+        """
+        Patient data path.
+
+        Returns
+        -------
+        patient_path : str
+            Patient folder path.
+        """
+        return str(self._path_to_patient_folder)
+
     @staticmethod
     def get_segmentation_reference_uid(segmentation_header: pydicom.dataset.FileDataset) -> pydicom.DataElement:
         """
