@@ -275,46 +275,49 @@ class PatientsDatabase:
                 patient_path = patient_dataset.patient_path
 
                 if shallow_hierarchy is True:
-                  patient_group = file
+                    patient_group = file
                 else:
-                  patient_group = file.create_group(name=patient_id)
+                    patient_group = file.create_group(name=patient_id)
 
                 for image_idx, patient_image_data in enumerate(patient_dataset.data):
 
                     if shallow_hierarchy is True:
-                      series_group = patient_group
-                      image_name = os.path.basename(os.path.normpath(patient_path))
+                        series_group = patient_group
+                        image_name = os.path.basename(os.path.normpath(patient_path))
                     else:
-                      series_group = patient_group.create_group(name=str(image_idx))
-                      image_name = self.IMAGE
+                        series_group = patient_group.create_group(name=str(image_idx))
+                        image_name = self.IMAGE
 
-                      self._add_dicom_attributes_to_hdf5_group(
-                          patient_image_data, series_group, tags_to_use_as_attributes
-                      )
+                    self._add_dicom_attributes_to_hdf5_group(
+                        patient_image_data, series_group, tags_to_use_as_attributes
+                    )
 
-                      if add_sitk_image_metadata_as_attributes:
-                          self._add_sitk_image_attributes_to_hdf5_group(patient_image_data, series_group)
+                    if add_sitk_image_metadata_as_attributes:
+                        self._add_sitk_image_attributes_to_hdf5_group(patient_image_data, series_group)
 
-                      series_group.create_dataset(
-                          name=self.DICOM_HEADER,
-                          data=json.dumps(patient_image_data.image.dicom_header.to_json_dict())
-                      )
+                    series_group.create_dataset(
+                        name=self.DICOM_HEADER,
+                        data=json.dumps(patient_image_data.image.dicom_header.to_json_dict())
+                    )
 
                     if transpose is True:
-                      image_array = self._transpose(sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image))
+                        image_array = self._transpose(sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image))
                     else:
-                      image_array = sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image)
+                        image_array = sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image)
 
                     data_set = series_group.create_dataset(
                         name=image_name,
                         data=self._transpose(image_array)
+                    )
 
                     if shallow_hierarchy is True:
-                      self._add_dicom_attributes_to_hdf5_group(
-                          patient_image_data, data_set, tags_to_use_as_attributes
-                      )
-                      if add_sitk_image_metadata_as_attributes:
-                          self._add_sitk_image_attributes_to_hdf5_group(patient_image_data, data_set)
+                        self._add_dicom_attributes_to_hdf5_group(
+                            patient_image_data,
+                            data_set,
+                            tags_to_use_as_attributes
+                        )
+                        if add_sitk_image_metadata_as_attributes:
+                            self._add_sitk_image_attributes_to_hdf5_group(patient_image_data, data_set)
 
                     if patient_image_data.segmentations:
                         for segmentation_idx, segmentation in enumerate(patient_image_data.segmentations):
@@ -323,7 +326,9 @@ class PatientsDatabase:
 
                             for organ, simple_itk_label_map in segmentation.simple_itk_label_maps.items():
                                 if transpose is True:
-                                    numpy_array_label_map = self._transpose(sitk.GetArrayFromImage(simple_itk_label_map))
+                                    numpy_array_label_map = self._transpose(
+                                        sitk.GetArrayFromImage(simple_itk_label_map)
+                                    )
                                 else:
                                     numpy_array_label_map = sitk.GetArrayFromImage(simple_itk_label_map)
 
@@ -336,21 +341,21 @@ class PatientsDatabase:
 
                 for idx, transform in enumerate(patient_dataset.transforms_history.history):
                     if shallow_hierarchy is True:
-                      data_set.attrs.create(
-                          name=f"{self.TRANSFORMS}_{idx}",
-                          data=json.dumps(
-                              obj=transform,
-                              default=patient_dataset.transforms_history.serialize
-                          )
-                      )
+                        data_set.attrs.create(
+                            name=f"{self.TRANSFORMS}_{idx}",
+                            data=json.dumps(
+                            obj=transform,
+                            default=patient_dataset.transforms_history.serialize
+                            )
+                        )
                     else:
-                      patient_group.attrs.create(
-                          name=f"{self.TRANSFORMS}_{idx}",
-                          data=json.dumps(
-                              obj=transform,
-                              default=patient_dataset.transforms_history.serialize
-                          )
-                      )
+                        patient_group.attrs.create(
+                            name=f"{self.TRANSFORMS}_{idx}",
+                            data=json.dumps(
+                                obj=transform,
+                                default=patient_dataset.transforms_history.serialize
+                            )
+                        )
 
                 _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to database.")
 
