@@ -70,6 +70,7 @@ class PatientDataReader(DicomReader):
         self._tag_values = tag_values
         self._erase_unused_dicom_files = erase_unused_dicom_files
         self._organs = organs
+        self._path_to_patient_folder = path_to_patient_folder
 
         self.failed_images = []
         if tag_values is not None:
@@ -86,6 +87,18 @@ class PatientDataReader(DicomReader):
             Patient id.
         """
         return str(self._images_dicom_headers[0].PatientID)
+
+    @property
+    def patient_path(self) -> str:
+        """
+        Patient Path.
+
+        Returns
+        -------
+        patient_path : str
+            Patient folder path
+        """
+        return str(self._path_to_patient_folder)
 
     @property
     def paths_to_segmentations(self) -> List[str]:

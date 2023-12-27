@@ -97,6 +97,7 @@ class DefaultPatientDataFactory(BasePatientDataFactory):
 
         patient_data = PatientDataModel(
             patient_id=self.patient_id,
+            patient_path=self.patient_path,
             data=data
         )
         return patient_data
@@ -198,6 +199,7 @@ class SpecificTagPatientDataFactory(BasePatientDataFactory):
 
         patient_data = PatientDataModel(
             patient_id=self.patient_id,
+            patient_path=self.patient_path,
             data=data
         )
         return patient_data

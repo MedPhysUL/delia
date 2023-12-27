@@ -110,6 +110,7 @@ class PatientDataModel:
 
         PatientDataModel = (
             "patient_id": str,
+            "patient_path": str,
             "data": [
                 ImageAndSegmentationDataModel,
                 ImageAndSegmentationDataModel
@@ -119,5 +120,6 @@ class PatientDataModel:
         )
     """
     patient_id: str
+    patient_path: str
     data: List[ImageAndSegmentationDataModel]
     transforms_history: Optional[TransformsHistory] = None

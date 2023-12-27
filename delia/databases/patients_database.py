@@ -228,7 +228,8 @@ class PatientsDatabase:
             add_sitk_image_metadata_as_attributes: bool = True,
             organs_to_keep: Optional[Union[str, List[str]]] = None,
             overwrite_database: bool = False,
-            transpose: bool = True
+            transpose: bool = True,
+            shallow_hierarchy: bool = False
     ) -> List[PatientWhoFailed]:
         """
         Create an hdf5 file database from multiple patients dicom files and their segmentation. The goal is to create
@@ -250,6 +251,8 @@ class PatientsDatabase:
             Overwrite existing database.
         transpose : bool, default = True.
             Transpose the image array before using it.
+        shallow_hierarchy : bool, default = False.
+            Creates database with shallow hierarchy.
 
         Returns
         -------
@@ -269,32 +272,49 @@ class PatientsDatabase:
             number_of_patients = len(patients_data_extractor)
             for patient_idx, patient_dataset in enumerate(patients_data_extractor):
                 patient_id = patient_dataset.patient_id
-                patient_group = file.create_group(name=patient_id)
+                patient_path = patient_dataset.patient_path
+
+                if shallow_hierarchy is True:
+                  patient_group = file
+                else:
+                  patient_group = file.create_group(name=patient_id)
 
                 for image_idx, patient_image_data in enumerate(patient_dataset.data):
-                    series_group = patient_group.create_group(name=str(image_idx))
 
-                    self._add_dicom_attributes_to_hdf5_group(
-                        patient_image_data, series_group, tags_to_use_as_attributes
-                    )
+                    if shallow_hierarchy is True:
+                      series_group = patient_group
+                      image_name = os.path.basename(os.path.normpath(patient_path))
+                    else:
+                      series_group = patient_group.create_group(name=str(image_idx))
+                      image_name = self.IMAGE
 
-                    if add_sitk_image_metadata_as_attributes:
-                        self._add_sitk_image_attributes_to_hdf5_group(patient_image_data, series_group)
+                      self._add_dicom_attributes_to_hdf5_group(
+                          patient_image_data, series_group, tags_to_use_as_attributes
+                      )
 
-                    series_group.create_dataset(
-                        name=self.DICOM_HEADER,
-                        data=json.dumps(patient_image_data.image.dicom_header.to_json_dict())
-                    )
+                      if add_sitk_image_metadata_as_attributes:
+                          self._add_sitk_image_attributes_to_hdf5_group(patient_image_data, series_group)
+
+                      series_group.create_dataset(
+                          name=self.DICOM_HEADER,
+                          data=json.dumps(patient_image_data.image.dicom_header.to_json_dict())
+                      )
 
                     if transpose is True:
                       image_array = self._transpose(sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image))
                     else:
                       image_array = sitk.GetArrayFromImage(patient_image_data.image.simple_itk_image)
 
-                    series_group.create_dataset(
-                        name=self.IMAGE,
-                        data=image_array
-                    )
+                    data_set = series_group.create_dataset(
+                        name=image_name,
+                        data=self._transpose(image_array)
+
+                    if shallow_hierarchy is True:
+                      self._add_dicom_attributes_to_hdf5_group(
+                          patient_image_data, data_set, tags_to_use_as_attributes
+                      )
+                      if add_sitk_image_metadata_as_attributes:
+                          self._add_sitk_image_attributes_to_hdf5_group(patient_image_data, data_set)
 
                     if patient_image_data.segmentations:
                         for segmentation_idx, segmentation in enumerate(patient_image_data.segmentations):
@@ -315,13 +335,22 @@ class PatientsDatabase:
                                     )
 
                 for idx, transform in enumerate(patient_dataset.transforms_history.history):
-                    patient_group.attrs.create(
-                        name=f"{self.TRANSFORMS}_{idx}",
-                        data=json.dumps(
-                            obj=transform,
-                            default=patient_dataset.transforms_history.serialize
-                        )
-                    )
+                    if shallow_hierarchy is True:
+                      data_set.attrs.create(
+                          name=f"{self.TRANSFORMS}_{idx}",
+                          data=json.dumps(
+                              obj=transform,
+                              default=patient_dataset.transforms_history.serialize
+                          )
+                      )
+                    else:
+                      patient_group.attrs.create(
+                          name=f"{self.TRANSFORMS}_{idx}",
+                          data=json.dumps(
+                              obj=transform,
+                              default=patient_dataset.transforms_history.serialize
+                          )
+                      )
 
                 _logger.info(f"Progress : {patient_idx + 1}/{number_of_patients} patients added to database.")
 
