@@ -307,7 +307,7 @@ class PatientsDatabase:
 
                     data_set = series_group.create_dataset(
                         name=image_name,
-                        data=self._transpose(image_array)
+                        data=image_array
                     )
 
                     if shallow_hierarchy is True:
